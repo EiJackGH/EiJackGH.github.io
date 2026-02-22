@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lab: Space Invaders</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #050505; color: #00FF00; font-family: 'Courier New', Courier, monospace; }
+        canvas { border: 2px solid #00FF00; background: black; display: block; margin: 20px auto; box-shadow: 0 0 20px #00FF00; }
+        .hud { text-align: center; font-size: 1.5rem; }
+    </style>
+</head>
+<body class="p-4">
+    <div class="max-w-2xl mx-auto">
+        <a href="../../" class="text-green-800 hover:text-green-400">← Back to Lab</a>
+        <h1 class="text-3xl font-bold text-center my-4">INVADERS v1.0</h1>
+        
+        <div class="hud">SCORE: <span id="score">0</span></div>
+        <canvas id="gameCanvas" width="600" height="400"></canvas>
+        <p class="text-center text-sm">Use [Left/Right Arrows] to Move & [Space] to Shoot</p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+
+        // Game State
+        let score = 0;
+        const player = { x: 275, y: 360, w: 50, h: 20, speed: 7 };
+        const bullets = [];
+        const enemies = [];
+        const keys = {};
+
+        // Create Enemy Grid
+        for (let r = 0; r < 3; r++) {
+            for (let c = 0; c < 8; c++) {
+                enemies.push({ x: c * 60 + 50, y: r * 40 + 50, w: 40, h: 20, alive: true });
+            }
+        }
+
+        document.addEventListener('keydown', e => keys[e.code] = true);
+        document.addEventListener('keyup', e => keys[e.code] = false);
+
+        function update() {
+            // Player Movement
+            if (keys['ArrowLeft'] && player.x > 0) player.x -= player.speed;
+            if (keys['ArrowRight'] && player.x < canvas.width - player.w) player.x += player.speed;
+            if (keys['Space']) {
+                if (bullets.length < 3) { // Limit fire rate
+                    bullets.push({ x: player.x + 22, y: player.y, w: 5, h: 10 });
+                    keys['Space'] = false; // Prevents rapid fire
+                }
+            }
+
+            // Bullet Logic
+            bullets.forEach((b, i) => {
+                b.y -= 10;
+                if (b.y < 0) bullets.splice(i, 1);
+                
+                // Collision Detection
+                enemies.forEach(e => {
+                    if (e.alive && b.x < e.x + e.w && b.x + b.w > e.x && b.y < e.y + e.h && b.y + b.h > e.y) {
+                        e.alive = false;
+                        bullets.splice(i, 1);
+                        score += 10;
+                        scoreEl.innerText = score;
+                    }
+                });
+            });
+
+            draw();
+            requestAnimationFrame(update);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw Player
+            ctx.fillStyle = '#00FF00';
+            ctx.fillRect(player.x, player.y, player.w, player.h);
+
+            // Draw Bullets
+            ctx.fillStyle = '#FFFFFF';
+            bullets.forEach(b => ctx.fillRect(b.x, b.y, b.w, b.h));
+
+            // Draw Enemies
+            ctx.fillStyle = '#FF0000';
+            enemies.forEach(e => {
+                if (e.alive) ctx.fillRect(e.x, e.y, e.w, e.h);
+            });
+        }
+
+        update();
+    </script>
+</body>
+</html>
