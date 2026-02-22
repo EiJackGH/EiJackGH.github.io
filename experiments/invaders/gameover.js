@@ -36,3 +36,31 @@ const GameOver = {
 
 // Export for use in game.js
 window.GameOver = GameOver;
+
+function update() {
+    if (gameOver) return; // Logic freeze
+
+    // ... your existing movement & collision logic ...
+
+    // Check for Victory
+    if (enemies.every(e => !e.alive)) {
+        gameOver = true;
+        GameOver.listenForRestart(); // Start listening for the 'R' key
+    }
+
+    draw();
+    requestAnimationFrame(update);
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw the active game elements...
+    drawPlayer();
+    drawEnemies();
+
+    // Call the external module if the game ends
+    if (gameOver) {
+        GameOver.draw(ctx, canvas, score);
+    }
+}
