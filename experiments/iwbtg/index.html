@@ -2,17 +2,120 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>I Wanna Be The Jules</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Lab: I Wanna Be The Developer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #111; color: white; overflow: hidden; }
+        canvas { background: #222; display: block; margin: 0 auto; image-rendering: pixelated; }
+    </style>
 </head>
-<body>
-    <div id="game-container">
-        <canvas id="gameCanvas"></canvas>
+<body class="p-4">
+    <div class="max-w-4xl mx-auto text-center">
+        <h1 class="text-xl font-mono text-red-500 mb-2">EXPERIMENT: MASO-PLATFORMER</h1>
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
+        <p class="mt-4 font-mono text-sm text-gray-400">[Arrows] Move & Jump | [R] Restart | [S] Save at Flag</p>
     </div>
-    <div id="instructions">
-        <p>Arrows / WASD to move. Shift / Z to Jump. S to Save. R to Restart.</p>
-    </div>
-    <script src="game.js"></script>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// Game Constants
+const GRAVITY = 0.4;
+const JUMP_FORCE = -8;
+const PLAYER_SPEED = 4;
+
+let player = { x: 50, y: 300, w: 20, h: 20, vx: 0, vy: 0, grounded: false, respawnX: 50, respawnY: 300 };
+
+// Level Design: 0 = Empty, 1 = Floor, 2 = Spike, 3 = Save Flag
+const level = [
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0],
+    [0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1],
+    [0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,2,2,0],
+    [0,0,1,1,0,0,0,2,2,0,0,0,0,0,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+];
+const TILE_SIZE = 40;
+
+const keys = {};
+window.onkeydown = (e) => { keys[e.code] = true; if(e.code === 'KeyR') resetPlayer(); };
+window.onkeyup = (e) => keys[e.code] = false;
+
+function resetPlayer() {
+    player.x = player.respawnX;
+    player.y = player.respawnY;
+    player.vx = 0; player.vy = 0;
+}
+
+function update() {
+    // Horizontal Movement
+    if (keys['ArrowLeft']) player.vx = -PLAYER_SPEED;
+    else if (keys['ArrowRight']) player.vx = PLAYER_SPEED;
+    else player.vx = 0;
+
+    // Jump
+    if (keys['ArrowUp'] && player.grounded) {
+        player.vy = JUMP_FORCE;
+        player.grounded = false;
+    }
+
+    // Apply Physics
+    player.vy += GRAVITY;
+    player.x += player.vx;
+    player.y += player.vy;
+    player.grounded = false;
+
+    // Collision Logic
+    level.forEach((row, r) => {
+        row.forEach((tile, c) => {
+            if (tile === 0) return;
+            let tx = c * TILE_SIZE, ty = r * TILE_SIZE;
+
+            // Simple Box Collision
+            if (player.x < tx + TILE_SIZE && player.x + player.w > tx &&
+                player.y < ty + TILE_SIZE && player.y + player.h > ty) {
+                
+                if (tile === 1) { // Solid Block
+                    player.y = ty - player.h;
+                    player.vy = 0;
+                    player.grounded = true;
+                } else if (tile === 2) { // Spike
+                    resetPlayer();
+                } else if (tile === 3 && keys['KeyS']) { // Save Point
+                    player.respawnX = tx; player.respawnY = ty;
+                }
+            }
+        });
+    });
+
+    draw();
+    requestAnimationFrame(update);
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw Level
+    level.forEach((row, r) => {
+        row.forEach((tile, c) => {
+            if (tile === 1) { ctx.fillStyle = '#555'; ctx.fillRect(c*40, r*40, 40, 40); }
+            if (tile === 2) { 
+                ctx.fillStyle = '#f00'; 
+                ctx.beginPath();
+                ctx.moveTo(c*40, r*40+40); ctx.lineTo(c*40+20, r*40); ctx.lineTo(c*40+40, r*40+40);
+                ctx.fill();
+            }
+            if (tile === 3) { ctx.fillStyle = '#0f0'; ctx.fillRect(c*40+15, r*40, 10, 40); }
+        });
+    });
+
+    // Draw Player
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(player.x, player.y, player.w, player.h);
+}
+
+update();
+</script>
 </body>
 </html>
