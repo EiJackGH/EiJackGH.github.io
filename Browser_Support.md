@@ -15,3 +15,7 @@ To ensure the experiments run smoothly, please verify the following are enabled:
 * **JavaScript**: Required for all logic and rendering.
 * **Hardware Acceleration**: Recommended for 60FPS gameplay in *Space Invaders*.
 * **LocalStorage**: Used for saving high scores and experiment states.
+
+![Static Badge](https://img.shields.io/badge/Browser-Chrome%20%7C%20Firefox%20%7C%20Safari-blue)
+![Static Badge](https://img.shields.io/badge/JS-ES6%2B-yellow)
+![Static Badge](https://img.shields.io/badge/Engine-HTML5%20Canvas-orange)
