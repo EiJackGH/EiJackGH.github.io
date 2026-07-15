@@ -110,7 +110,7 @@
             <p class="text-sm text-slate-400">
               Supports MP4, WebM, OGG, MOV and other HTML5 compatible video files
             </p>
-            <p class="text-xs text-red-400 font-semibold mt-1">
+            <p id="offlineMessage" class="hidden text-xs text-red-400 font-semibold mt-1">
               No internet connection to convert
             </p>
           </div>
@@ -505,6 +505,7 @@
 
     // DOM Elements
     const dropzone = document.getElementById('dropzone');
+    const offlineMessage = document.getElementById('offlineMessage');
     const videoFileInput = document.getElementById('videoFile');
     const uploadView = document.getElementById('uploadView');
     const workspaceView = document.getElementById('workspaceView');
@@ -1019,6 +1020,19 @@
       uploadView.classList.remove('hidden');
       videoFileInput.value = '';
     });
+
+    // Internet connection monitoring
+    function updateOnlineStatus() {
+      if (navigator.onLine) {
+        offlineMessage.classList.add('hidden');
+      } else {
+        offlineMessage.classList.remove('hidden');
+      }
+    }
+
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus();
   </script>
 </body>
 </html>
