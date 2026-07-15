@@ -2,120 +2,705 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="browser-unsupported.js"></script>
-    
     <title>Lab: Space Invaders</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #050505; color: #00FF00; font-family: 'Courier New', Courier, monospace; }
-        canvas { border: 2px solid #00FF00; background: black; display: block; margin: 20px auto; box-shadow: 0 0 20px #00FF00; }
-        .hud { text-align: center; font-size: 1.5rem; }
+        body { background-color: #030303; color: #00FF00; font-family: 'Courier New', Courier, monospace; }
+        .crt-container {
+            position: relative;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.2);
+            border: 3px solid #00FF00;
+            border-radius: 8px;
+            overflow: hidden;
+            background: black;
+        }
+        /* CRT overlay */
+        .crt-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%),
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+        /* Retro glowing text */
+        .glow-text {
+            text-shadow: 0 0 8px rgba(0, 255, 0, 0.8);
+        }
+        /* Custom retro button styling */
+        .retro-btn {
+            background: transparent;
+            border: 2px solid #00FF00;
+            color: #00FF00;
+            padding: 6px 12px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+        }
+        .retro-btn:hover {
+            background: #00FF00;
+            color: black;
+            box-shadow: 0 0 15px #00FF00;
+        }
+        /* Control layout */
+        .hud-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
-<body class="p-4">
-    <div class="max-w-2xl mx-auto">
-        <a href="../../" class="text-green-800 hover:text-green-400">← Back to Lab</a>
-        <h1 class="text-3xl font-bold text-center my-4">INVADERS v1.0</h1>
+<body class="p-4 flex flex-col min-h-screen justify-between">
+    <noscript>
+        <div style="background: #ff0000; color: white; padding: 20px; text-align: center; font-weight: bold; font-family: sans-serif;">
+            ⚠️ JAVASCRIPT IS REQUIRED
+            <p>This experiment uses the HTML5 Canvas API. Please enable JavaScript in your browser settings to play.</p>
+            <a href="../../" style="color: yellow; text-decoration: underline;">Return to Homepage</a>
+        </div>
+    </noscript>
+
+    <div class="max-w-2xl mx-auto w-full">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-4">
+            <a href="../../" class="text-green-800 hover:text-green-400 font-bold transition">← BACK TO LAB</a>
+            <button id="soundToggle" class="retro-btn font-bold">🔇 SOUNDS: OFF</button>
+        </div>
+
+        <h1 class="text-4xl font-extrabold text-center mb-6 glow-text tracking-widest">INVADERS v1.0</h1>
         
-        <div class="hud">SCORE: <span id="score">0</span></div>
-        <canvas id="gameCanvas" width="600" height="400"></canvas>
-        <p class="text-center text-sm">Use [Left/Right Arrows] to Move & [Space] to Shoot</p>
+        <!-- HUD PANEL -->
+        <div class="hud-panel font-bold px-2">
+            <div>SCORE: <span id="score" class="text-white glow-text">0</span></div>
+            <div id="livesContainer" class="flex items-center gap-1">
+                LIVES:
+                <span id="livesList" class="text-red-500 glow-text">❤️❤️❤️</span>
+            </div>
+        </div>
+
+        <!-- CANVAS FRAME -->
+        <div class="crt-container mx-auto" style="width: 600px; height: 400px;">
+            <div class="crt-overlay"></div>
+            <canvas id="gameCanvas" width="600" height="400" class="block"></canvas>
+        </div>
+
+        <!-- FOOTER CONTROLS -->
+        <div class="mt-4 text-center text-sm font-semibold tracking-wide text-green-500">
+            <p class="mb-1">[LEFT / RIGHT ARROWS] to Move &nbsp;&bull;&nbsp; Hold [SPACE] to Shoot</p>
+            <p class="text-xs text-gray-500">Experience true retro styling with procedural sounds, scrolling starfield, screen-shake and particles!</p>
+        </div>
     </div>
 
+    <!-- Retro Audio Controller (Web Audio API Synthesizer) -->
+    <script>
+        const AudioController = {
+            enabled: false,
+            ctx: null,
+
+            init() {
+                if (this.ctx) return;
+                try {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    this.enabled = true;
+                    document.getElementById('soundToggle').innerText = "🔊 SOUNDS: ON";
+                    document.getElementById('soundToggle').classList.add('bg-green-950');
+                } catch (e) {
+                    console.error("Web Audio API not supported", e);
+                }
+            },
+
+            toggle() {
+                if (!this.ctx) {
+                    this.init();
+                    return;
+                }
+                this.enabled = !this.enabled;
+                const btn = document.getElementById('soundToggle');
+                if (this.enabled) {
+                    btn.innerText = "🔊 SOUNDS: ON";
+                    btn.classList.add('bg-green-950');
+                    if (this.ctx.state === 'suspended') {
+                        this.ctx.resume();
+                    }
+                } else {
+                    btn.innerText = "🔇 SOUNDS: OFF";
+                    btn.classList.remove('bg-green-950');
+                }
+            },
+
+            playShoot() {
+                if (!this.enabled || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.12);
+
+                gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.12);
+            },
+
+            playEnemyShoot() {
+                if (!this.enabled || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(350, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(150, this.ctx.currentTime + 0.15);
+
+                gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.15);
+            },
+
+            playExplosion() {
+                if (!this.enabled || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(20, this.ctx.currentTime + 0.3);
+
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.35);
+
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.35);
+            },
+
+            playPlayerHit() {
+                if (!this.enabled || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(40, this.ctx.currentTime + 0.5);
+
+                gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.5);
+
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.5);
+            },
+
+            playVictory() {
+                if (!this.enabled || !this.ctx) return;
+                const now = this.ctx.currentTime;
+                const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50]; // Beautiful C Major Ascending
+                notes.forEach((freq, index) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(freq, now + index * 0.1);
+                    gain.gain.setValueAtTime(0.06, now + index * 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.1 + 0.2);
+                    osc.start(now + index * 0.1);
+                    osc.stop(now + index * 0.1 + 0.25);
+                });
+            },
+
+            playGameOver() {
+                if (!this.enabled || !this.ctx) return;
+                const now = this.ctx.currentTime;
+                const notes = [392.00, 311.13, 246.94, 196.00]; // Sad Descending minor chord
+                notes.forEach((freq, index) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, now + index * 0.2);
+                    gain.gain.setValueAtTime(0.12, now + index * 0.2);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.2 + 0.4);
+                    osc.start(now + index * 0.2);
+                    osc.stop(now + index * 0.2 + 0.4);
+                });
+            }
+        };
+
+        document.getElementById('soundToggle').addEventListener('click', () => {
+            AudioController.toggle();
+        });
+    </script>
+
+    <!-- Main Game Script -->
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreEl = document.getElementById('score');
+        const livesListEl = document.getElementById('livesList');
 
-        // Game State
+        // Game State Variables
         let score = 0;
-        const player = { x: 275, y: 360, w: 50, h: 20, speed: 7 };
-        const bullets = [];
+        let gameOver = false;
+        let victory = false;
+        let lives = 3;
+
+        // Visual effects state
+        let screenShake = 0;
+        const stars = [];
+        const particles = [];
+
+        // Cooldowns and parameters
+        let lastShotTime = 0;
+        const shotCooldown = 350; // milliseconds
+        let lastEnemyShotTime = 0;
+        const enemyShotCooldown = 1200; // how often enemies fire
+
+        const player = {
+            x: 275,
+            y: 350,
+            w: 50,
+            h: 22,
+            speed: 6
+        };
+
+        const bullets = [];         // Player bullets { x, y, w, h }
+        const enemyBullets = [];    // Enemy bullets { x, y, w, h }
         const enemies = [];
         const keys = {};
 
+        // Enemy Grid Settings
+        const enemyRows = 3;
+        const enemyCols = 8;
+        const enemyW = 36;
+        const enemyH = 22;
+        let enemyDirection = 1; // 1 = right, -1 = left
+        let enemySpeed = 1.0;
+        let enemyDropAmount = 14;
+
+        // Initialize stars
+        for (let i = 0; i < 60; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 1.8 + 0.4,
+                speed: Math.random() * 0.8 + 0.2
+            });
+        }
+
         // Create Enemy Grid
-        for (let r = 0; r < 3; r++) {
-            for (let c = 0; c < 8; c++) {
-                enemies.push({ x: c * 60 + 50, y: r * 40 + 50, w: 40, h: 20, alive: true });
+        // Row 0 = Squid, Row 1 = Crab, Row 2 = Octopus
+        const enemyTypes = ['squid', 'crab', 'octopus'];
+        for (let r = 0; r < enemyRows; r++) {
+            for (let c = 0; c < enemyCols; c++) {
+                enemies.push({
+                    x: c * 55 + 65,
+                    y: r * 35 + 50,
+                    w: enemyW,
+                    h: enemyH,
+                    alive: true,
+                    type: enemyTypes[r],
+                    animationOffset: Math.random() * Math.PI // for retro wiggle
+                });
             }
         }
 
+        // Sprites definition (for high-fidelity drawing instead of solid blocks)
+        const SPRITES = {
+            squid: [
+                "001100",
+                "011110",
+                "111111",
+                "110011",
+                "111111",
+                "010101",
+                "100001"
+            ],
+            crab: [
+                "100001",
+                "011110",
+                "110111",
+                "111111",
+                "011110",
+                "100001"
+            ],
+            octopus: [
+                "011110",
+                "111111",
+                "110111",
+                "111111",
+                "010010",
+                "101101"
+            ]
+        };
+
+        // Event listeners
         document.addEventListener('keydown', e => keys[e.code] = true);
         document.addEventListener('keyup', e => keys[e.code] = false);
 
+        // Particle System
+        function spawnExplosion(x, y, color) {
+            const count = 12 + Math.floor(Math.random() * 8);
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 3 + 1;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 1, // slight upwards bias
+                    size: Math.random() * 2.5 + 1,
+                    alpha: 1,
+                    decay: Math.random() * 0.03 + 0.015,
+                    color: color
+                });
+            }
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= p.decay;
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        function drawParticles() {
+            particles.forEach(p => {
+                ctx.save();
+                ctx.globalAlpha = p.alpha;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+                ctx.restore();
+            });
+        }
+
+        // Draw individual retro-pixel sprite
+        function drawSprite(spriteName, x, y, width, height, color, wiggle = 0) {
+            const sprite = SPRITES[spriteName];
+            if (!sprite) return;
+            const rows = sprite.length;
+            const cols = sprite[0].length;
+            const cellW = width / cols;
+            const cellH = height / rows;
+
+            ctx.fillStyle = color;
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    if (sprite[r][c] === '1') {
+                        // Apply custom movement (wiggle) for limbs on bottom rows
+                        let offX = 0;
+                        if (r >= rows - 2) {
+                            offX = Math.sin(wiggle) * 1.5;
+                        }
+                        ctx.fillRect(x + c * cellW + offX, y + r * cellH, cellW + 0.5, cellH + 0.5);
+                    }
+                }
+            }
+        }
+
         function update() {
-            // Player Movement
-            if (keys['ArrowLeft'] && player.x > 0) player.x -= player.speed;
-            if (keys['ArrowRight'] && player.x < canvas.width - player.w) player.x += player.speed;
+            if (gameOver || victory) return;
+
+            // Screen Shake Decay
+            if (screenShake > 0) {
+                screenShake *= 0.9;
+                if (screenShake < 0.2) screenShake = 0;
+            }
+
+            // Parallax Starfield Background
+            stars.forEach(s => {
+                s.y += s.speed;
+                if (s.y > canvas.height) {
+                    s.y = 0;
+                    s.x = Math.random() * canvas.width;
+                }
+            });
+
+            // Player smooth horizontal movement
+            if (keys['ArrowLeft'] && player.x > 5) {
+                player.x -= player.speed;
+            }
+            if (keys['ArrowRight'] && player.x < canvas.width - player.w - 5) {
+                player.x += player.speed;
+            }
+
+            // Player shooting with proper interval / hold support
+            const now = Date.now();
             if (keys['Space']) {
-                if (bullets.length < 3) { // Limit fire rate
-                    bullets.push({ x: player.x + 22, y: player.y, w: 5, h: 10 });
-                    keys['Space'] = false; // Prevents rapid fire
+                if (now - lastShotTime > shotCooldown) {
+                    bullets.push({
+                        x: player.x + player.w / 2 - 2,
+                        y: player.y - 4,
+                        w: 4,
+                        h: 12
+                    });
+                    lastShotTime = now;
+                    AudioController.playShoot();
                 }
             }
 
-            // Bullet Logic
-            bullets.forEach((b, i) => {
-                b.y -= 10;
-                if (b.y < 0) bullets.splice(i, 1);
-                
-                // Collision Detection
-                enemies.forEach(e => {
+            // Player Bullets logic
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const b = bullets[i];
+                b.y -= 7.5; // moving up
+                if (b.y < 0) {
+                    bullets.splice(i, 1);
+                    continue;
+                }
+
+                // Check collision with enemies
+                let hitAny = false;
+                for (let j = 0; j < enemies.length; j++) {
+                    const e = enemies[j];
                     if (e.alive && b.x < e.x + e.w && b.x + b.w > e.x && b.y < e.y + e.h && b.y + b.h > e.y) {
                         e.alive = false;
+                        spawnExplosion(e.x + e.w / 2, e.y + e.h / 2, '#FF5555');
                         bullets.splice(i, 1);
+                        hitAny = true;
                         score += 10;
                         scoreEl.innerText = score;
+                        AudioController.playExplosion();
+
+                        // Speed up remaining enemies slightly
+                        const remaining = enemies.filter(alien => alien.alive).length;
+                        enemySpeed = 1.0 + (1.2 * (enemyRows * enemyCols - remaining) / (enemyRows * enemyCols));
+                        break;
                     }
-                });
+                }
+                if (hitAny) continue;
+            }
+
+            // Enemy Movement (Classic step grid movement)
+            let changeDirection = false;
+            const borderBuffer = 12;
+
+            enemies.forEach(e => {
+                if (!e.alive) return;
+                // Left or Right bounds hit
+                if (enemyDirection === 1 && e.x + e.w > canvas.width - borderBuffer) {
+                    changeDirection = true;
+                } else if (enemyDirection === -1 && e.x < borderBuffer) {
+                    changeDirection = true;
+                }
             });
 
-            draw();
-            requestAnimationFrame(update);
+            if (changeDirection) {
+                enemyDirection *= -1;
+                enemies.forEach(e => {
+                    if (e.alive) {
+                        e.y += enemyDropAmount;
+                        // If any enemy reaches player's baseline -> Game Over
+                        if (e.y + e.h >= player.y) {
+                            endTheGame(false);
+                        }
+                    }
+                });
+            } else {
+                enemies.forEach(e => {
+                    if (e.alive) {
+                        e.x += enemyDirection * enemySpeed;
+                    }
+                });
+            }
+
+            // Enemy Shooting
+            if (now - lastEnemyShotTime > enemyShotCooldown) {
+                const aliveEnemies = enemies.filter(e => e.alive);
+                if (aliveEnemies.length > 0) {
+                    // Choose a random alive enemy to shoot
+                    const shooter = aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
+                    enemyBullets.push({
+                        x: shooter.x + shooter.w / 2 - 2,
+                        y: shooter.y + shooter.h,
+                        w: 4,
+                        h: 12
+                    });
+                    lastEnemyShotTime = now;
+                    AudioController.playEnemyShoot();
+                }
+            }
+
+            // Enemy Bullets Logic
+            for (let i = enemyBullets.length - 1; i >= 0; i--) {
+                const eb = enemyBullets[i];
+                eb.y += 4.5; // moving down
+                if (eb.y > canvas.height) {
+                    enemyBullets.splice(i, 1);
+                    continue;
+                }
+
+                // Collision with player
+                if (eb.x < player.x + player.w && eb.x + eb.w > player.x && eb.y < player.y + player.h && eb.y + eb.h > player.y) {
+                    enemyBullets.splice(i, 1);
+                    lives--;
+                    screenShake = 12;
+                    spawnExplosion(player.x + player.w / 2, player.y + player.h / 2, '#00FF00');
+                    AudioController.playPlayerHit();
+
+                    // Update UI lives display
+                    let lifeHearts = "";
+                    for (let l = 0; l < lives; l++) {
+                        lifeHearts += "❤️";
+                    }
+                    livesListEl.innerText = lifeHearts || "NONE";
+
+                    if (lives <= 0) {
+                        endTheGame(false);
+                    }
+                }
+            }
+
+            // Check Victory state
+            if (enemies.every(e => !e.alive)) {
+                endTheGame(true);
+            }
+
+            updateParticles();
+        }
+
+        function endTheGame(winState) {
+            if (winState) {
+                victory = true;
+                AudioController.playVictory();
+            } else {
+                gameOver = true;
+                AudioController.playGameOver();
+            }
         }
 
         function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw Player
-            ctx.fillStyle = '#00FF00';
-            ctx.fillRect(player.x, player.y, player.w, player.h);
+            ctx.save();
+            // Apply screen shake effect
+            if (screenShake > 0) {
+                const dx = (Math.random() - 0.5) * screenShake;
+                const dy = (Math.random() - 0.5) * screenShake;
+                ctx.translate(dx, dy);
+            }
 
-            // Draw Bullets
+            ctx.fillStyle = '#050505';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Stars
             ctx.fillStyle = '#FFFFFF';
-            bullets.forEach(b => ctx.fillRect(b.x, b.y, b.w, b.h));
-
-            // Draw Enemies
-            ctx.fillStyle = '#FF0000';
-            enemies.forEach(e => {
-                if (e.alive) ctx.fillRect(e.x, e.y, e.w, e.h);
+            stars.forEach(s => {
+                ctx.fillRect(s.x, s.y, s.size, s.size);
             });
+
+            // Draw Player Tank (sleek vector design)
+            ctx.fillStyle = '#00FF00';
+            // Base layer
+            ctx.fillRect(player.x, player.y + 11, player.w, 11);
+            // Middle section
+            ctx.fillRect(player.x + 8, player.y + 5, player.w - 16, 6);
+            // Cannon turret
+            ctx.fillRect(player.x + player.w / 2 - 3, player.y, 6, 5);
+
+            // Draw Player Bullets
+            ctx.fillStyle = '#FFFFFF';
+            bullets.forEach(b => {
+                ctx.fillRect(b.x, b.y, b.w, b.h);
+            });
+
+            // Draw Enemy Bullets (pulsating orange/yellow)
+            ctx.fillStyle = '#FF9900';
+            enemyBullets.forEach(eb => {
+                ctx.fillRect(eb.x, eb.y, eb.w, eb.h);
+            });
+
+            // Draw Animated Enemies
+            const time = Date.now() * 0.007;
+            enemies.forEach(e => {
+                if (e.alive) {
+                    const wiggleVal = time + e.animationOffset;
+                    drawSprite(e.type, e.x, e.y, e.w, e.h, '#FF3333', wiggleVal);
+                }
+            });
+
+            // Particles
+            drawParticles();
+
+            // End states screens
+            if (gameOver) {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = "#FF3333";
+                ctx.font = "bold 44px 'Courier New'";
+                ctx.textAlign = "center";
+                ctx.fillText("MISSION FAILED", canvas.width / 2, canvas.height / 2 - 25);
+
+                ctx.font = "20px 'Courier New'";
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillText("FINAL SCORE: " + score, canvas.width / 2, canvas.height / 2 + 25);
+
+                ctx.fillStyle = "#888888";
+                ctx.font = "16px 'Courier New'";
+                ctx.fillText("Press [R] to Restart Laboratory", canvas.width / 2, canvas.height / 2 + 75);
+            }
+
+            if (victory) {
+                ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = "#00FF00";
+                ctx.font = "bold 44px 'Courier New'";
+                ctx.textAlign = "center";
+                ctx.fillText("MISSION COMPLETE", canvas.width / 2, canvas.height / 2 - 25);
+
+                ctx.font = "20px 'Courier New'";
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillText("CONGRATULATIONS! SCORE: " + score, canvas.width / 2, canvas.height / 2 + 25);
+
+                ctx.fillStyle = "#888888";
+                ctx.font = "16px 'Courier New'";
+                ctx.fillText("Press [R] to Restart Laboratory", canvas.width / 2, canvas.height / 2 + 75);
+            }
+
+            ctx.restore();
         }
 
-        update();
+        // Restart with Key R
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'KeyR' && (gameOver || victory)) {
+                location.reload();
+            }
+        });
+
+        // Game Loop
+        function tick() {
+            update();
+            draw();
+            requestAnimationFrame(tick);
+        }
+
+        // Auto-init sound on first interaction
+        window.addEventListener('keydown', () => {
+            if (AudioController.enabled && AudioController.ctx && AudioController.ctx.state === 'suspended') {
+                AudioController.ctx.resume();
+            }
+        }, { once: true });
+
+        tick();
     </script>
-</body>
-</html>
-
-<script src="gameover.js"></script>
-
-<!DOCTYPE html>
-<html>
-<head>
-    <script src="noscript.js"></script>
-</head>
-<body class="bg-black">
-
-    <noscript>
-        <div style="background: #ff0000; color: white; padding: 20px; text-align: center; font-weight: bold;">
-            ⚠️ JAVASCRIPT IS REQUIRED
-            <p>This experiment uses the HTML5 Canvas API. Please enable JavaScript in your browser settings to play.</p>
-            <a href="../../" style="color: yellow;">Return to Homepage</a>
-        </div>
-    </noscript>
-
-    <canvas id="gameCanvas"></canvas>
-    
 </body>
 </html>
