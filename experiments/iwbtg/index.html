@@ -26,6 +26,7 @@ const JUMP_FORCE = -8;
 const PLAYER_SPEED = 4;
 
 let player = { x: 50, y: 180, w: 20, h: 20, vx: 0, vy: 0, grounded: false, respawnX: 50, respawnY: 180 };
+let gameWon = false;
 
 // Level Design: 0 = Empty, 1 = Floor, 2 = Spike, 3 = Save Flag
 const level = [
@@ -46,55 +47,59 @@ function resetPlayer() {
     player.x = player.respawnX;
     player.y = player.respawnY;
     player.vx = 0; player.vy = 0;
+    gameWon = false;
 }
 
 function update() {
-    // Horizontal Movement
-    if (keys['ArrowLeft']) player.vx = -PLAYER_SPEED;
-    else if (keys['ArrowRight']) player.vx = PLAYER_SPEED;
-    else player.vx = 0;
+    if (!gameWon) {
+        // Horizontal Movement
+        if (keys['ArrowLeft']) player.vx = -PLAYER_SPEED;
+        else if (keys['ArrowRight']) player.vx = PLAYER_SPEED;
+        else player.vx = 0;
 
-    // Jump
-    if (keys['ArrowUp'] && player.grounded) {
-        player.vy = JUMP_FORCE;
+        // Jump
+        if (keys['ArrowUp'] && player.grounded) {
+            player.vy = JUMP_FORCE;
+            player.grounded = false;
+        }
+
+        // Apply Physics
+        player.vy += GRAVITY;
+        player.x += player.vx;
+        player.y += player.vy;
         player.grounded = false;
-    }
 
-    // Apply Physics
-    player.vy += GRAVITY;
-    player.x += player.vx;
-    player.y += player.vy;
-    player.grounded = false;
+        // Boundary constraints
+        if (player.x < 0) player.x = 0;
+        if (player.x + player.w > canvas.width) player.x = canvas.width - player.w;
+        if (player.y > canvas.height) {
+            resetPlayer();
+        }
 
-    // Boundary constraints
-    if (player.x < 0) player.x = 0;
-    if (player.x + player.w > canvas.width) player.x = canvas.width - player.w;
-    if (player.y > canvas.height) {
-        resetPlayer();
-    }
+        // Collision Logic
+        level.forEach((row, r) => {
+            row.forEach((tile, c) => {
+                if (tile === 0) return;
+                let tx = c * TILE_SIZE, ty = r * TILE_SIZE;
 
-    // Collision Logic
-    level.forEach((row, r) => {
-        row.forEach((tile, c) => {
-            if (tile === 0) return;
-            let tx = c * TILE_SIZE, ty = r * TILE_SIZE;
+                // Simple Box Collision
+                if (player.x < tx + TILE_SIZE && player.x + player.w > tx &&
+                    player.y < ty + TILE_SIZE && player.y + player.h > ty) {
 
-            // Simple Box Collision
-            if (player.x < tx + TILE_SIZE && player.x + player.w > tx &&
-                player.y < ty + TILE_SIZE && player.y + player.h > ty) {
-                
-                if (tile === 1) { // Solid Block
-                    player.y = ty - player.h;
-                    player.vy = 0;
-                    player.grounded = true;
-                } else if (tile === 2) { // Spike
-                    resetPlayer();
-                } else if (tile === 3 && keys['KeyS']) { // Save Point
-                    player.respawnX = tx; player.respawnY = ty;
+                    if (tile === 1) { // Solid Block
+                        player.y = ty - player.h;
+                        player.vy = 0;
+                        player.grounded = true;
+                    } else if (tile === 2) { // Spike
+                        resetPlayer();
+                    } else if (tile === 3 && keys['KeyS']) { // Save Point
+                        player.respawnX = tx; player.respawnY = ty;
+                        gameWon = true;
+                    }
                 }
-            }
+            });
         });
-    });
+    }
 
     draw();
     requestAnimationFrame(update);
@@ -120,6 +125,22 @@ function draw() {
     // Draw Player
     ctx.fillStyle = '#fff';
     ctx.fillRect(player.x, player.y, player.w, player.h);
+
+    // Draw "YOU WIN" overlay if gameWon is true
+    if (gameWon) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#4ade80'; // Emerald Green
+        ctx.font = 'bold 48px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('YOU WIN!', canvas.width / 2, canvas.height / 2 - 20);
+
+        ctx.fillStyle = '#9ca3af'; // Gray
+        ctx.font = '18px monospace';
+        ctx.fillText('Flag saved successfully.', canvas.width / 2, canvas.height / 2 + 20);
+        ctx.fillText('Press [R] to Restart', canvas.width / 2, canvas.height / 2 + 50);
+    }
 }
 
 update();
