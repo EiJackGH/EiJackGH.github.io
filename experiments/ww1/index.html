@@ -3,121 +3,265 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Great War: Battlefront</title>
+  <title>The Great War | Command Simulator</title>
   <style>
     :root {
-      --mud: #2b1810;
-      --wood: #5c4033;
-      --accent: #d4af37;
-      --text: #efebe9;
+      --bg-dark: #0f0b09;
+      --panel-bg: rgba(22, 17, 14, 0.85);
+      --border-color: #3d312b;
+      --text-main: #d7ccc8;
+      --text-muted: #8d7b73;
+      --accent-color: #c5a059;
+      --accent-hover: #e5c17b;
+      --ally-color: #6d8467;
+      --central-color: #a66363;
     }
-    body {
+
+    * {
+      box-sizing: border-box;
       margin: 0;
-      background: #120a07;
-      color: var(--text);
-      font-family: 'Courier New', Courier, monospace;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       overflow: hidden;
       user-select: none;
+      -webkit-font-smoothing: antialiased;
     }
+
     canvas {
       display: block;
+      width: 100vw;
+      height: 100vh;
     }
-    #ui-container {
+
+    /* Interface Layer */
+    #ui-layer {
       position: absolute;
       inset: 0;
       pointer-events: none;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 15px;
-      box-sizing: border-box;
+      padding: 24px;
     }
-    .hud-panel {
+
+    .glass-panel {
       pointer-events: auto;
-      background: rgba(26, 15, 11, 0.9);
-      border: 2px solid var(--wood);
-      border-radius: 4px;
-      padding: 10px;
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     }
+
+    /* Top Bar HUD Layout */
     #top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       width: 100%;
     }
-    .nation-display {
+
+    .hud-faction {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
+      padding: 12px 20px;
+      min-width: 240px;
     }
-    .flag-img {
-      width: 45px;
-      height: 28px;
-      border: 1px solid #000;
+
+    .hud-faction.enemy {
+      flex-direction: row-reverse;
+      text-align: right;
+    }
+
+    .hud-flag {
+      width: 48px;
+      height: 32px;
+      border-radius: 3px;
       object-fit: cover;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.05);
     }
+
+    .faction-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .faction-name {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    #supply-panel {
+      text-align: center;
+      padding: 10px 32px;
+    }
+
+    #supply-count {
+      font-family: monospace;
+      font-size: 28px;
+      font-weight: bold;
+      color: var(--accent-color);
+    }
+
+    /* Bottom Deck Controls */
     #bottom-bar {
       display: flex;
-      gap: 15px;
+      gap: 16px;
       justify-content: center;
       width: 100%;
     }
-    .deploy-btn {
+
+    .action-btn {
       pointer-events: auto;
-      background: var(--wood);
-      color: var(--text);
-      border: 1px solid #8d6e63;
-      padding: 12px 20px;
-      font-weight: bold;
-      font-family: inherit;
+      background: transparent;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 14px 24px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
       cursor: pointer;
-      border-radius: 3px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      background: rgba(30, 24, 21, 0.4);
     }
-    .deploy-btn:hover:not(:disabled) {
-      background: #8d6e63;
+
+    .action-btn:hover:not(:disabled) {
+      border-color: var(--accent-color);
+      color: var(--accent-color);
+      box-shadow: 0 0 12px rgba(197, 160, 89, 0.15);
     }
-    .deploy-btn:disabled {
-      opacity: 0.4;
+
+    .action-btn:disabled {
+      opacity: 0.25;
       cursor: not-allowed;
     }
-    #lobby {
+
+    /* Main Menu Screen */
+    #lobby-screen {
       position: absolute;
       inset: 0;
-      background: rgba(18, 10, 7, 0.98);
+      background: #0b0807;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      z-index: 10;
+      z-index: 100;
+      padding: 40px;
     }
-    .faction-grid {
-      display: flex;
-      gap: 25px;
-      margin: 30px 0;
-    }
-    .faction-card {
-      background: #1a0f0b;
-      border: 2px solid var(--wood);
-      border-radius: 6px;
-      padding: 15px;
-      cursor: pointer;
+
+    .menu-header {
       text-align: center;
-      width: 150px;
-      transition: all 0.2s;
+      margin-bottom: 40px;
+      max-width: 600px;
     }
+
+    .menu-header h1 {
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: 6px;
+      color: var(--text-main);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .menu-header p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .grid-container {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .alliance-section-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+    }
+
+    .cards-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .faction-card {
+      background: #14100e;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 16px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
     .faction-card:hover {
-      background: #2b1810;
-      border-color: var(--accent);
+      border-color: #5c4a41;
+      transform: translateY(-2px);
     }
+
     .faction-card.selected {
-      border-color: var(--accent);
-      box-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
+      border-color: var(--accent-color);
+      background: rgba(197, 160, 89, 0.04);
+      box-shadow: 0 4px 20px rgba(197, 160, 89, 0.1);
     }
+
     .faction-card img {
-      width: 100px;
-      height: 60px;
-      margin-bottom: 10px;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.5);
+      width: 72px;
+      height: 44px;
+      object-fit: cover;
+      border-radius: 2px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    }
+
+    .faction-card span {
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      text-align: center;
+    }
+
+    .start-btn {
+      background: var(--accent-color);
+      color: #000;
+      border: none;
+      padding: 16px 48px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.2s ease;
+    }
+
+    .start-btn:hover {
+      background: var(--accent-hover);
     }
   </style>
 </head>
@@ -125,63 +269,91 @@
 
   <canvas id="gameCanvas"></canvas>
 
-  <!-- Setup/Lobby Screen -->
-  <div id="lobby">
-    <h1 style="color: var(--accent); font-size: 36px; letter-spacing: 3px; margin: 0;">HELL IN THE TRENCHES</h1>
-    <p style="color: #a1887f; max-width: 500px; text-align: center; line-height: 1.5;">Select your Alliance, deploy historical armor, command the skies, and breakthrough enemy lines.</p>
-    
-    <div class="faction-grid">
-      <div class="faction-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; max-width: 700px;">
-  <!-- Allies -->
-  <div class="faction-card selected" onclick="chooseFaction('allies', 'uk')"><img src="./assets/flag-uk.svg"><div>British Empire</div></div>
-  <div class="faction-card" onclick="chooseFaction('allies', 'france')"><img src="./assets/flag-france.svg"><div>France</div></div>
-  <div class="faction-card" onclick="chooseFaction('allies', 'russia')"><img src="./assets/flag-russia.svg"><div>Russian Empire</div></div>
-  <div class="faction-card" onclick="chooseFaction('allies', 'usa')"><img src="./assets/flag-usa.svg"><div>United States</div></div>
-  
-  <!-- Central Powers -->
-  <div class="faction-card" onclick="chooseFaction('central', 'germany')"><img src="./assets/flag-germany.svg"><div>German Empire</div></div>
-  <div class="faction-card" onclick="chooseFaction('central', 'austria')"><img src="./assets/flag-austria.svg"><div>Austria-Hungary</div></div>
-  <div class="faction-card" onclick="chooseFaction('central', 'ottoman')"><img src="./assets/flag-ottoman.svg"><div>Ottoman Empire</div></div>
-  <div class="faction-card" onclick="chooseFaction('central', 'bulgaria')"><img src="./assets/flag-bulgaria.svg"><div>Bulgaria</div></div>
-</div>
-      <div class="faction-card" onclick="chooseFaction('central', 'austria')">
-        <img src="./assets/flag-austria.svg" alt="Austria">
-        <div style="font-weight: bold;">Austria-Hungary</div>
-      </div>
+  <!-- Clean Minimalist Lobby Selection Screen -->
+  <div id="lobby-screen">
+    <div class="menu-header">
+      <h1>The Great War</h1>
+      <p>Select an Empire to deploy field forces, allocate raw logistical materiel supplies, and establish operational command over the front lines.</p>
     </div>
-
-    <button class="deploy-btn" style="font-size: 18px; padding: 15px 45px;" onclick="initGame()">COMMENCE ASSAULT</button>
-  </div>
-
-  <!-- Realtime HUD Overlay -->
-  <div id="ui-container">
-    <div id="top-bar">
-      <div class="hud-panel nation-display">
-        <img id="p-flag" class="flag-img" src="" alt="Player Flag">
-        <div>
-          <div style="font-size: 10px; color: #8d6e63;">COMMANDER</div>
-          <div id="p-name" style="font-weight: bold; color: var(--accent);">United Kingdom</div>
+    
+    <div class="grid-container">
+      <div>
+        <div class="alliance-section-title" style="color: var(--ally-color);">Allied Powers</div>
+        <div class="cards-row" style="margin-top: 12px;">
+          <div class="faction-card selected" onclick="chooseFaction('allies', 'uk')">
+            <img src="./assets/flag-uk.svg" alt="UK">
+            <span>British Empire</span>
+          </div>
+          <div class="faction-card" onclick="chooseFaction('allies', 'france')">
+            <img src="./assets/flag-france.svg" alt="France">
+            <span>France</span>
+          </div>
+          <div class="faction-card" onclick="chooseFaction('allies', 'russia')">
+            <img src="./assets/flag-russia.svg" alt="Russia">
+            <span>Russian Empire</span>
+          </div>
+          <div class="faction-card" onclick="chooseFaction('allies', 'usa')">
+            <img src="./assets/flag-usa.svg" alt="USA">
+            <span>United States</span>
+          </div>
         </div>
       </div>
 
-      <div class="hud-panel" style="text-align: center; min-width: 140px;">
-        <div style="font-size: 10px; color: #8d6e63;">MATERIEL SUPPLIES</div>
-        <div id="supplies-counter" style="font-size: 24px; font-weight: bold; color: #81c784;">100</div>
+      <div>
+        <div class="alliance-section-title" style="color: var(--central-color);">Central Powers</div>
+        <div class="cards-row" style="margin-top: 12px;">
+          <div class="faction-card" onclick="chooseFaction('central', 'germany')">
+            <img src="./assets/flag-germany.svg" alt="Germany">
+            <span>German Empire</span>
+          </div>
+          <div class="faction-card" onclick="chooseFaction('central', 'austria')">
+            <img src="./assets/flag-austria.svg" alt="Austria">
+            <span>Austria-Hungary</span>
+          </div>
+          <div class="faction-card" onclick="chooseFaction('central', 'ottoman')">
+            <img src="./assets/flag-ottoman.svg" alt="Ottoman">
+            <span>Ottoman Empire</span>
+          </div>
+          <div class="faction-card" onclick="chooseFaction('central', 'bulgaria')">
+            <img src="./assets/flag-bulgaria.svg" alt="Bulgaria">
+            <span>Bulgaria</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="start-btn" onclick="initGame()">Launch Operation</button>
+  </div>
+
+  <!-- Tactical HUD Layer -->
+  <div id="ui-layer">
+    <div id="top-bar">
+      <div class="glass-panel hud-faction">
+        <img id="p-flag" class="hud-flag" src="" alt="Player Flag">
+        <div>
+          <div class="faction-title">Commander</div>
+          <div id="p-name" class="faction-name">United Kingdom</div>
+        </div>
       </div>
 
-      <div class="hud-panel nation-display" style="flex-direction: row-reverse; text-align: right;">
-        <img id="e-flag" class="flag-img" src="" alt="Enemy Flag">
+      <div class="glass-panel" id="supply-panel">
+        <div class="faction-title" style="font-size: 9px; margin-bottom: 0;">Logistics</div>
+        <div id="supply-count">100</div>
+      </div>
+
+      <div class="glass-panel hud-faction enemy">
+        <img id="e-flag" class="hud-flag" src="" alt="Enemy Flag">
         <div>
-          <div style="font-size: 10px; color: #8d6e63;">HOSTILE FORCE</div>
-          <div id="e-name" style="font-weight: bold; color: #e57373;">German Empire</div>
+          <div class="faction-title">Hostile Force</div>
+          <div id="e-name" class="faction-name">German Empire</div>
         </div>
       </div>
     </div>
 
     <div id="bottom-bar">
-      <button class="deploy-btn" onclick="spawnUnit('infantry')">Infantry Squad (25)</button>
-      <button class="deploy-btn" onclick="spawnUnit('tank')">Landship Tank (65)</button>
-      <button class="deploy-btn" onclick="spawnUnit('plane')">Biplane Air Support (90)</button>
+      <button class="action-btn" onclick="spawnUnit('infantry')">Infantry (25)</button>
+      <button class="action-btn" onclick="spawnUnit('tank')">Landship (65)</button>
+      <button class="action-btn" onclick="spawnUnit('plane')">Air Support (90)</button>
     </div>
   </div>
 
@@ -194,41 +366,32 @@
     let enemyNation = 'germany';
 
     const nations = {
-  uk: { name: "British Empire", flag: "./assets/flag-uk.svg", alliance: "allies" },
-  france: { name: "France", flag: "./assets/flag-france.svg", alliance: "allies" },
-  russia: { name: "Russian Empire", flag: "./assets/flag-russia.svg", alliance: "allies" },
-  usa: { name: "United States", flag: "./assets/flag-usa.svg", alliance: "allies" },
-  germany: { name: "German Empire", flag: "./assets/flag-germany.svg", alliance: "central" },
-  austria: { name: "Austria-Hungary", flag: "./assets/flag-austria.svg", alliance: "central" },
-  ottoman: { name: "Ottoman Empire", flag: "./assets/flag-ottoman.svg", alliance: "central" },
-  bulgaria: { name: "Kingdom of Bulgaria", flag: "./assets/flag-bulgaria.svg", alliance: "central" }
-};
+      uk: { name: "British Empire", flag: "./assets/flag-uk.svg", alliance: "allies" },
+      france: { name: "France", flag: "./assets/flag-france.svg", alliance: "allies" },
+      russia: { name: "Russian Empire", flag: "./assets/flag-russia.svg", alliance: "allies" },
+      usa: { name: "United States", flag: "./assets/flag-usa.svg", alliance: "allies" },
+      germany: { name: "German Empire", flag: "./assets/flag-germany.svg", alliance: "central" },
+      austria: { name: "Austria-Hungary", flag: "./assets/flag-austria.svg", alliance: "central" },
+      ottoman: { name: "Ottoman Empire", flag: "./assets/flag-ottoman.svg", alliance: "central" },
+      bulgaria: { name: "Kingdom of Bulgaria", flag: "./assets/flag-bulgaria.svg", alliance: "central" }
+    };
 
     function chooseFaction(alliance, nationKey) {
-  document.querySelectorAll('.faction-card').forEach(el => el.classList.remove('selected'));
-  event.currentTarget.classList.add('selected');
-  
-  playerAlliance = alliance;
-  playerNation = nationKey;
-  
-  // Dynamic adversary targeting based on alliance match arrays
-  if (alliance === 'allies') {
-    const centralPool = ['germany', 'austria', 'ottoman', 'bulgaria'];
-    enemyNation = centralPool[Math.floor(Math.random() * centralPool.length)];
-  } else {
-    const alliesPool = ['uk', 'france', 'russia', 'usa'];
-    enemyNation = alliesPool[Math.floor(Math.random() * alliesPool.length)];
-  }
-}
+      document.querySelectorAll('.faction-card').forEach(el => el.classList.remove('selected'));
+      event.currentTarget.classList.add('selected');
       
       playerAlliance = alliance;
       playerNation = nationKey;
       
-      // Auto-assign opposing alliance nation
-      enemyNation = (alliance === 'allies') ? 'germany' : 'uk';
+      if (alliance === 'allies') {
+        const centralPool = ['germany', 'austria', 'ottoman', 'bulgaria'];
+        enemyNation = centralPool[Math.floor(Math.random() * centralPool.length)];
+      } else {
+        const alliesPool = ['uk', 'france', 'russia', 'usa'];
+        enemyNation = alliesPool[Math.floor(Math.random() * alliesPool.length)];
+      }
     }
 
-    // Engine States
     let gameRunning = false;
     let supplies = 100;
     let units = [];
@@ -236,15 +399,13 @@
     let images = {};
 
     function initGame() {
-      document.getElementById('lobby').style.display = 'none';
+      document.getElementById('lobby-screen').style.display = 'none';
 
-      // Load UI Flags
       document.getElementById('p-flag').src = nations[playerNation].flag;
       document.getElementById('p-name').innerText = nations[playerNation].name;
       document.getElementById('e-flag').src = nations[enemyNation].flag;
       document.getElementById('e-name').innerText = nations[enemyNation].name;
 
-      // Load External SVG Assets asynchronously into Memory
       images.alliedTank = new Image();
       images.alliedTank.src = './assets/allied-tank.svg';
       images.centralTank = new Image();
@@ -272,45 +433,41 @@
         this.type = type;
         this.x = x;
         this.isPlayer = isPlayer;
-        this.speed = isPlayer ? 1.0 : -1.0;
+        this.speed = isPlayer ? 0.9 : -0.9;
         this.y = canvas.height * 0.72;
-        this.width = 24;
-        this.height = 36;
+        this.width = 22;
+        this.height = 34;
         this.health = 100;
 
         if (type === 'tank') {
-          this.speed *= 0.45;
-          this.width = 80;
-          this.height = 40;
+          this.speed *= 0.4;
+          this.width = 76;
+          this.height = 38;
           this.y = canvas.height * 0.67;
           this.health = 450;
         } else if (type === 'plane') {
-          this.speed *= 2.6;
-          this.width = 65;
-          this.height = 32;
-          this.y = canvas.height * 0.22;
+          this.speed *= 2.5;
+          this.width = 60;
+          this.height = 30;
+          this.y = canvas.height * 0.25;
           this.health = 120;
         }
       }
 
       update() {
         this.x += this.speed;
-
-        // Combat & Shell fire triggers
-        if (Math.random() < 0.008) {
+        if (Math.random() < 0.007) {
           createExplosion(this.x + (this.isPlayer ? this.width : 0), this.y + this.height/2);
         }
       }
 
       draw() {
         if (this.type === 'infantry') {
-          // Render Combat Soldier Silhouette
-          ctx.fillStyle = this.isPlayer ? "#4e5d4c" : "#546e7a";
+          ctx.fillStyle = this.isPlayer ? "#51614e" : "#5a6973";
           ctx.fillRect(this.x, this.y, this.width, this.height);
-          // Helmet Details
-          ctx.fillStyle = "#271810";
+          ctx.fillStyle = "#1e1714";
           ctx.beginPath();
-          ctx.arc(this.x + this.width/2, this.y, 6, 0, Math.PI, true);
+          ctx.arc(this.x + this.width/2, this.y, 5, 0, Math.PI, true);
           ctx.fill();
         } else if (this.type === 'tank') {
           const img = this.isPlayer ? images.alliedTank : images.centralTank;
@@ -334,14 +491,14 @@
     }
 
     function createExplosion(x, y) {
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 5; i++) {
         particles.push({
           x: x,
           y: y,
-          vx: (Math.random() - 0.5) * 5,
-          vy: (Math.random() - 0.5) * 5,
-          color: Math.random() > 0.5 ? '#ff8f00' : '#d84315',
-          life: 25
+          vx: (Math.random() - 0.5) * 4,
+          vy: (Math.random() - 0.5) * 4,
+          color: Math.random() > 0.4 ? '#c5a059' : '#8d4f38',
+          life: 20
         });
       }
     }
@@ -354,42 +511,38 @@
       }
     }
 
-    let spawnTimer = 120;
+    let spawnTimer = 100;
     function runAI() {
       spawnTimer--;
       if (spawnTimer <= 0) {
         const roster = ['infantry', 'tank', 'plane'];
         const randomUnit = roster[Math.floor(Math.random() * roster.length)];
         units.push(new Unit(randomUnit, canvas.width - 100, false));
-        spawnTimer = 150 + Math.random() * 120;
+        spawnTimer = 140 + Math.random() * 100;
       }
     }
 
     function tick() {
       if (!gameRunning) return;
 
-      supplies += 0.06;
-      document.getElementById('supplies-counter').innerText = Math.floor(supplies);
+      supplies += 0.05;
+      document.getElementById('supply-count').innerText = Math.floor(supplies);
 
       runAI();
 
-      // Render World Scene Layers
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // War-torn cloudy orange-brown sky
-      ctx.fillStyle = '#1e1614';
+      // Desaturated tactical background colors
+      ctx.fillStyle = '#161210';
       ctx.fillRect(0, 0, canvas.width, canvas.height * 0.72);
-
-      // Deep Mud/Ground layer
-      ctx.fillStyle = '#140e0c';
+      ctx.fillStyle = '#0f0c0a';
       ctx.fillRect(0, canvas.height * 0.72, canvas.width, canvas.height * 0.28);
 
-      // Base Trenches
-      ctx.fillStyle = '#2c1913';
-      ctx.fillRect(60, canvas.height * 0.65, 60, canvas.height * 0.15); // Player Trench
-      ctx.fillRect(canvas.width - 120, canvas.height * 0.65, 60, canvas.height * 0.15); // Enemy Trench
+      // Support positions (Trenches)
+      ctx.fillStyle = '#211a16';
+      ctx.fillRect(60, canvas.height * 0.67, 50, canvas.height * 0.12);
+      ctx.fillRect(canvas.width - 110, canvas.height * 0.67, 50, canvas.height * 0.12);
 
-      // Update and Draw Actors
       for (let i = units.length - 1; i >= 0; i--) {
         const u = units[i];
         u.update();
@@ -399,7 +552,6 @@
         }
       }
 
-      // Physics/Shrapnel Particles
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.x += p.vx;
