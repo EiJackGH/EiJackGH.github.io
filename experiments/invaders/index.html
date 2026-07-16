@@ -96,6 +96,21 @@
         </div>
     </div>
 
+    <!-- === MOBILE CONTROL LAYER === -->
+<div id="mobile-controls" style="position: absolute; bottom: 30px; width: 100%; display: flex; justify-content: space-between; padding: 0 30px; box-sizing: border-box; touch-action: none; user-select: none;">
+  
+  <!-- Left: D-Pad / Joystick Area -->
+  <div id="joystick" style="display: flex; gap: 15px;">
+    <button id="left-btn" style="width: 70px; height: 70px; background: rgba(255,255,255,0.2); border: 2px solid #fff; border-radius: 50%; color: #fff; font-size: 24px;">◀</button>
+    <button id="right-btn" style="width: 70px; height: 70px; background: rgba(255,255,255,0.2); border: 2px solid #fff; border-radius: 50%; color: #fff; font-size: 24px;">▶</button>
+  </div>
+
+  <!-- Right: Shoot Button -->
+  <button id="shoot-btn" style="width: 90px; height: 90px; background: rgba(239, 68, 68, 0.6); border: 2px solid #fff; border-radius: 50%; color: #fff; font-weight: bold; font-size: 18px;">FIRE</button>
+</div>
+
+<script>
+
     <!-- Retro Audio Controller (Web Audio API Synthesizer) -->
     <script>
         const AudioController = {
@@ -701,6 +716,16 @@
         }, { once: true });
 
         tick();
+
+        // Helper to map touches to game state
+  const bindControl = (el, prop, val) => {
+    el.addEventListener('touchstart', (e) => { e.preventDefault(); game[prop] = val; });
+    el.addEventListener('touchend', (e) => { e.preventDefault(); game[prop] = !val; });
+  };
+
+  bindControl(document.getElementById('left-btn'), 'left', true);
+  bindControl(document.getElementById('right-btn'), 'right', true);
+  bindControl(document.getElementById('shoot-btn'), 'fire', true);
     </script>
 </body>
 </html>
