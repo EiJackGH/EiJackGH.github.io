@@ -131,18 +131,19 @@
     <p style="color: #a1887f; max-width: 500px; text-align: center; line-height: 1.5;">Select your Alliance, deploy historical armor, command the skies, and breakthrough enemy lines.</p>
     
     <div class="faction-grid">
-      <div class="faction-card selected" onclick="chooseFaction('allies', 'uk')">
-        <img src="./assets/flag-uk.svg" alt="UK">
-        <div style="font-weight: bold;">British Empire</div>
-      </div>
-      <div class="faction-card" onclick="chooseFaction('allies', 'france')">
-        <img src="./assets/flag-france.svg" alt="France">
-        <div style="font-weight: bold;">France</div>
-      </div>
-      <div class="faction-card" onclick="chooseFaction('central', 'germany')">
-        <img src="./assets/flag-germany.svg" alt="Germany">
-        <div style="font-weight: bold;">German Empire</div>
-      </div>
+      <div class="faction-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; max-width: 700px;">
+  <!-- Allies -->
+  <div class="faction-card selected" onclick="chooseFaction('allies', 'uk')"><img src="./assets/flag-uk.svg"><div>British Empire</div></div>
+  <div class="faction-card" onclick="chooseFaction('allies', 'france')"><img src="./assets/flag-france.svg"><div>France</div></div>
+  <div class="faction-card" onclick="chooseFaction('allies', 'russia')"><img src="./assets/flag-russia.svg"><div>Russian Empire</div></div>
+  <div class="faction-card" onclick="chooseFaction('allies', 'usa')"><img src="./assets/flag-usa.svg"><div>United States</div></div>
+  
+  <!-- Central Powers -->
+  <div class="faction-card" onclick="chooseFaction('central', 'germany')"><img src="./assets/flag-germany.svg"><div>German Empire</div></div>
+  <div class="faction-card" onclick="chooseFaction('central', 'austria')"><img src="./assets/flag-austria.svg"><div>Austria-Hungary</div></div>
+  <div class="faction-card" onclick="chooseFaction('central', 'ottoman')"><img src="./assets/flag-ottoman.svg"><div>Ottoman Empire</div></div>
+  <div class="faction-card" onclick="chooseFaction('central', 'bulgaria')"><img src="./assets/flag-bulgaria.svg"><div>Bulgaria</div></div>
+</div>
       <div class="faction-card" onclick="chooseFaction('central', 'austria')">
         <img src="./assets/flag-austria.svg" alt="Austria">
         <div style="font-weight: bold;">Austria-Hungary</div>
@@ -193,15 +194,32 @@
     let enemyNation = 'germany';
 
     const nations = {
-      uk: { name: "British Empire", flag: "./assets/flag-uk.svg", alliance: "allies" },
-      france: { name: "Kingdom of France", flag: "./assets/flag-france.svg", alliance: "allies" },
-      germany: { name: "German Empire", flag: "./assets/flag-germany.svg", alliance: "central" },
-      austria: { name: "Austria-Hungary", flag: "./assets/flag-austria.svg", alliance: "central" }
-    };
+  uk: { name: "British Empire", flag: "./assets/flag-uk.svg", alliance: "allies" },
+  france: { name: "France", flag: "./assets/flag-france.svg", alliance: "allies" },
+  russia: { name: "Russian Empire", flag: "./assets/flag-russia.svg", alliance: "allies" },
+  usa: { name: "United States", flag: "./assets/flag-usa.svg", alliance: "allies" },
+  germany: { name: "German Empire", flag: "./assets/flag-germany.svg", alliance: "central" },
+  austria: { name: "Austria-Hungary", flag: "./assets/flag-austria.svg", alliance: "central" },
+  ottoman: { name: "Ottoman Empire", flag: "./assets/flag-ottoman.svg", alliance: "central" },
+  bulgaria: { name: "Kingdom of Bulgaria", flag: "./assets/flag-bulgaria.svg", alliance: "central" }
+};
 
     function chooseFaction(alliance, nationKey) {
-      document.querySelectorAll('.faction-card').forEach(el => el.classList.remove('selected'));
-      event.currentTarget.classList.add('selected');
+  document.querySelectorAll('.faction-card').forEach(el => el.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  
+  playerAlliance = alliance;
+  playerNation = nationKey;
+  
+  // Dynamic adversary targeting based on alliance match arrays
+  if (alliance === 'allies') {
+    const centralPool = ['germany', 'austria', 'ottoman', 'bulgaria'];
+    enemyNation = centralPool[Math.floor(Math.random() * centralPool.length)];
+  } else {
+    const alliesPool = ['uk', 'france', 'russia', 'usa'];
+    enemyNation = alliesPool[Math.floor(Math.random() * alliesPool.length)];
+  }
+}
       
       playerAlliance = alliance;
       playerNation = nationKey;
