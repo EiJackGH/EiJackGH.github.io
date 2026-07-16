@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 76 40">
+  <!-- 13 Stripes -->
+  <rect width="76" height="40" fill="#b22234"/>
+  <rect y="3.07" width="76" height="3.07" fill="#ffffff"/>
+  <rect y="9.23" width="76" height="3.07" fill="#ffffff"/>
+  <rect y="15.38" width="76" height="3.07" fill="#ffffff"/>
+  <rect y="21.53" width="76" height="3.07" fill="#ffffff"/>
+  <rect y="27.69" width="76" height="3.07" fill="#ffffff"/>
+  <rect y="33.84" width="76" height="3.07" fill="#ffffff"/>
+  <!-- Canton -->
+  <rect width="30.4" height="21.53" fill="#3c3b6e"/>
+  <!-- Grid representation placeholder for the 48 stars -->
+  <path d="M 3 3 L 5 3 L 4 5 Z M 9 3 L 11 3 L 10 5 Z M 15 3 L 17 3 L 16 5 Z M 21 3 L 23 3 L 22 5 Z M 27 3 L 29 3 L 28 5 Z M 3 9 L 5 9 L 4 11 Z M 9 9 L 11 9 L 10 11 Z M 15 9 L 17 9 L 16 11 Z M 21 9 L 23 9 L 22 11 Z M 27 9 L 29 9 L 28 11 Z M 3 15 L 5 15 L 4 17 Z M 9 15 L 11 15 L 10 17 Z M 15 15 L 17 15 L 16 17 Z M 21 15 L 23 15 L 22 17 Z M 27 15 L 29 15 L 28 17 Z" fill="#ffffff" transform="scale(0.9)"/>
+</svg>
