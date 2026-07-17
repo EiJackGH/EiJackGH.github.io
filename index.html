@@ -1,89 +1,356 @@
 ---
 ---
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EiJackGH | Experiments & Blog</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            950: '#042f2e',
+                        }
+                    },
+                    boxShadow: {
+                        'glow-cyan': '0 0 20px rgba(34, 211, 238, 0.15)',
+                        'glow-emerald': '0 0 20px rgba(16, 185, 129, 0.15)',
+                        'glow-brand': '0 0 20px rgba(20, 184, 166, 0.25)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
 </head>
-<body class="bg-gray-900 text-gray-100 p-8">
-    <div class="max-w-3xl mx-auto">
-        <header class="border-b border-gray-700 pb-4 mb-8">
-            <h1 class="text-3xl font-bold text-cyan-400">EiJackGH</h1>
-            <p class="text-gray-400">Zero-asset experimental playground.</p>
+<body class="bg-[#0b0f19] text-slate-200 min-h-screen flex flex-col selection:bg-cyan-500/30 selection:text-cyan-200">
+    <!-- Decorative background blobs -->
+    <div class="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full pointer-events-none overflow-hidden z-0">
+        <div class="absolute -top-[10%] left-[10%] w-[35rem] h-[35rem] rounded-full bg-cyan-500/10 blur-[120px] animate-pulse" style="animation-duration: 8s;"></div>
+        <div class="absolute top-[30%] -right-[10%] w-[30rem] h-[30rem] rounded-full bg-emerald-500/10 blur-[100px] animate-pulse" style="animation-duration: 12s;"></div>
+    </div>
+
+    <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-grow flex flex-col py-8">
+        <!-- Header -->
+        <header class="border-b border-slate-800/80 pb-6 mb-10">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent">
+                            EiJackGH
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-semibold bg-emerald-400/10 text-emerald-400 border border-emerald-500/20">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                            Live Playground
+                        </span>
+                    </div>
+                    <p class="text-slate-400 mt-2 text-sm sm:text-base font-light">
+                        Zero-asset experimental playground & development logs.
+                    </p>
+                </div>
+                <div class="flex items-center gap-3 self-start sm:self-center">
+                    <a href="https://github.com/EiJackGH" target="_blank" rel="noopener noreferrer" class="p-2 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:border-cyan-500/50 text-slate-400 hover:text-cyan-400 transition-all duration-300">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.137 20.162 22 16.418 22 12c0-5.523-4.477-10-10-10z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
         </header>
 
-        <section class="mt-10">
-            <script src="noscript.js"></script>
-            <h2 class="text-2xl font-bold text-cyan-400 mb-6">🔬 The Lab</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Main Content Grid -->
+        <main class="space-y-16">
+            <!-- Section: The Lab -->
+            <section>
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                            </svg>
+                        </div>
+                        <h2 class="text-2xl font-bold text-slate-100">The Laboratory</h2>
+                    </div>
+
+                    <!-- Search & Filters -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="relative max-w-xs">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </span>
+                            <input type="text" id="experiment-search" placeholder="Search experiments..." class="w-full pl-9 pr-4 py-1.5 text-sm rounded-xl bg-slate-900/60 border border-slate-800 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition duration-300">
+                        </div>
+                        <div class="flex bg-slate-900/60 p-1 rounded-xl border border-slate-800 text-xs">
+                            <button onclick="filterExperiments('all')" id="filter-btn-all" class="px-3 py-1 rounded-lg font-medium transition duration-200 bg-cyan-500/10 text-cyan-400">All</button>
+                            <button onclick="filterExperiments('games')" id="filter-btn-games" class="px-3 py-1 rounded-lg font-medium transition duration-200 text-slate-400 hover:text-slate-200">Games</button>
+                            <button onclick="filterExperiments('tools')" id="filter-btn-tools" class="px-3 py-1 rounded-lg font-medium transition duration-200 text-slate-400 hover:text-slate-200">Tools</button>
+                        </div>
+                    </div>
+                </div>
+
+                <script src="noscript.js"></script>
                 <noscript>
-                    <div style="background: #aa0000; color: white; padding: 30px; text-align: center; font-family: sans-serif;">
-                        <h1 style="font-size: 24px;">⚠️ JavaScript Disabled</h1>
-                        <p>This laboratory experiment requires JavaScript to render the game engine.</p>
-                        <p>Please enable it in your browser settings to continue.</p>
-                        <a href="../../" style="color: #fff; text-decoration: underline;">Return to Home</a>
+                    <div class="mb-8 p-6 bg-red-500/10 border border-red-500/20 rounded-2xl text-center">
+                        <h3 class="text-lg font-bold text-red-400 mb-2">⚠️ JavaScript Disabled</h3>
+                        <p class="text-slate-400 text-sm mb-4">This laboratory experiment playground requires JavaScript to function properly.</p>
+                        <a href="../../" class="inline-flex items-center gap-2 text-sm text-red-400 hover:underline">
+                            Return to Home
+                        </a>
                     </div>
                 </noscript>
 
-                <a href="/experiments/invaders/" class="border border-slate-700 p-4 rounded-lg hover:bg-slate-800 transition block flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-lg font-bold text-white mb-1">Space Invaders</h3>
-                        <p class="text-slate-400 text-sm">A canvas-based arcade experiment.</p>
-                    </div>
-                    <span class="text-xs text-cyan-500 mt-4 block">Live Demo →</span>
-                </a>
+                <!-- Grid of Experiments -->
+                <div id="experiments-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                <a href="/experiments/iwbtg/" class="border border-slate-700 p-4 rounded-lg hover:bg-slate-800 transition block flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-lg font-bold text-white mb-1">I Wanna Be The Guy</h3>
-                        <p class="text-slate-400 text-sm">A maso-platformer experiment in the lab.</p>
-                    </div>
-                    <span class="text-xs text-cyan-500 mt-4 block">Live Demo →</span>
-                </a>
+                    <!-- Experiment 1: Space Invaders -->
+                    <a href="/experiments/invaders/" data-category="games" class="experiment-card group p-6 bg-slate-900/40 hover:bg-slate-800/40 border border-slate-800/80 hover:border-cyan-500/30 rounded-2xl transition-all duration-300 hover:shadow-glow-cyan transform hover:-translate-y-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between gap-4 mb-4">
+                                <div class="p-3 rounded-xl bg-cyan-500/10 text-cyan-400 group-hover:scale-110 transition-transform duration-300">
+                                    <!-- Joystick/Arcade Icon -->
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                                    </svg>
+                                </div>
+                                <div class="flex flex-wrap gap-1.5 justify-end">
+                                    <span class="px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Arcade</span>
+                                    <span class="px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase rounded-full bg-slate-800 text-slate-400">Canvas</span>
+                                </div>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-100 group-hover:text-cyan-400 transition-colors duration-300 mb-2">Space Invaders</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed">A high-performance HTML5 canvas retro arcade experience. Dodge invaders, shoot projectiles, and defend the galaxy.</p>
+                        </div>
+                        <div class="flex items-center text-xs font-semibold text-cyan-400 mt-6 group-hover:underline">
+                            <span>Launch Mission</span>
+                            <svg class="w-4 h-4 ml-1.5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                        </div>
+                    </a>
 
-                <a href="/experiments/videotogifconverter/" class="border border-slate-700 p-4 rounded-lg hover:bg-slate-800 transition block flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-lg font-bold text-white mb-1">Video to GIF Converter</h3>
-                        <p class="text-slate-400 text-sm">A Video to GIF Converter, Powered by gifshot.</p>
-                    </div>
-                    <span class="text-xs text-cyan-500 mt-4 block">Live Demo →</span>
-                </a>
-            </div>
-        </section>
+                    <!-- Experiment 2: IWBTG -->
+                    <a href="/experiments/iwbtg/" data-category="games" class="experiment-card group p-6 bg-slate-900/40 hover:bg-slate-800/40 border border-slate-800/80 hover:border-cyan-500/30 rounded-2xl transition-all duration-300 hover:shadow-glow-cyan transform hover:-translate-y-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between gap-4 mb-4">
+                                <div class="p-3 rounded-xl bg-purple-500/10 text-purple-400 group-hover:scale-110 transition-transform duration-300">
+                                    <!-- Retro Platformer/Spikes Icon -->
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                </div>
+                                <div class="flex flex-wrap gap-1.5 justify-end">
+                                    <span class="px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">Retro</span>
+                                    <span class="px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase rounded-full bg-slate-800 text-slate-400">Hardcore</span>
+                                </div>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-100 group-hover:text-purple-400 transition-colors duration-300 mb-2">I Wanna Be The Guy</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed">A hardcore maso-platformer experiment. Pixel-perfect collision detection, lethal traps, and ultra-high difficulty physics engine.</p>
+                        </div>
+                        <div class="flex items-center text-xs font-semibold text-purple-400 mt-6 group-hover:underline">
+                            <span>Challenge Trial</span>
+                            <svg class="w-4 h-4 ml-1.5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                        </div>
+                    </a>
 
-        <a href="/experiments/ww1/" class="border border-slate-700 p-4 rounded-lg hover:bg-slate-800 transition block flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-lg font-bold text-white mb-1">WW1 Game</h3>
-                        <p class="text-slate-400 text-sm">A WW1 Game, Coded by aidasofialily-cmd.</p>
-                    </div>
-                    <span class="text-xs text-cyan-500 mt-4 block">Live Demo →</span>
-                </a>
-            </div>
-        </section>
+                    <!-- Experiment 3: Video to GIF -->
+                    <a href="/experiments/videotogifconverter/" data-category="tools" class="experiment-card group p-6 bg-slate-900/40 hover:bg-slate-800/40 border border-slate-800/80 hover:border-cyan-500/30 rounded-2xl transition-all duration-300 hover:shadow-glow-cyan transform hover:-translate-y-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between gap-4 mb-4">
+                                <div class="p-3 rounded-xl bg-emerald-500/10 text-emerald-400 group-hover:scale-110 transition-transform duration-300">
+                                    <!-- Video Camera/Convert Icon -->
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <div class="flex flex-wrap gap-1.5 justify-end">
+                                    <span class="px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Utility</span>
+                                    <span class="px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase rounded-full bg-slate-800 text-slate-400">gifshot</span>
+                                </div>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-100 group-hover:text-emerald-400 transition-colors duration-300 mb-2">Video to GIF Converter</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed">Transform video files into lightweight, loopable GIF animations instantly. Fully client-side rendering powered by the gifshot library.</p>
+                        </div>
+                        <div class="flex items-center text-xs font-semibold text-emerald-400 mt-6 group-hover:underline">
+                            <span>Convert Video</span>
+                            <svg class="w-4 h-4 ml-1.5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                        </div>
+                    </a>
 
-        <section class="mt-12">
-            <h2 class="text-2xl font-bold text-emerald-400 mb-6">✍️ Latest Blog Posts</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {% for post in site.posts %}
-                <a href="{{ post.url }}" class="border border-slate-700 p-4 rounded-lg hover:bg-slate-800 transition block flex flex-col justify-between">
-                    <div>
-                        <span class="text-xs text-slate-500 block mb-2">{{ post.date | date: "%b %d, %Y" }}</span>
-                        <h3 class="text-lg font-bold text-white mb-2 hover:text-emerald-400 transition">{{ post.title }}</h3>
-                        <p class="text-slate-400 text-sm line-clamp-2">
-                            {% if post.excerpt %}
-                                {{ post.excerpt | strip_html | truncatewords: 15 }}
-                            {% else %}
-                                Read the latest details about this blog post.
-                            {% endif %}
-                        </p>
+                    <!-- Experiment 4: WW1 Game -->
+                    <a href="/experiments/ww1/" data-category="games" class="experiment-card group p-6 bg-slate-900/40 hover:bg-slate-800/40 border border-slate-800/80 hover:border-cyan-500/30 rounded-2xl transition-all duration-300 hover:shadow-glow-cyan transform hover:-translate-y-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between gap-4 mb-4">
+                                <div class="p-3 rounded-xl bg-amber-500/10 text-amber-400 group-hover:scale-110 transition-transform duration-300">
+                                    <!-- Military/Shield Icon -->
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                    </svg>
+                                </div>
+                                <div class="flex flex-wrap gap-1.5 justify-end">
+                                    <span class="px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">Strategy</span>
+                                    <span class="px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase rounded-full bg-slate-800 text-slate-400">Tactical</span>
+                                </div>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-100 group-hover:text-amber-400 transition-colors duration-300 mb-2">WW1 Game</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed">A historical tactical strategy simulation coded by aidasofialily-cmd. Take command, deploy strategic positions, and survive the trenches.</p>
+                        </div>
+                        <div class="flex items-center text-xs font-semibold text-amber-400 mt-6 group-hover:underline">
+                            <span>Enter Battleground</span>
+                            <svg class="w-4 h-4 ml-1.5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                        </div>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Section: Blog Posts -->
+            <section class="relative">
+                <div class="flex items-center gap-3 mb-8">
+                    <div class="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
                     </div>
-                    <span class="text-xs text-emerald-400 mt-4 block font-semibold">Read Post →</span>
-                </a>
-                {% endfor %}
-            </div>
-        </section>
+                    <h2 class="text-2xl font-bold text-slate-100">Latest Log Entries</h2>
+                </div>
+
+                <div id="blog-posts-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {% for post in site.posts %}
+                    <a href="{{ post.url }}" class="group block p-6 bg-slate-900/40 hover:bg-slate-800/40 border border-slate-800/80 hover:border-emerald-500/30 rounded-2xl transition-all duration-300 hover:shadow-glow-emerald transform hover:-translate-y-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-xs font-medium text-slate-500">{{ post.date | date: "%b %d, %Y" }}</span>
+                                <span class="px-2.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Log Post</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-100 group-hover:text-emerald-400 transition-colors duration-300 mb-2">{{ post.title }}</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed line-clamp-2">
+                                {% if post.excerpt %}
+                                    {{ post.excerpt | strip_html | truncatewords: 15 }}
+                                {% else %}
+                                    Read the latest details about this blog post.
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="flex items-center text-xs font-semibold text-emerald-400 mt-6 group-hover:underline">
+                            <span>Read Full Entry</span>
+                            <svg class="w-4 h-4 ml-1.5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-20 pt-8 border-t border-slate-800/80 text-center text-xs text-slate-500 space-y-2">
+            <p>© 2026 EiJackGH. All rights reserved.</p>
+            <p class="font-mono">Built with Jekyll & Tailwind CSS · Fast, Static, Secure.</p>
+        </footer>
     </div>
+
+    <!-- Client-side Interactive Scripts -->
+    <script>
+        // 1. Search and Filter Functionality
+        const searchInput = document.getElementById('experiment-search');
+        const cards = document.querySelectorAll('.experiment-card');
+        let currentCategory = 'all';
+
+        function filterExperiments(category) {
+            currentCategory = category;
+
+            // Update filter buttons appearance
+            ['all', 'games', 'tools'].forEach(cat => {
+                const btn = document.getElementById(`filter-btn-${cat}`);
+                if (cat === category) {
+                    btn.className = "px-3 py-1 rounded-lg font-medium transition duration-200 bg-cyan-500/10 text-cyan-400";
+                } else {
+                    btn.className = "px-3 py-1 rounded-lg font-medium transition duration-200 text-slate-400 hover:text-slate-200";
+                }
+            });
+
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const query = searchInput.value.toLowerCase().trim();
+
+            cards.forEach(card => {
+                const title = card.querySelector('h3').textContent.toLowerCase();
+                const desc = card.querySelector('p').textContent.toLowerCase();
+                const category = card.getAttribute('data-category');
+
+                const matchesSearch = title.includes(query) || desc.includes(query);
+                const matchesCategory = currentCategory === 'all' || category === currentCategory;
+
+                if (matchesSearch && matchesCategory) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', applyFilters);
+        }
+
+        // 2. Client-side preview handler for uncompiled Jekyll templates
+        document.addEventListener("DOMContentLoaded", function() {
+            const container = document.getElementById("blog-posts-container");
+            if (!container) return;
+
+            // If raw Liquid constructs are present in innerHTML, Jekyll didn't parse this template
+            // We replace with beautiful mockup cards so the local file preview works and renders perfectly
+            const containsLiquid = container.innerHTML.includes("{%") || container.innerHTML.includes("{{");
+
+            if (containsLiquid) {
+                container.innerHTML = `
+                    <a href="/_posts/2026-02-22-my-first-log.html" class="group block p-6 bg-slate-900/40 hover:bg-slate-800/40 border border-slate-800/80 hover:border-emerald-500/30 rounded-2xl transition-all duration-300 hover:shadow-glow-emerald transform hover:-translate-y-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-xs font-medium text-slate-500">Feb 22, 2026</span>
+                                <span class="px-2.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Log Post</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-100 group-hover:text-emerald-400 transition-colors duration-300 mb-2">Building an Asset Hub</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed line-clamp-2">
+                                Today I set up this hub. By using Jekyll and Tailwind CDN, I can focus entirely on code and writing.
+                            </p>
+                        </div>
+                        <div class="flex items-center text-xs font-semibold text-emerald-400 mt-6 group-hover:underline">
+                            <span>Read Full Entry</span>
+                            <svg class="w-4 h-4 ml-1.5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                        </div>
+                    </a>
+                `;
+            }
+        });
+    </script>
 </body>
 </html>
