@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 350" width="500" height="350">
+  <defs>
+    <!-- Solid, flat color scheme (no gradients to match the retro-flat aesthetic) -->
+    <style>
+      .armor-base { fill: #4d544f; stroke: #2a2e2c; stroke-width: 3; }
+      .armor-highlight { fill: #636d66; stroke: #2a2e2c; stroke-width: 3; }
+      .armor-shadow { fill: #383d3a; stroke: #2a2e2c; stroke-width: 3; }
+      .tread-dark { fill: #1f2120; stroke: #111211; stroke-width: 2.5; }
+      .tread-wheel { fill: #7d8780; stroke: #1f2120; stroke-width: 3; }
+      .tread-pin { fill: #2a2e2c; }
+      .co-sphere-red { fill: #c0392b; }
+      .co-sphere-yellow { fill: #f1c40f; }
+      .rivet { fill: #1d201e; }
+    </style>
+  </defs>
+
+  <!-- Ground Shadow (Minimal Flat Backdrop) -->
+  <ellipse cx="250" cy="305" rx="200" ry="12" fill="#141715" opacity="0.6"/>
+
+  <!-- TANK HULL & STRUCTURE GROUP -->
+  <g id="tank-body">
+    <!-- 1. Lower Track Suspension Plate -->
+    <polygon points="90,285 410,285 380,210 120,210" class="armor-shadow" />
+
+    <!-- 2. Main Chassis Hull (Angled WWI Style Armour Plates) -->
+    <!-- Lower Glacis & Main Cabin -->
+    <polygon points="100,215 400,215 370,140 130,140" class="armor-base" />
+    <!-- Rear Engine Exhaust Block -->
+    <rect x="85" y="155" width="50" height="50" rx="4" class="armor-shadow" />
+    <path d="M 80 165 Q 65 155, 60 135" fill="none" stroke="#1f2120" stroke-width="6" stroke-linecap="round" />
+    
+    <!-- 3. Turret Ring and Gun Turret -->
+    <rect x="200" y="130" width="105" height="15" rx="3" class="armor-shadow" />
+    <path d="M 180 130 L 320 130 L 300 85 L 200 85 Z" class="armor-highlight" />
+
+    <!-- 4. Heavy Gun Barrel / Howitzer Cannon -->
+    <rect x="295" y="95" width="130" height="18" rx="2" class="armor-shadow" />
+    <!-- Muzzle brake flare -->
+    <rect x="420" y="91" width="12" height="26" rx="2" class="armor-base" />
+    
+    <!-- 5. Rivets / Bolted Construction Details (WWI Aesthetics) -->
+    <circle cx="140" cy="150" r="3" class="rivet" />
+    <circle cx="155" cy="150" r="3" class="rivet" />
+    <circle cx="215" cy="95" r="3.5" class="rivet" />
+    <circle cx="230" cy="95" r="3.5" class="rivet" />
+    <circle cx="285" cy="95" r="3.5" class="rivet" />
+    <circle cx="355" cy="150" r="3" class="rivet" />
+    <circle cx="340" cy="150" r="3" class="rivet" />
+    <circle cx="325" cy="150" r="3" class="rivet" />
+    <circle cx="120" cy="205" r="3" class="rivet" />
+    <circle cx="380" cy="205" r="3" class="rivet" />
+
+    <!-- 6. Co-Sphere Faction Identification Emblem (Painted On Turret) -->
+    <!-- Red and Gold Crest -->
+    <g transform="translate(250, 108)">
+      <circle cx="0" cy="0" r="16" class="co-sphere-red" stroke="#1c1f1d" stroke-width="1.5" />
+      <polygon points="0,-12 3,-4 11,-4 5,1 -2,8 -8,1 -5,-4 0,-12" class="co-sphere-yellow" transform="scale(0.8) translate(-1, -1)" />
+    </g>
+  </g>
+
+  <!-- RUNNING GEAR / TRACK ASSEMBLY (Drawn on top to envelope chassis) -->
+  <g id="tread-system">
+    <!-- Outer Track Guideway (The heavy continuous track outline) -->
+    <path d="M 110 290 L 390 290 C 425 290, 435 255, 400 220 L 365 185 C 350 170, 315 170, 300 170 L 200 170 C 185 170, 150 170, 135 185 L 100 220 C 65 255, 75 290, 110 290 Z" class="tread-dark" />
+    
+    <!-- Inner Wheel Guide Track Plate -->
+    <path d="M 115 280 L 385 280 C 410 280, 415 255, 385 228 L 355 195 L 145 195 L 115 228 C 85 255, 90 280, 115 280 Z" fill="#2d302e" stroke="#111211" stroke-width="2" />
+
+    <!-- Road Wheels & Idler Gears -->
+    <!-- Left Main Idler Wheel -->
+    <circle cx="125" cy="242" r="24" class="tread-wheel" />
+    <circle cx="125" cy="242" r="6" class="tread-pin" />
+    
+    <!-- Small Bottom Road Wheels -->
+    <circle cx="170" cy="265" r="14" class="tread-wheel" /> <circle cx="170" cy="265" r="3.5" class="tread-pin" />
+    <circle cx="210" cy="265" r="14" class="tread-wheel" /> <circle cx="210" cy="265" r="3.5" class="tread-pin" />
+    <circle cx="250" cy="265" r="14" class="tread-wheel" /> <circle cx="250" cy="265" r="3.5" class="tread-pin" />
+    <circle cx="290" cy="265" r="14" class="tread-wheel" /> <circle cx="290" cy="265" r="3.5" class="tread-pin" />
+    <circle cx="330" cy="265" r="14" class="tread-wheel" /> <circle cx="330" cy="265" r="3.5" class="tread-pin" />
+
+    <!-- Right Drive Sprocket Wheel -->
+    <circle cx="375" cy="242" r="24" class="tread-wheel" />
+    <circle cx="375" cy="242" r="6" class="tread-pin" />
+    
+    <!-- Top Support Return Rollers -->
+    <circle cx="200" cy="195" r="8" class="tread-wheel" />
+    <circle cx="300" cy="195" r="8" class="tread-wheel" />
+
+    <!-- External Track Link Cleats / Grousers -->
+    <path d="M 82 245 L 72 248 M 88 225 L 80 220 M 104 207 L 98 200" stroke="#111211" stroke-width="4" stroke-linecap="round" />
+    <path d="M 418 245 L 428 248 M 412 225 L 420 220 M 396 207 L 402 200" stroke="#111211" stroke-width="4" stroke-linecap="round" />
+    <path d="M 130 291 L 130 299 M 180 291 L 180 299 M 230 291 L 230 299 M 280 291 L 280 299 M 330 291 L 330 299 M 370 291 L 370 299" stroke="#111211" stroke-width="4" stroke-linecap="round" />
+  </g>
+</svg>
