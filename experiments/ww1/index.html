@@ -322,6 +322,17 @@
       </div>
     </div>
 
+      <div>
+        <div class="alliance-section-title" style="color: var(--cosphere-color);">Co Sphere</div>
+        <div class="cards-row" style="margin-top: 12px;">
+          <div class="faction-card" onclick="chooseFaction('cosphere', 'japan')">
+            <img src="./assets/flag-japan.svg" alt="Germany">
+            <span>Japan</span>
+          </div>
+          <div class="faction-card" onclick="chooseFaction('cosphere', 'china')">
+            <img src="./assets/flag-china.svg" alt="Austria">
+            <span>China</span>
+         
     <button class="start-btn" onclick="initGame()">Launch Operation</button>
   </div>
 
@@ -373,7 +384,9 @@
       germany: { name: "German Empire", flag: "./assets/flag-germany.svg", alliance: "central" },
       austria: { name: "Austria-Hungary", flag: "./assets/flag-austria.svg", alliance: "central" },
       ottoman: { name: "Ottoman Empire", flag: "./assets/flag-ottoman.svg", alliance: "central" },
-      bulgaria: { name: "Kingdom of Bulgaria", flag: "./assets/flag-bulgaria.svg", alliance: "central" }
+      bulgaria: { name: "Kingdom of Bulgaria", flag: "./assets/flag-bulgaria.svg", alliance: "central" },
+      japan: { name: "Empire of Japan", flag: ./assets/flag-japan.svg alliance: "cosphere" }
+      china: { name: "Republic of China", flag: .assets/flag-china.svg alliance "cosphere" }           
     };
 
     function chooseFaction(alliance, nationKey) {
@@ -388,6 +401,11 @@
         enemyNation = centralPool[Math.floor(Math.random() * centralPool.length)];
       } else {
         const alliesPool = ['uk', 'france', 'russia', 'usa'];
+        enemyNation = alliesPool[Math.floor(Math.random() * alliesPool.length)];
+      }
+    }
+
+    const cospherePool = ['japan', 'china'];
         enemyNation = alliesPool[Math.floor(Math.random() * alliesPool.length)];
       }
     }
