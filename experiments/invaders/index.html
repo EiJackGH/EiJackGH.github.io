@@ -90,19 +90,16 @@
         </div>
 
         <!-- === MOBILE CONTROL LAYER === -->
-<div id="mobile-controls" style="position: absolute; bottom: 30px; width: 100%; display: flex; justify-content: space-between; padding: 0 30px; box-sizing: border-box; touch-action: none; user-select: none;">
-  
-  <!-- Left: D-Pad / Joystick Area -->
-  <div id="joystick" style="display: flex; gap: 15px;">
-    <button id="left-btn" style="width: 70px; height: 70px; background: rgba(255,255,255,0.2); border: 2px solid #fff; border-radius: 50%; color: #fff; font-size: 24px;">◀</button>
-    <button id="right-btn" style="width: 70px; height: 70px; background: rgba(255,255,255,0.2); border: 2px solid #fff; border-radius: 50%; color: #fff; font-size: 24px;">▶</button>
-  </div>
+        <div id="mobile-controls" style="display: none; justify-content: space-between; align-items: center; width: 100%; max-width: 600px; margin: 20px auto 0 auto; padding: 15px; box-sizing: border-box; touch-action: none; user-select: none; border: 2px dashed #00FF00; border-radius: 8px; background: rgba(0, 0, 0, 0.6);">
+          <!-- Left: D-Pad / Joystick Area -->
+          <div id="joystick" style="display: flex; gap: 15px;">
+            <button id="left-btn" style="width: 65px; height: 65px; background: transparent; border: 2px solid #00FF00; border-radius: 50%; color: #00FF00; font-size: 24px; box-shadow: 0 0 8px rgba(0, 255, 0, 0.5); text-shadow: 0 0 5px #00FF00; outline: none;">◀</button>
+            <button id="right-btn" style="width: 65px; height: 65px; background: transparent; border: 2px solid #00FF00; border-radius: 50%; color: #00FF00; font-size: 24px; box-shadow: 0 0 8px rgba(0, 255, 0, 0.5); text-shadow: 0 0 5px #00FF00; outline: none;">▶</button>
+          </div>
 
-  <!-- Right: Shoot Button -->
-  <button id="shoot-btn" style="width: 90px; height: 90px; background: rgba(239, 68, 68, 0.6); border: 2px solid #fff; border-radius: 50%; color: #fff; font-weight: bold; font-size: 18px;">FIRE</button>
-</div>
-
-<script>
+          <!-- Right: Shoot Button -->
+          <button id="shoot-btn" style="width: 80px; height: 80px; background: transparent; border: 2px solid #FF3333; border-radius: 50%; color: #FF3333; font-weight: bold; font-size: 16px; box-shadow: 0 0 8px rgba(255, 51, 51, 0.5); text-shadow: 0 0 5px #FF3333; outline: none;">FIRE</button>
+        </div>
 
         <!-- FOOTER CONTROLS -->
         <div class="mt-4 text-center text-sm font-semibold tracking-wide text-green-500">
@@ -717,17 +714,34 @@
             }
         }, { once: true });
 
+        // Touch capacity check to show mobile controls
+        const isTouchDevice = () => {
+            return (('ontouchstart' in window) ||
+                (navigator.maxTouchPoints > 0) ||
+                (navigator.msMaxTouchPoints > 0));
+        };
+
+        if (isTouchDevice()) {
+            document.getElementById('mobile-controls').style.display = 'flex';
+        }
+
         tick();
 
         // Helper to map touches to game state
-  const bindControl = (el, prop, val) => {
-    el.addEventListener('touchstart', (e) => { e.preventDefault(); game[prop] = val; });
-    el.addEventListener('touchend', (e) => { e.preventDefault(); game[prop] = !val; });
-  };
+        const bindControl = (el, prop, val) => {
+            el.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                keys[prop] = val;
+            }, { passive: false });
+            el.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                keys[prop] = !val;
+            }, { passive: false });
+        };
 
-  bindControl(document.getElementById('left-btn'), 'left', true);
-  bindControl(document.getElementById('right-btn'), 'right', true);
-  bindControl(document.getElementById('shoot-btn'), 'fire', true);
+        bindControl(document.getElementById('left-btn'), 'ArrowLeft', true);
+        bindControl(document.getElementById('right-btn'), 'ArrowRight', true);
+        bindControl(document.getElementById('shoot-btn'), 'Space', true);
     </script>
 </body>
 </html>
