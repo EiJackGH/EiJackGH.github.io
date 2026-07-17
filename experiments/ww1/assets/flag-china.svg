@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 500" width="750" height="500">
+  <!-- Horizontal striping representing the five primary ethnic groups in the republic framework -->
+  
+  <!-- 1. Han Chinese (Red) -->
+  <rect x="0" y="0" width="750" height="100" fill="#e5312a"/>
+  
+  <!-- 2. Manchus (Yellow) -->
+  <rect x="0" y="100" width="750" height="100" fill="#ffcc00"/>
+  
+  <!-- 3. Mongols (Blue) -->
+  <rect x="0" y="200" width="750" height="100" fill="#003399"/>
+  
+  <!-- 4. Hui/Chinese Muslims (White) -->
+  <rect x="0" y="300" width="750" height="100" fill="#ffffff"/>
+  
+  <!-- 5. Tibetans (Black) -->
+  <rect x="0" y="400" width="750" height="100" fill="#111111"/>
+</svg>
