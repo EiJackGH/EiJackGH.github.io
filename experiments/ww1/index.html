@@ -15,6 +15,7 @@
       --accent-hover: #e5c17b;
       --ally-color: #6d8467;
       --central-color: #a66363;
+      --cosphere-color: #5c8ca6;
     }
 
     * {
@@ -320,18 +321,21 @@
           </div>
         </div>
       </div>
-    </div>
 
       <div>
         <div class="alliance-section-title" style="color: var(--cosphere-color);">Co Sphere</div>
         <div class="cards-row" style="margin-top: 12px;">
           <div class="faction-card" onclick="chooseFaction('cosphere', 'japan')">
-            <img src="./assets/flag-japan.svg" alt="Germany">
+            <img src="./assets/flag-japan.svg" alt="Japan">
             <span>Japan</span>
           </div>
           <div class="faction-card" onclick="chooseFaction('cosphere', 'china')">
-            <img src="./assets/flag-china.svg" alt="Austria">
+            <img src="./assets/flag-china.svg" alt="China">
             <span>China</span>
+          </div>
+        </div>
+      </div>
+    </div>
          
     <button class="start-btn" onclick="initGame()">Launch Operation</button>
   </div>
@@ -385,8 +389,8 @@
       austria: { name: "Austria-Hungary", flag: "./assets/flag-austria.svg", alliance: "central" },
       ottoman: { name: "Ottoman Empire", flag: "./assets/flag-ottoman.svg", alliance: "central" },
       bulgaria: { name: "Kingdom of Bulgaria", flag: "./assets/flag-bulgaria.svg", alliance: "central" },
-      japan: { name: "Empire of Japan", flag: ./assets/flag-japan.svg alliance: "cosphere" }
-      china: { name: "Republic of China", flag: .assets/flag-china.svg alliance "cosphere" }           
+      japan: { name: "Empire of Japan", flag: "./assets/flag-japan.svg", alliance: "cosphere" },
+      china: { name: "Republic of China", flag: "./assets/flag-china.svg", alliance: "cosphere" }
     };
 
     function chooseFaction(alliance, nationKey) {
@@ -396,17 +400,19 @@
       playerAlliance = alliance;
       playerNation = nationKey;
       
-      if (alliance === 'allies') {
-        const centralPool = ['germany', 'austria', 'ottoman', 'bulgaria'];
-        enemyNation = centralPool[Math.floor(Math.random() * centralPool.length)];
-      } else {
-        const alliesPool = ['uk', 'france', 'russia', 'usa'];
-        enemyNation = alliesPool[Math.floor(Math.random() * alliesPool.length)];
-      }
-    }
+      const alliesPool = ['uk', 'france', 'russia', 'usa'];
+      const centralPool = ['germany', 'austria', 'ottoman', 'bulgaria'];
+      const cospherePool = ['japan', 'china'];
 
-    const cospherePool = ['japan', 'china'];
-        enemyNation = alliesPool[Math.floor(Math.random() * alliesPool.length)];
+      if (alliance === 'allies') {
+        const enemyPool = [...centralPool, ...cospherePool];
+        enemyNation = enemyPool[Math.floor(Math.random() * enemyPool.length)];
+      } else if (alliance === 'central') {
+        const enemyPool = [...alliesPool, ...cospherePool];
+        enemyNation = enemyPool[Math.floor(Math.random() * enemyPool.length)];
+      } else if (alliance === 'cosphere') {
+        const enemyPool = [...alliesPool, ...centralPool];
+        enemyNation = enemyPool[Math.floor(Math.random() * enemyPool.length)];
       }
     }
 
@@ -430,8 +436,8 @@
       images.centralTank.src = './assets/central-tank.svg';
       images.biplane = new Image();
       images.biplane.src = './assets/biplane.svg';
-      images.cosphereTank = new image();
-      images.cosphereTank.src '.assets/cosphere-tank.svg';
+      images.cosphereTank = new Image();
+      images.cosphereTank.src = './assets/cosphere-tank.svg';
 
       resize();
       gameRunning = true;
@@ -458,6 +464,7 @@
         this.width = 22;
         this.height = 34;
         this.health = 100;
+        this.alliance = isPlayer ? playerAlliance : nations[enemyNation].alliance;
 
         if (type === 'tank') {
           this.speed *= 0.4;
@@ -490,7 +497,12 @@
           ctx.arc(this.x + this.width/2, this.y, 5, 0, Math.PI, true);
           ctx.fill();
         } else if (this.type === 'tank') {
-          const img = this.isPlayer ? images.alliedTank : images.centralTank;
+          let img = images.alliedTank;
+          if (this.alliance === 'central') {
+            img = images.centralTank;
+          } else if (this.alliance === 'cosphere') {
+            img = images.cosphereTank;
+          }
           ctx.save();
           if (!this.isPlayer) {
             ctx.translate(this.x + this.width, this.y);
