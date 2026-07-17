@@ -534,7 +534,10 @@
         alliedTank: './assets/allied-tank.svg',
         centralTank: './assets/central-tank.svg',
         biplane: './assets/biplane.svg',
-        cosphereTank: './assets/cosphere-tank.svg'
+        cosphereTank: './assets/cosphere-tank.svg',
+        gun: './assets/gun.svg',
+        explosion: './assets/explosion.svg',
+        blood: './assets/blood.svg'
       };
       const assetKeys = Object.keys(assetSources);
 
@@ -591,12 +594,51 @@
       startLoading();
     }
 
+    // Custom active explosion effects list
+    let explosions = [];
+    let bloodParticles = []; // Blood splatters/sprays in air
+    let groundBlood = [];    // Permanent blood puddles on mud
+
+    function spawnBloodSplatter(x, y, count = 8) {
+      for (let i = 0; i < count; i++) {
+        bloodParticles.push({
+          x: x,
+          y: y,
+          vx: (Math.random() - 0.5) * 6,
+          vy: (Math.random() - 0.8) * 8, // Tend to spray upwards & outwards
+          angle: Math.random() * Math.PI * 2,
+          spin: (Math.random() - 0.5) * 0.2,
+          size: 6 + Math.random() * 10,
+          life: 30 + Math.random() * 20,
+          maxLife: 50
+        });
+      }
+    }
+
+    function spawnGroundBlood(x, y) {
+      groundBlood.push({
+        x: x + (Math.random() - 0.5) * 15,
+        y: canvas.height * 0.72 + (Math.random() - 0.2) * 15, // Slightly offset vertically on ground
+        size: 15 + Math.random() * 15,
+        angle: Math.random() * Math.PI * 2,
+        opacity: 0.8
+      });
+      // Limit total permanent blood splatters to prevent memory lag
+      if (groundBlood.length > 100) {
+        groundBlood.shift();
+      }
+    }
+
     function startGameLoop() {
       resize();
       gameRunning = true;
       supplies = 100;
       units = [];
       particles = [];
+      shots = [];
+      explosions = [];
+      bloodParticles = [];
+      groundBlood = [];
 
       requestAnimationFrame(tick);
     }
@@ -606,6 +648,70 @@
       canvas.height = window.innerHeight;
     }
     window.addEventListener('resize', resize);
+
+    // Mouse aiming and shooting variables
+    let mouseX = 0;
+    let mouseY = 0;
+    let isMouseOnCanvas = false;
+    let gunRecoil = 0;
+    let muzzleFlashLife = 0;
+    let muzzleFlashX = 0;
+    let muzzleFlashY = 0;
+    let shots = []; // Tracer bullets/shells in transit
+
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      mouseX = e.clientX - rect.left;
+      mouseY = e.clientY - rect.top;
+      isMouseOnCanvas = true;
+    });
+
+    canvas.addEventListener('mouseenter', () => {
+      isMouseOnCanvas = true;
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      isMouseOnCanvas = false;
+    });
+
+    canvas.addEventListener('mousedown', (e) => {
+      // Trigger gunshot only when clicking on canvas and game is running
+      if (!gameRunning) return;
+
+      // Prevent shooting when clicking UI elements or bottom-bar area
+      const rect = canvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+
+      // Check if click was in UI bottom bar panel height
+      if (clickY > canvas.height - 90) return;
+
+      const gunBaseX = canvas.width - 80;
+      const gunBaseY = canvas.height - 60;
+      const angle = Math.atan2(clickY - gunBaseY, clickX - gunBaseX);
+
+      // Determine muzzle location (around 60px from base in direction of angle)
+      const muzzleDist = 65;
+      muzzleFlashX = gunBaseX + Math.cos(angle) * muzzleDist;
+      muzzleFlashY = gunBaseY + Math.sin(angle) * muzzleDist;
+
+      // Trigger recoil & muzzle flash
+      gunRecoil = 25;
+      muzzleFlashLife = 6;
+
+      // Add a projectile moving extremely fast (or shell in transit)
+      shots.push({
+        startX: muzzleFlashX,
+        startY: muzzleFlashY,
+        targetX: clickX,
+        targetY: clickY,
+        x: muzzleFlashX,
+        y: muzzleFlashY,
+        speed: 35, // High speed bullet tracer
+        progress: 0,
+        distance: Math.hypot(clickX - muzzleFlashX, clickY - muzzleFlashY)
+      });
+    });
 
     class Unit {
       constructor(type, x, isPlayer) {
@@ -675,16 +781,53 @@
       }
     }
 
-    function createExplosion(x, y) {
-      for (let i = 0; i < 5; i++) {
+    function createExplosion(x, y, isBigShell = false) {
+      // Spawn fine particles
+      const particleCount = isBigShell ? 15 : 6;
+      for (let i = 0; i < particleCount; i++) {
         particles.push({
           x: x,
           y: y,
-          vx: (Math.random() - 0.5) * 4,
-          vy: (Math.random() - 0.5) * 4,
+          vx: (Math.random() - 0.5) * (isBigShell ? 8 : 4),
+          vy: (Math.random() - 0.5) * (isBigShell ? 8 : 4) - (isBigShell ? 2 : 0),
           color: Math.random() > 0.4 ? '#c5a059' : '#8d4f38',
-          life: 20
+          life: isBigShell ? 30 : 20
         });
+      }
+
+      if (isBigShell) {
+        // Spawn actual visual explosion using the SVG graphic
+        explosions.push({
+          x: x,
+          y: y,
+          maxRadius: 80,
+          currentRadius: 10,
+          life: 25,
+          maxLife: 25
+        });
+
+        // Damage detection on ALL units (Player & Enemy)
+        const explosionRadius = 80;
+        const baseDamage = 180;
+
+        for (let i = units.length - 1; i >= 0; i--) {
+          const u = units[i];
+          // Simple distance-to-unit check
+          // Consider unit bounding box center
+          const uCenterX = u.x + u.width / 2;
+          const uCenterY = u.y + u.height / 2;
+          const dist = Math.hypot(uCenterX - x, uCenterY - y);
+
+          if (dist < explosionRadius) {
+            // Apply damage based on proximity
+            const falloff = 1 - (dist / explosionRadius);
+            const finalDamage = baseDamage * falloff;
+            u.health -= finalDamage;
+
+            // Spawn localized blood splatters/particles
+            spawnBloodSplatter(uCenterX, uCenterY, Math.ceil(5 * falloff));
+          }
+        }
       }
     }
 
@@ -728,12 +871,133 @@
       ctx.fillRect(60, canvas.height * 0.67, 50, canvas.height * 0.12);
       ctx.fillRect(canvas.width - 110, canvas.height * 0.67, 50, canvas.height * 0.12);
 
+      // Draw Permanent Ground Blood
+      for (let i = 0; i < groundBlood.length; i++) {
+        const b = groundBlood[i];
+        ctx.save();
+        ctx.translate(b.x, b.y);
+        ctx.rotate(b.angle);
+        ctx.globalAlpha = b.opacity;
+        if (images.blood && images.blood.complete) {
+          ctx.drawImage(images.blood, -b.size/2, -b.size/2, b.size, b.size);
+        } else {
+          ctx.fillStyle = '#540c0a';
+          ctx.beginPath();
+          ctx.arc(0, 0, b.size/2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
       for (let i = units.length - 1; i >= 0; i--) {
         const u = units[i];
         u.update();
         u.draw();
+
+        // If unit health goes below or equal to 0, it dies!
+        if (u.health <= 0) {
+          // Spawn permanent blood splatter on the ground mud
+          spawnGroundBlood(u.x + u.width/2, u.y + u.height/2);
+          // Spawn extra blood spray
+          spawnBloodSplatter(u.x + u.width/2, u.y + u.height/2, 12);
+          units.splice(i, 1);
+          continue;
+        }
+
         if (u.x > canvas.width + 100 || u.x < -100) {
           units.splice(i, 1);
+        }
+      }
+
+      // Update and Draw Projectiles/Shots
+      for (let i = shots.length - 1; i >= 0; i--) {
+        const s = shots[i];
+
+        // Move towards target
+        const dx = s.targetX - s.x;
+        const dy = s.targetY - s.y;
+        const d = Math.hypot(dx, dy);
+
+        if (d < s.speed) {
+          // Arrived at target! Trigger explosion and remove projectile
+          createExplosion(s.targetX, s.targetY, true);
+          shots.splice(i, 1);
+        } else {
+          const angle = Math.atan2(dy, dx);
+          s.x += Math.cos(angle) * s.speed;
+          s.y += Math.sin(angle) * s.speed;
+
+          // Draw Bullet Tracer line
+          ctx.strokeStyle = 'rgba(255, 230, 150, 0.8)';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(s.x - Math.cos(angle) * 20, s.y - Math.sin(angle) * 20);
+          ctx.lineTo(s.x, s.y);
+          ctx.stroke();
+        }
+      }
+
+      // Update and Draw Explosions (using explosion.svg)
+      for (let i = explosions.length - 1; i >= 0; i--) {
+        const e = explosions[i];
+        e.life--;
+
+        // Let it expand over its life
+        const progress = 1 - (e.life / e.maxLife);
+        e.currentRadius = e.maxRadius * Math.sin(progress * Math.PI / 2);
+
+        ctx.save();
+        ctx.translate(e.x, e.y);
+        // Slightly fade out at the end
+        ctx.globalAlpha = Math.max(0, e.life / e.maxLife);
+        if (images.explosion && images.explosion.complete) {
+          ctx.drawImage(images.explosion, -e.currentRadius, -e.currentRadius, e.currentRadius * 2, e.currentRadius * 2);
+        } else {
+          // Fallback radial gradient explosion circle
+          const grad = ctx.createRadialGradient(0, 0, e.currentRadius * 0.1, 0, 0, e.currentRadius);
+          grad.addColorStop(0, '#ffffff');
+          grad.addColorStop(0.2, '#f7cd46');
+          grad.addColorStop(0.5, '#d96b27');
+          grad.addColorStop(0.8, 'rgba(140, 67, 39, 0.4)');
+          grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(0, 0, e.currentRadius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+
+        if (e.life <= 0) {
+          explosions.splice(i, 1);
+        }
+      }
+
+      // Update and Draw Blood Particles
+      for (let i = bloodParticles.length - 1; i >= 0; i--) {
+        const bp = bloodParticles[i];
+        bp.x += bp.vx;
+        bp.y += bp.vy;
+        // Apply slight gravity to blood sprays
+        bp.vy += 0.15;
+        bp.angle += bp.spin;
+        bp.life--;
+
+        ctx.save();
+        ctx.translate(bp.x, bp.y);
+        ctx.rotate(bp.angle);
+        ctx.globalAlpha = Math.max(0, bp.life / bp.maxLife);
+        if (images.blood && images.blood.complete) {
+          ctx.drawImage(images.blood, -bp.size/2, -bp.size/2, bp.size, bp.size);
+        } else {
+          ctx.fillStyle = '#7a1210';
+          ctx.beginPath();
+          ctx.arc(0, 0, bp.size/2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+
+        if (bp.life <= 0) {
+          bloodParticles.splice(i, 1);
         }
       }
 
@@ -745,6 +1009,65 @@
         ctx.fillStyle = p.color;
         ctx.fillRect(p.x, p.y, p.life/4, p.life/4);
         if (p.life <= 0) particles.splice(i, 1);
+      }
+
+      // 1. Draw Player Gun (Stationed at bottom right of screen, pointing at mouse)
+      const gunBaseX = canvas.width - 80;
+      const gunBaseY = canvas.height - 60;
+      const angle = Math.atan2(mouseY - gunBaseY, mouseX - gunBaseX);
+
+      ctx.save();
+      ctx.translate(gunBaseX, gunBaseY);
+      ctx.rotate(angle);
+      // Translate backward if gun is recoiling
+      ctx.translate(-gunRecoil, 0);
+
+      // Draw gun asset. Our asset is 100x60. Let's center it vertically around (0, 0)
+      if (images.gun && images.gun.complete) {
+        ctx.drawImage(images.gun, -35, -30, 100, 60);
+      } else {
+        // Fallback placeholder cannon if not loaded yet
+        ctx.fillStyle = '#4d3e38';
+        ctx.fillRect(-20, -10, 80, 20);
+        ctx.fillStyle = '#1e1816';
+        ctx.beginPath();
+        ctx.arc(-20, 0, 15, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+
+      // Gun Recoil cooling down
+      if (gunRecoil > 0) gunRecoil *= 0.85;
+
+      // Draw muzzle flash
+      if (muzzleFlashLife > 0) {
+        muzzleFlashLife--;
+        ctx.save();
+        ctx.translate(muzzleFlashX, muzzleFlashY);
+        // Random scale/rotation for high velocity explosion vibe
+        ctx.rotate(Math.random() * Math.PI * 2);
+        const flashSize = 30 + Math.random() * 20;
+        ctx.drawImage(images.explosion, -flashSize/2, -flashSize/2, flashSize, flashSize);
+        ctx.restore();
+      }
+
+      // Draw standard crosshair at mouse location
+      if (isMouseOnCanvas) {
+        ctx.strokeStyle = 'rgba(235, 193, 123, 0.7)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        // Inner reticle
+        ctx.arc(mouseX, mouseY, 8, 0, Math.PI * 2);
+        // Outer tick marks
+        ctx.moveTo(mouseX - 15, mouseY);
+        ctx.lineTo(mouseX - 5, mouseY);
+        ctx.moveTo(mouseX + 5, mouseY);
+        ctx.lineTo(mouseX + 15, mouseY);
+        ctx.moveTo(mouseX, mouseY - 15);
+        ctx.lineTo(mouseX, mouseY - 5);
+        ctx.moveTo(mouseX, mouseY + 5);
+        ctx.lineTo(mouseX, mouseY + 15);
+        ctx.stroke();
       }
 
       requestAnimationFrame(tick);

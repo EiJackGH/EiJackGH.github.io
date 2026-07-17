@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 60" width="100%" height="100%">
+  <!-- Retro Trench Gun / Artillery Cannon -->
+  <g fill="none" stroke="#2d2522" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Carriage Wheel -->
+    <circle cx="35" cy="45" r="12" fill="#1e1816" stroke="#4d3e38" stroke-width="3" />
+    <circle cx="35" cy="45" r="4" fill="#2d2522" />
+    <!-- Spokes -->
+    <line x1="35" y1="33" x2="35" y2="57" stroke="#4d3e38" stroke-width="1.5" />
+    <line x1="23" y1="45" x2="47" y2="45" stroke="#4d3e38" stroke-width="1.5" />
+    <line x1="26.5" y1="36.5" x2="43.5" y2="53.5" stroke="#4d3e38" stroke-width="1.5" />
+    <line x1="26.5" y1="53.5" x2="43.5" y2="36.5" stroke="#4d3e38" stroke-width="1.5" />
+
+    <!-- Gun Trail / Support Leg -->
+    <path d="M35 45 L15 52 L10 52" stroke="#3d312b" stroke-width="4" fill="none" />
+
+    <!-- Gun Shield -->
+    <path d="M42 22 L46 45 L38 45 Z" fill="#4d3e38" stroke="#2d2522" stroke-width="2" />
+
+    <!-- Recoil Mechanism and Cradle -->
+    <rect x="35" y="30" width="25" height="6" rx="1" fill="#3d312b" stroke="#1d1715" stroke-width="2" />
+
+    <!-- Gun Barrel -->
+    <path d="M30 31 L85 31 L85 35 L30 35 Z" fill="#5a4d46" stroke="#1d1715" stroke-width="2" />
+    <!-- Barrel Tip / Flash hider -->
+    <path d="M85 30 L90 29 L90 37 L85 36 Z" fill="#2d2522" />
+
+    <!-- Breech / Mechanism -->
+    <rect x="25" y="27" width="12" height="10" rx="1" fill="#2d2522" stroke="#1d1715" stroke-width="2" />
+    <!-- Handle -->
+    <path d="M25 32 L20 30 L20 35" stroke="#1d1715" stroke-width="2" />
+  </g>
+</svg>
