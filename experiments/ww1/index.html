@@ -429,9 +429,14 @@
         </div>
       </div>
 
-      <div class="glass-panel" id="supply-panel">
-        <div class="faction-title" style="font-size: 9px; margin-bottom: 0;">Logistics</div>
-        <div id="supply-count">100</div>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+        <div class="glass-panel" id="supply-panel">
+          <div class="faction-title" style="font-size: 9px; margin-bottom: 0;">Logistics</div>
+          <div id="supply-count">100</div>
+        </div>
+        <div class="glass-panel" id="powerup-status" style="display: none; padding: 6px 16px; text-align: center; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #d4af37; border-color: #d4af37;">
+          SPREAD SHOT: <span id="powerup-timer">15.0</span>s
+        </div>
       </div>
 
       <div class="glass-panel hud-faction enemy">
@@ -499,6 +504,13 @@
     let units = [];
     let particles = [];
     let images = {};
+
+    // Power-up state variables
+    let powerUps = [];
+    let powerUpSpawnTimer = 300;
+    let multishotTimer = 0;
+    let floatingTexts = [];
+    let artilleryShells = [];
 
     const loadingTips = [
       "Trench Warfare: Infantry units can establish fortified positions to hold territory against hostile incursions.",
@@ -640,6 +652,13 @@
       bloodParticles = [];
       groundBlood = [];
 
+      // Reset Power-up state
+      powerUps = [];
+      powerUpSpawnTimer = 180 + Math.random() * 240; // ~3 to 7 seconds first spawn
+      multishotTimer = 0;
+      floatingTexts = [];
+      artilleryShells = [];
+
       requestAnimationFrame(tick);
     }
 
@@ -686,6 +705,18 @@
       // Check if click was in UI bottom bar panel height
       if (clickY > canvas.height - 90) return;
 
+      // Check if clicked inside any active power-up crate bounding box
+      for (let i = powerUps.length - 1; i >= 0; i--) {
+        const p = powerUps[i];
+        // Check bounding box of crate
+        if (clickX >= p.x && clickX <= p.x + p.width &&
+            clickY >= p.y && clickY <= p.y + p.height) {
+          activatePowerUp(p);
+          powerUps.splice(i, 1);
+          return; // prevent standard shot since we clicked the crate directly!
+        }
+      }
+
       const gunBaseX = canvas.width - 80;
       const gunBaseY = canvas.height - 60;
       const angle = Math.atan2(clickY - gunBaseY, clickX - gunBaseX);
@@ -699,19 +730,227 @@
       gunRecoil = 25;
       muzzleFlashLife = 6;
 
-      // Add a projectile moving extremely fast (or shell in transit)
-      shots.push({
-        startX: muzzleFlashX,
-        startY: muzzleFlashY,
-        targetX: clickX,
-        targetY: clickY,
-        x: muzzleFlashX,
-        y: muzzleFlashY,
-        speed: 35, // High speed bullet tracer
-        progress: 0,
-        distance: Math.hypot(clickX - muzzleFlashX, clickY - muzzleFlashY)
-      });
+      const dist = Math.hypot(clickX - gunBaseX, clickY - gunBaseY);
+
+      if (multishotTimer > 0) {
+        // Spread shot: 3 tracers
+        const spreadAngles = [-0.12, 0, 0.12]; // spread angle offsets in radians
+        spreadAngles.forEach(offset => {
+          const finalAngle = angle + offset;
+          const finalTargetX = gunBaseX + Math.cos(finalAngle) * dist;
+          const finalTargetY = gunBaseY + Math.sin(finalAngle) * dist;
+          shots.push({
+            startX: muzzleFlashX,
+            startY: muzzleFlashY,
+            targetX: finalTargetX,
+            targetY: finalTargetY,
+            x: muzzleFlashX,
+            y: muzzleFlashY,
+            speed: 35,
+            progress: 0,
+            distance: dist
+          });
+        });
+      } else {
+        // Single standard shot
+        shots.push({
+          startX: muzzleFlashX,
+          startY: muzzleFlashY,
+          targetX: clickX,
+          targetY: clickY,
+          x: muzzleFlashX,
+          y: muzzleFlashY,
+          speed: 35, // High speed bullet tracer
+          progress: 0,
+          distance: Math.hypot(clickX - muzzleFlashX, clickY - muzzleFlashY)
+        });
+      }
     });
+
+    class PowerUp {
+      constructor(type, x) {
+        this.type = type; // 'supply', 'artillery', 'multishot'
+        this.x = x;
+        this.y = -40;
+        this.vy = 1.2;
+        this.width = 28;
+        this.height = 28;
+        this.isGrounded = false;
+        this.decay = 500; // ~8.3 seconds at 60 FPS
+        this.pulse = 0;
+      }
+
+      update() {
+        this.pulse += 0.05;
+        if (!this.isGrounded) {
+          this.y += this.vy;
+          const groundY = canvas.height * 0.72 + 8;
+          if (this.y >= groundY) {
+            this.y = groundY;
+            this.isGrounded = true;
+            this.vy = 0;
+          }
+        } else {
+          this.decay--;
+        }
+      }
+
+      draw() {
+        const alpha = this.decay < 60 ? this.decay / 60 : 1;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+
+        // 1. Draw Parachute (only if falling or barely landed)
+        if (!this.isGrounded || this.decay > 460) {
+          let paraAlpha = 1;
+          if (this.isGrounded) {
+            paraAlpha = (this.decay - 460) / 40; // fade out quickly on landing
+          }
+          ctx.save();
+          ctx.globalAlpha = alpha * paraAlpha;
+
+          // Parachute lines
+          ctx.strokeStyle = 'rgba(160, 150, 140, 0.6)';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(this.x + this.width / 2 - 18, this.y - 25);
+          ctx.lineTo(this.x, this.y);
+          ctx.moveTo(this.x + this.width / 2 + 18, this.y - 25);
+          ctx.lineTo(this.x + this.width, this.y);
+          ctx.stroke();
+
+          // Parachute canopy
+          ctx.fillStyle = 'rgba(235, 230, 224, 0.95)';
+          ctx.strokeStyle = '#3d312b';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(this.x + this.width / 2, this.y - 25, 18, Math.PI, 0, false);
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // 2. Draw Wooden Crate
+        ctx.fillStyle = '#7a5230'; // wood base
+        ctx.strokeStyle = '#3d2613'; // wood dark frame
+        ctx.lineWidth = 2;
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+        ctx.strokeRect(this.x, this.y, this.width, this.height);
+
+        // Crate wooden structural cross boards (X)
+        ctx.beginPath();
+        ctx.moveTo(this.x + 3, this.y + 3);
+        ctx.lineTo(this.x + this.width - 3, this.y + this.height - 3);
+        ctx.moveTo(this.x + this.width - 3, this.y + 3);
+        ctx.lineTo(this.x + 3, this.y + this.height - 3);
+        ctx.stroke();
+
+        // Inner panel border for retro feel
+        ctx.strokeStyle = 'rgba(61, 38, 19, 0.4)';
+        ctx.strokeRect(this.x + 3, this.y + 3, this.width - 6, this.height - 6);
+
+        // 3. Draw Type Indicator text/icon above the crate with glowing pulses
+        let color = '#c5a059';
+        let symbol = '';
+        let labelText = '';
+        if (this.type === 'supply') {
+          color = '#87a96b'; // Logistics green
+          symbol = 'L';
+          labelText = 'SUPPLY';
+        } else if (this.type === 'artillery') {
+          color = '#c25959'; // Artillery red
+          symbol = 'A';
+          labelText = 'BARRAGE';
+        } else if (this.type === 'multishot') {
+          color = '#d4af37'; // Gold
+          symbol = 'S';
+          labelText = 'SPREAD';
+        }
+
+        // Pulsing hover glow
+        const scale = 1 + Math.sin(this.pulse) * 0.08;
+        ctx.save();
+        ctx.translate(this.x + this.width / 2, this.y - 8);
+        ctx.scale(scale, scale);
+
+        // Label text
+        ctx.font = '9px monospace';
+        ctx.fillStyle = color;
+        ctx.textAlign = 'center';
+        ctx.shadowColor = 'black';
+        ctx.shadowBlur = 4;
+        ctx.fillText(labelText, 0, -6);
+        ctx.restore();
+
+        // Draw large symbol in the center of the crate
+        ctx.font = 'bold 14px sans-serif';
+        ctx.fillStyle = color;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(symbol, this.x + this.width / 2, this.y + this.height / 2 + 1);
+
+        ctx.restore();
+      }
+    }
+
+    function activatePowerUp(p) {
+      // Localized visual explosion (not a big shell that damages units)
+      createExplosion(p.x + p.width / 2, p.y + p.height / 2, false);
+
+      if (p.type === 'supply') {
+        supplies += 100;
+        floatingTexts.push({
+          x: p.x + p.width / 2,
+          y: p.y,
+          text: "+100 LOGISTICS",
+          color: '#87a96b',
+          alpha: 1,
+          vy: -1,
+          life: 120
+        });
+      } else if (p.type === 'artillery') {
+        // Trigger sequential artillery barrage
+        floatingTexts.push({
+          x: p.x + p.width / 2,
+          y: p.y,
+          text: "ARTILLERY BARRAGE AUTHORIZED!",
+          color: '#c25959',
+          alpha: 1,
+          vy: -1,
+          life: 120
+        });
+
+        // Spawn 8 sequential artillery shells raining from the sky across the screen
+        const totalShells = 8;
+        for (let i = 0; i < totalShells; i++) {
+          const targetX = (canvas.width * 0.1) + (canvas.width * 0.8 / (totalShells - 1)) * i + (Math.random() - 0.5) * 45;
+          const targetY = canvas.height * 0.72 + 15;
+          const delay = i * 20 + Math.random() * 10;
+
+          artilleryShells.push({
+            startX: targetX - 120,
+            startY: -60,
+            x: targetX - 120,
+            y: -60,
+            targetX: targetX,
+            targetY: targetY,
+            delay: delay,
+            speed: 15
+          });
+        }
+      } else if (p.type === 'multishot') {
+        multishotTimer = 900; // 15 seconds at 60 FPS
+        floatingTexts.push({
+          x: p.x + p.width / 2,
+          y: p.y,
+          text: "SPREAD SHOT ACTIVE!",
+          color: '#d4af37',
+          alpha: 1,
+          vy: -1,
+          life: 120
+        });
+      }
+    }
 
     class Unit {
       constructor(type, x, isPlayer) {
@@ -806,6 +1045,18 @@
           maxLife: 25
         });
 
+        // Detonate power-ups within explosion radius
+        for (let i = powerUps.length - 1; i >= 0; i--) {
+          const p = powerUps[i];
+          const pCenterX = p.x + p.width / 2;
+          const pCenterY = p.y + p.height / 2;
+          const dist = Math.hypot(pCenterX - x, pCenterY - y);
+          if (dist < 80) {
+            activatePowerUp(p);
+            powerUps.splice(i, 1);
+          }
+        }
+
         // Damage detection on ALL units (Player & Enemy)
         const explosionRadius = 80;
         const baseDamage = 180;
@@ -858,6 +1109,25 @@
 
       runAI();
 
+      // Update multishot timer and status text
+      if (multishotTimer > 0) {
+        multishotTimer--;
+        document.getElementById('powerup-status').style.display = 'block';
+        document.getElementById('powerup-timer').innerText = (multishotTimer / 60).toFixed(1);
+      } else {
+        document.getElementById('powerup-status').style.display = 'none';
+      }
+
+      // Spawning logic for Powerups
+      powerUpSpawnTimer--;
+      if (powerUpSpawnTimer <= 0) {
+        const types = ['supply', 'artillery', 'multishot'];
+        const type = types[Math.floor(Math.random() * types.length)];
+        const spawnX = canvas.width * 0.2 + Math.random() * (canvas.width * 0.6);
+        powerUps.push(new PowerUp(type, spawnX));
+        powerUpSpawnTimer = 480 + Math.random() * 420; // 8 to 15 seconds
+      }
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Desaturated tactical background colors
@@ -887,6 +1157,16 @@
           ctx.fill();
         }
         ctx.restore();
+      }
+
+      // Update and Draw Power-ups
+      for (let i = powerUps.length - 1; i >= 0; i--) {
+        const p = powerUps[i];
+        p.update();
+        p.draw();
+        if (p.decay <= 0) {
+          powerUps.splice(i, 1);
+        }
       }
 
       for (let i = units.length - 1; i >= 0; i--) {
@@ -1049,6 +1329,58 @@
         const flashSize = 30 + Math.random() * 20;
         ctx.drawImage(images.explosion, -flashSize/2, -flashSize/2, flashSize, flashSize);
         ctx.restore();
+      }
+
+      // Update and Draw falling artillery shells
+      for (let i = artilleryShells.length - 1; i >= 0; i--) {
+        const s = artilleryShells[i];
+        if (s.delay > 0) {
+          s.delay--;
+          continue;
+        }
+
+        const dx = s.targetX - s.x;
+        const dy = s.targetY - s.y;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist < s.speed) {
+          createExplosion(s.targetX, s.targetY, true);
+          artilleryShells.splice(i, 1);
+        } else {
+          const angle = Math.atan2(dy, dx);
+          s.x += Math.cos(angle) * s.speed;
+          s.y += Math.sin(angle) * s.speed;
+
+          // Draw falling artillery tracer shell line
+          ctx.strokeStyle = 'rgba(235, 90, 50, 0.9)';
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.moveTo(s.x - Math.cos(angle) * 25, s.y - Math.sin(angle) * 25);
+          ctx.lineTo(s.x, s.y);
+          ctx.stroke();
+        }
+      }
+
+      // Update and Draw floating texts
+      for (let i = floatingTexts.length - 1; i >= 0; i--) {
+        const ft = floatingTexts[i];
+        ft.y += ft.vy;
+        ft.life--;
+        ft.alpha = ft.life / 120;
+
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, ft.alpha);
+        ctx.font = 'bold 15px monospace';
+        ctx.fillStyle = ft.color;
+        ctx.textAlign = 'center';
+        ctx.shadowColor = 'black';
+        ctx.shadowBlur = 6;
+        ctx.fillText(ft.text, ft.x, ft.y);
+        ctx.restore();
+
+        if (ft.life <= 0) {
+          floatingTexts.splice(i, 1);
+        }
       }
 
       // Draw standard crosshair at mouse location
