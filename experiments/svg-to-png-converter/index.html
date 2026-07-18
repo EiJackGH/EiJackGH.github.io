@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SVG to PNG Converter Studio</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Custom Scrollbar for a premium look */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    /* Checkerboard background for transparency preview */
+    .checkerboard-pattern {
+      background-image: linear-gradient(45deg, #1e293b 25%, transparent 25%),
+                        linear-gradient(-45deg, #1e293b 25%, transparent 25%),
+                        linear-gradient(45deg, transparent 75%, #1e293b 75%),
+                        linear-gradient(-45deg, transparent 75%, #1e293b 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+      background-color: #0f172a;
+    }
+  </style>
+</head>
+<body class="bg-[#0b0f19] text-slate-100 min-h-screen flex flex-col font-sans selection:bg-teal-500 selection:text-slate-900">
+
+  <!-- Feature detection check -->
+  <script src="noscript.js"></script>
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="bg-gradient-to-tr from-teal-500 to-cyan-500 p-2.5 rounded-xl shadow-lg shadow-teal-500/20">
+          <i class="fa-solid fa-file-image text-xl text-slate-950"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
+            SVG Converter Studio
+          </h1>
+          <p class="text-xs text-slate-400 font-medium">In-Browser SVG to PNG High-Res Exporter</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-4">
+        <a href="../../" class="inline-flex items-center space-x-2 text-sm font-semibold text-slate-400 hover:text-teal-400 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-800 hover:border-teal-500/30 px-3.5 py-1.5 rounded-xl transition-all duration-200">
+          <i class="fa-solid fa-flask text-xs"></i>
+          <span>Back to Lab</span>
+        </a>
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-400/10 text-teal-400 border border-teal-500/20">
+          <span class="w-1.5 h-1.5 mr-1.5 bg-teal-400 rounded-full animate-pulse"></span>
+          100% Client-Side
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex flex-col">
+
+    <!-- Workspace Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start flex-grow">
+
+      <!-- Left Column: SVG Input Area (Text Code Paste & Dropzone) -->
+      <div class="lg:col-span-5 space-y-6 flex flex-col h-full justify-start">
+
+        <!-- Input Section -->
+        <div class="bg-slate-900/40 border border-slate-800/80 rounded-3xl p-6 shadow-xl backdrop-blur-sm space-y-4">
+          <h3 class="text-lg font-bold text-slate-200 flex items-center justify-between">
+            <span><i class="fa-solid fa-code text-teal-400 mr-2.5"></i> SVG Source Input</span>
+            <span class="text-xs font-normal text-slate-400">Paste or upload</span>
+          </h3>
+
+          <!-- Drag & Drop Zone -->
+          <div id="dropzone" class="relative group border-2 border-dashed border-slate-700 hover:border-teal-500/50 bg-slate-950/40 rounded-2xl p-6 text-center cursor-pointer transition-all duration-300">
+            <input type="file" id="svgFile" class="hidden" accept=".svg">
+            <div class="space-y-2">
+              <div class="mx-auto w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center border border-slate-700 group-hover:scale-105 group-hover:border-teal-500/30 transition-all duration-300">
+                <i class="fa-solid fa-cloud-arrow-up text-xl text-teal-400"></i>
+              </div>
+              <p class="text-sm font-semibold text-slate-200">
+                Drop your `.svg` file here, or <span class="text-teal-400 hover:text-teal-300">browse</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Raw SVG Textarea -->
+          <div class="space-y-2">
+            <div class="flex justify-between items-center text-xs text-slate-400">
+              <label for="svgCode" class="font-medium">Raw SVG markup:</label>
+              <button id="btnClear" class="hover:text-red-400 transition-colors flex items-center space-x-1">
+                <i class="fa-solid fa-trash-can"></i>
+                <span>Clear</span>
+              </button>
+            </div>
+            <textarea id="svgCode" class="w-full h-64 bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-xs text-teal-300 font-mono focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500/50 transition duration-300 resize-none" placeholder="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>&#10;  <circle cx='50' cy='50' r='40' fill='#0d9488'/>&#10;</svg>"></textarea>
+          </div>
+
+          <!-- Samples / Presets Selector -->
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400 font-medium">Load sample SVG:</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button onclick="loadSample('star')" class="px-2.5 py-1.5 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 hover:border-teal-500/30 text-xs rounded-xl transition duration-200">
+                ⭐ Star Shape
+              </button>
+              <button onclick="loadSample('wave')" class="px-2.5 py-1.5 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 hover:border-teal-500/30 text-xs rounded-xl transition duration-200">
+                🌊 Tech Wave
+              </button>
+              <button onclick="loadSample('flower')" class="px-2.5 py-1.5 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 hover:border-teal-500/30 text-xs rounded-xl transition duration-200">
+                🌸 Flower Gear
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Right Column: Settings & Live Preview -->
+      <div class="lg:col-span-7 space-y-6">
+
+        <!-- Live Preview Board -->
+        <div class="bg-slate-900/40 border border-slate-800/80 rounded-3xl p-6 shadow-xl backdrop-blur-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h4 class="font-semibold text-slate-200 flex items-center">
+              <i class="fa-solid fa-eye text-teal-400 mr-2.5"></i> Live Interactive Preview
+            </h4>
+            <span id="svgStatus" class="text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-full border border-slate-700 font-mono">No valid SVG</span>
+          </div>
+
+          <!-- Preview Wrapper with custom checkerboard -->
+          <div class="relative aspect-video w-full checkerboard-pattern rounded-2xl overflow-hidden border border-slate-800 shadow-inner flex items-center justify-center p-8 group">
+            <div id="previewContainer" class="max-w-full max-h-full flex items-center justify-center transition-all duration-300">
+              <!-- SVG elements injected dynamically -->
+              <span id="previewPlaceholder" class="text-slate-500 text-sm italic">Enter SVG markup or upload a file to preview...</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4 text-xs text-slate-400">
+            <div class="flex items-center space-x-2 bg-slate-950/40 p-2.5 rounded-xl border border-slate-800">
+              <i class="fa-solid fa-expand text-teal-500/70"></i>
+              <span>Original Size: <strong id="origSizeDisplay" class="font-mono text-slate-200">N/A</strong></span>
+            </div>
+            <div class="flex items-center space-x-2 bg-slate-950/40 p-2.5 rounded-xl border border-slate-800">
+              <i class="fa-solid fa-arrows-left-right text-teal-500/70"></i>
+              <span>Aspect Ratio: <strong id="aspectRatioDisplay" class="font-mono text-slate-200">N/A</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Export Settings Card -->
+        <div class="bg-slate-900/40 border border-slate-800/80 rounded-3xl p-6 shadow-xl backdrop-blur-sm space-y-6">
+          <h3 class="text-lg font-bold text-slate-200 flex items-center">
+            <i class="fa-solid fa-sliders text-teal-400 mr-2.5"></i> Exporter Customizations
+          </h3>
+
+          <!-- Dimension Settings -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1.5 font-semibold">Custom Width (px)</label>
+              <input type="number" id="exportWidth" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm focus:border-teal-500 focus:outline-none text-slate-200" value="512" min="1" max="10000">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1.5 font-semibold">Custom Height (px)</label>
+              <input type="number" id="exportHeight" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm focus:border-teal-500 focus:outline-none text-slate-200" value="512" min="1" max="10000">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1.5 font-semibold">Aspect Ratio Options</label>
+              <div class="flex items-center h-9">
+                <input type="checkbox" id="lockRatio" checked class="w-4 h-4 text-teal-500 rounded border-slate-800 bg-slate-950 focus:ring-teal-500/30">
+                <label for="lockRatio" class="ml-2 text-xs text-slate-300 font-medium cursor-pointer select-none">Lock Ratio</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quality & Resolution Scales -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1.5 font-semibold">Scale / Multiplier (For Ultra-HQ PNG)</label>
+              <select id="exportScale" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm focus:border-teal-500 focus:outline-none text-slate-300">
+                <option value="1" selected>1x (Standard)</option>
+                <option value="2">2x (Retina / Sharp)</option>
+                <option value="3">3x (High-res Print)</option>
+                <option value="4">4x (Super Resolution)</option>
+                <option value="6">6x (Ultra Resolution)</option>
+              </select>
+              <span class="text-[10px] text-slate-500 mt-1 block">Output PNG will be drawn at <strong id="finalDimenDisplay" class="font-mono">512x512</strong></span>
+            </div>
+
+            <div>
+              <label class="block text-xs text-slate-400 mb-1.5 font-semibold">Background Option</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button id="bgTransBtn" onclick="setBackgroundType('transparent')" class="px-3 py-2 bg-teal-500/10 text-teal-400 border border-teal-500/30 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all">
+                  <i class="fa-solid fa-circle-notch"></i>
+                  <span>Transparent</span>
+                </button>
+                <div class="relative">
+                  <input type="color" id="bgColorInput" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-6 h-6 bg-transparent border-0 cursor-pointer rounded" value="#ffffff">
+                  <button id="bgSolidBtn" onclick="setBackgroundType('solid')" class="w-full pl-10 pr-2 py-2 bg-slate-800 border border-slate-700/60 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all text-center">
+                    Solid Color
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Export Actions -->
+          <div class="pt-4 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <button id="btnExport" class="w-full relative group bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-slate-950 font-bold py-3.5 px-6 rounded-2xl shadow-xl shadow-teal-500/10 hover:shadow-teal-400/20 active:scale-[0.98] transition-all duration-150 flex items-center justify-center space-x-2">
+              <i class="fa-solid fa-download text-lg"></i>
+              <span>Download PNG</span>
+            </button>
+            <button id="btnCopy" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-slate-200 font-bold py-3.5 px-6 rounded-2xl transition-all flex items-center justify-center space-x-2">
+              <i class="fa-solid fa-copy"></i>
+              <span>Copy to Clipboard</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-auto border-t border-slate-900 bg-slate-950/80 py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+      <div class="flex items-center space-x-1">
+        <span>&copy; 2026 SVG Converter Studio &bull; Safe, fast, offline-ready.</span>
+      </div>
+      <div class="flex items-center space-x-4">
+        <span>No uploads, processed locally &bull; Clean PNG exports</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    // App state
+    let svgWidth = 512;
+    let svgHeight = 512;
+    let originalRatio = 1;
+    let backgroundType = 'transparent'; // 'transparent' or 'solid'
+
+    // DOM selectors
+    const dropzone = document.getElementById('dropzone');
+    const svgFileInput = document.getElementById('svgFile');
+    const svgCodeTextarea = document.getElementById('svgCode');
+    const previewContainer = document.getElementById('previewContainer');
+    const previewPlaceholder = document.getElementById('previewPlaceholder');
+    const svgStatus = document.getElementById('svgStatus');
+    const origSizeDisplay = document.getElementById('origSizeDisplay');
+    const aspectRatioDisplay = document.getElementById('aspectRatioDisplay');
+    const exportWidthInput = document.getElementById('exportWidth');
+    const exportHeightInput = document.getElementById('exportHeight');
+    const lockRatioCheckbox = document.getElementById('lockRatio');
+    const exportScaleSelect = document.getElementById('exportScale');
+    const finalDimenDisplay = document.getElementById('finalDimenDisplay');
+    const btnClear = document.getElementById('btnClear');
+    const btnExport = document.getElementById('btnExport');
+    const btnCopy = document.getElementById('btnCopy');
+    const bgTransBtn = document.getElementById('bgTransBtn');
+    const bgSolidBtn = document.getElementById('bgSolidBtn');
+    const bgColorInput = document.getElementById('bgColorInput');
+
+    // Samples mapping
+    const samples = {
+      star: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200">\n  <polygon points="50,9 61,38 92,38 67,57 76,87 50,69 24,87 33,57 8,38 39,38" fill="#eab308" stroke="#ca8a04" stroke-width="2"/>\n</svg>`,
+      wave: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" width="600" height="150">\n  <path fill="#06b6d4" fill-opacity="1" d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,112C672,107,768,149,864,165.3C960,181,1056,171,1152,144C1248,117,1344,75,1392,53.3L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>\n</svg>`,
+      flower: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="300" height="300">\n  <g fill="#ec4899" stroke="#db2777" stroke-width="3">\n    <circle cx="50" cy="50" r="18" fill="#fbcfe8"/>\n    <path d="M50 15 C 40 15, 35 30, 50 35 C 65 30, 60 15, 50 15 Z" />\n    <path d="M50 85 C 40 85, 35 70, 50 65 C 65 70, 60 85, 50 85 Z" />\n    <path d="M15 50 C 15 40, 30 35, 35 50 C 30 65, 15 60, 15 50 Z" />\n    <path d="M85 50 C 85 40, 70 35, 65 50 C 70 65, 85 60, 85 50 Z" />\n  </g>\n</svg>`
+    };
+
+    function loadSample(key) {
+      if (samples[key]) {
+        svgCodeTextarea.value = samples[key];
+        processSVG();
+      }
+    }
+
+    // Drag & Drop Listeners
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('border-teal-500', 'bg-teal-500/5');
+    });
+
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('border-teal-500', 'bg-teal-500/5');
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('border-teal-500', 'bg-teal-500/5');
+      if (e.dataTransfer.files.length > 0) {
+        handleFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    dropzone.addEventListener('click', () => svgFileInput.click());
+
+    svgFileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleFile(e.target.files[0]);
+      }
+    });
+
+    function handleFile(file) {
+      if (!file.name.endsWith('.svg') && file.type !== 'image/svg+xml') {
+        alert('Please drop or select a valid .svg file.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        svgCodeTextarea.value = event.target.result;
+        processSVG();
+      };
+      reader.readAsText(file);
+    }
+
+    btnClear.addEventListener('click', () => {
+      svgCodeTextarea.value = '';
+      previewContainer.innerHTML = '';
+      previewContainer.appendChild(previewPlaceholder);
+      svgStatus.textContent = 'No valid SVG';
+      svgStatus.className = 'text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-full border border-slate-700 font-mono';
+      origSizeDisplay.textContent = 'N/A';
+      aspectRatioDisplay.textContent = 'N/A';
+    });
+
+    // Handle background setting switches
+    function setBackgroundType(type) {
+      backgroundType = type;
+      if (type === 'transparent') {
+        bgTransBtn.className = "px-3 py-2 bg-teal-500/10 text-teal-400 border border-teal-500/30 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all";
+        bgSolidBtn.className = "w-full pl-10 pr-2 py-2 bg-slate-800 border border-slate-700/60 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all text-center";
+      } else {
+        bgTransBtn.className = "px-3 py-2 bg-slate-800 border border-slate-700/60 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition-all text-slate-400 hover:text-slate-200";
+        bgSolidBtn.className = "w-full pl-10 pr-2 py-2 bg-teal-500/10 text-teal-400 border border-teal-500/30 rounded-xl text-xs font-semibold transition-all text-center";
+      }
+    }
+
+    bgColorInput.addEventListener('input', () => {
+      setBackgroundType('solid');
+    });
+
+    // Real-time parsed dimension mapping
+    function processSVG() {
+      const rawMarkup = svgCodeTextarea.value.trim();
+      if (!rawMarkup) {
+        return;
+      }
+
+      // Quick validation check
+      if (!rawMarkup.includes('<svg') || !rawMarkup.includes('</svg>')) {
+        svgStatus.textContent = 'Invalid SVG Code';
+        svgStatus.className = 'text-xs text-red-400 bg-red-500/10 px-2.5 py-1 rounded-full border border-red-500/20 font-mono';
+        return;
+      }
+
+      // Clear layout and inject svg element safely
+      previewContainer.innerHTML = rawMarkup;
+      const svgElement = previewContainer.querySelector('svg');
+
+      if (!svgElement) {
+        svgStatus.textContent = 'Parsing Failed';
+        svgStatus.className = 'text-xs text-red-400 bg-red-500/10 px-2.5 py-1 rounded-full border border-red-500/20 font-mono';
+        return;
+      }
+
+      // Read viewport sizes & viewBox parameters
+      let width = parseFloat(svgElement.getAttribute('width'));
+      let height = parseFloat(svgElement.getAttribute('height'));
+      const viewBoxAttr = svgElement.getAttribute('viewBox');
+
+      if (viewBoxAttr) {
+        const viewBoxCoords = viewBoxAttr.split(/[\s,]+/);
+        if (viewBoxCoords.length === 4) {
+          const vbWidth = parseFloat(viewBoxCoords[2]);
+          const vbHeight = parseFloat(viewBoxCoords[3]);
+          if (isNaN(width)) width = vbWidth;
+          if (isNaN(height)) height = vbHeight;
+        }
+      }
+
+      // Sensible defaults if size is undefined
+      if (isNaN(width) || width <= 0) width = 512;
+      if (isNaN(height) || height <= 0) height = 512;
+
+      svgWidth = width;
+      svgHeight = height;
+      originalRatio = width / height;
+
+      // Update previews
+      origSizeDisplay.textContent = `${Math.round(width)} x ${Math.round(height)} px`;
+      aspectRatioDisplay.textContent = originalRatio.toFixed(2);
+      svgStatus.textContent = 'Valid SVG';
+      svgStatus.className = 'text-xs text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20 font-mono';
+
+      // Update custom dimensions inside inputs
+      exportWidthInput.value = Math.round(width);
+      exportHeightInput.value = Math.round(height);
+
+      updateFinalDimenDisplay();
+    }
+
+    // Input listeners for custom dimensions
+    exportWidthInput.addEventListener('input', () => {
+      const w = parseFloat(exportWidthInput.value) || 1;
+      if (lockRatioCheckbox.checked) {
+        exportHeightInput.value = Math.round(w / originalRatio);
+      }
+      updateFinalDimenDisplay();
+    });
+
+    exportHeightInput.addEventListener('input', () => {
+      const h = parseFloat(exportHeightInput.value) || 1;
+      if (lockRatioCheckbox.checked) {
+        exportWidthInput.value = Math.round(h * originalRatio);
+      }
+      updateFinalDimenDisplay();
+    });
+
+    exportScaleSelect.addEventListener('change', updateFinalDimenDisplay);
+
+    function updateFinalDimenDisplay() {
+      const w = parseFloat(exportWidthInput.value) || 1;
+      const h = parseFloat(exportHeightInput.value) || 1;
+      const multiplier = parseInt(exportScaleSelect.value);
+      finalDimenDisplay.textContent = `${Math.round(w * multiplier)}x${Math.round(h * multiplier)}px`;
+    }
+
+    // Live textarea code synchronization
+    svgCodeTextarea.addEventListener('input', processSVG);
+
+    // Rasterizing engine to export PNG
+    function generateCanvas(callback) {
+      const rawMarkup = svgCodeTextarea.value.trim();
+      if (!rawMarkup) {
+        alert('Please input a valid SVG first.');
+        return;
+      }
+
+      const w = parseFloat(exportWidthInput.value) || 512;
+      const h = parseFloat(exportHeightInput.value) || 512;
+      const scale = parseInt(exportScaleSelect.value) || 1;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = w * scale;
+      canvas.height = h * scale;
+      const ctx = canvas.getContext('2d');
+
+      // 1. Draw Background
+      if (backgroundType === 'solid') {
+        ctx.fillStyle = bgColorInput.value;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+
+      // Create blob from code
+      const blob = new Blob([rawMarkup], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+
+      img.onload = () => {
+        // Draw image onto high-res canvas scaling appropriately
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+        callback(canvas);
+      };
+
+      img.onerror = () => {
+        alert('Failed to render SVG onto PNG canvas. Please ensure the SVG syntax is correct.');
+        URL.revokeObjectURL(url);
+      };
+
+      img.src = url;
+    }
+
+    // Export Trigger
+    btnExport.addEventListener('click', () => {
+      generateCanvas((canvas) => {
+        const link = document.createElement('a');
+        link.download = 'svg_studio_export.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    });
+
+    // Copy to Clipboard trigger using standard clipboard items
+    btnCopy.addEventListener('click', () => {
+      generateCanvas((canvas) => {
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            alert('Failed to copy. Try downloading the file instead.');
+            return;
+          }
+          try {
+            navigator.clipboard.write([
+              new ClipboardItem({ 'image/png': blob })
+            ]).then(() => {
+              const originalText = btnCopy.innerHTML;
+              btnCopy.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> <span>Copied!</span>';
+              btnCopy.classList.add('border-emerald-500/40', 'bg-emerald-500/10');
+              setTimeout(() => {
+                btnCopy.innerHTML = originalText;
+                btnCopy.classList.remove('border-emerald-500/40', 'bg-emerald-500/10');
+              }, 2000);
+            }).catch(err => {
+              alert('Could not copy image: ' + err);
+            });
+          } catch (e) {
+            alert('Clipboard copy is not fully supported in this browser. Please click "Download PNG" instead.');
+          }
+        }, 'image/png');
+      });
+    });
+
+    // Load Default Star
+    loadSample('star');
+  </script>
+</body>
+</html>
