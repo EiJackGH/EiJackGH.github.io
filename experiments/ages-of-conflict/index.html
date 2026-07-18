@@ -132,6 +132,7 @@
                             <select id="select-scenario" class="w-full bg-slate-950 text-slate-200 border border-slate-800 rounded-xl px-3 py-1.5 text-xs focus:border-teal-500/50 focus:outline-none focus:ring-1 focus:ring-teal-500/50">
                                 <option value="continents">Pangaea Continents</option>
                                 <option value="islands">Archipelago Islands</option>
+                                <option value="europe">Europe (Modern Nations)</option>
                                 <option value="classic">Classic World Map Sketch</option>
                                 <option value="ring">The Ring World</option>
                                 <option value="empty">Empty Sandbox Ocean</option>
@@ -447,6 +448,107 @@
                 paintCircle(52, 34, 10, terrain.LAND);
                 // Australia
                 paintCircle(68, 36, 6, terrain.LAND);
+            } else if (scenarioType === 'europe') {
+                // Paint Europe Landmasses
+
+                // Iberian Peninsula (Spain & Portugal)
+                paintCircle(14, 34, 6, terrain.LAND);
+
+                // France
+                paintCircle(24, 26, 6, terrain.LAND);
+
+                // Italy (Boot shapes)
+                paintCircle(34, 31, 2.5, terrain.LAND);
+                paintCircle(36, 35, 2, terrain.LAND);
+                paintCircle(39, 39, 1.5, terrain.LAND);
+                paintCircle(41, 41, 1.2, terrain.LAND); // Sicily
+
+                // Germany & Central Europe (Austria, Switzerland, Czechia, etc.)
+                paintCircle(34, 21, 5, terrain.LAND);
+
+                // Poland & Baltics
+                paintCircle(44, 19, 5, terrain.LAND);
+
+                // Balkans & Greece
+                paintCircle(48, 33, 4.5, terrain.LAND);
+
+                // Ukraine & Belarus
+                paintCircle(56, 22, 6, terrain.LAND);
+
+                // Western Russia / Eastern Europe
+                paintCircle(68, 16, 9, terrain.LAND);
+
+                // Great Britain (UK)
+                paintCircle(18, 13, 4.5, terrain.LAND);
+
+                // Ireland
+                paintCircle(11, 14, 2.5, terrain.LAND);
+
+                // Denmark
+                paintCircle(31, 15, 1.5, terrain.LAND);
+
+                // Scandinavia (Norway & Sweden)
+                paintCircle(33, 10, 4, terrain.LAND);
+                paintCircle(36, 5, 4.5, terrain.LAND);
+
+                // Finland
+                paintCircle(45, 6, 4, terrain.LAND);
+
+                // Turkey (Anatolia)
+                paintCircle(61, 37, 5, terrain.LAND);
+
+                // Islands / Stepping stones to allow expansion across water
+                // English Channel bridge
+                paintCircle(22, 18, 1, terrain.LAND);
+                // Irish Sea bridge
+                paintCircle(14, 14, 1, terrain.LAND);
+                // Denmark-Sweden bridge
+                paintCircle(32, 13, 1, terrain.LAND);
+                // Finland-Estonia bridge
+                paintCircle(45, 11, 1, terrain.LAND);
+                // Aegean Islands (Greece-Turkey)
+                paintCircle(53, 37, 1, terrain.LAND);
+                // Bosphorus (Thrace-Anatolia)
+                paintCircle(56, 35, 1, terrain.LAND);
+                // Sicily-Italy bridge
+                paintCircle(40, 40, 1, terrain.LAND);
+
+                // --- Paint Major European Mountain Ranges ---
+                // Pyrenees (Spain/France border)
+                paintCircle(17, 30, 1.5, terrain.MOUNTAIN);
+
+                // Alps (North Italy/Switzerland/Austria)
+                paintCircle(32, 28, 2, terrain.MOUNTAIN);
+
+                // Carpathians (Eastern Europe)
+                paintCircle(47, 24, 2, terrain.MOUNTAIN);
+
+                // Scandinavian Mountains (Kjolen)
+                paintCircle(32, 6, 1.5, terrain.MOUNTAIN);
+                paintCircle(34, 10, 1.5, terrain.MOUNTAIN);
+
+                // Anatolian Mountains (Turkey)
+                paintCircle(63, 38, 1.5, terrain.MOUNTAIN);
+
+                // Spawn Modern Nations
+                createNation("Ireland", "#10b981", 11, 14);
+                createNation("United Kingdom", "#3b82f6", 18, 15);
+                createNation("France", "#1d4ed8", 24, 25);
+                createNation("Spain", "#f59e0b", 13, 34);
+                createNation("Italy", "#059669", 36, 35);
+                createNation("Germany", "#4b5563", 35, 20);
+                createNation("Poland", "#ec4899", 44, 19);
+                createNation("Ukraine", "#eab308", 55, 22);
+                createNation("Russia", "#ef4444", 69, 15);
+                createNation("Sweden", "#06b6d4", 35, 9);
+                createNation("Norway", "#f43f5e", 32, 9);
+                createNation("Finland", "#6366f1", 45, 7);
+                createNation("Greece", "#0284c7", 49, 36);
+                createNation("Turkey", "#b91c1c", 60, 36);
+
+                // Recalculate and update leaderboard
+                recalculateNationSizes();
+                updateLeaderboard();
             }
             // empty remains all Ocean!
 
