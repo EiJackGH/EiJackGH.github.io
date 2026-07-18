@@ -351,6 +351,44 @@
       backdrop-filter: blur(10px);
     }
 
+    /* Continue Countdown Interface styling */
+    .continue-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 24px;
+      padding: 16px;
+      border: 1px dashed var(--accent-color);
+      border-radius: 8px;
+      background: rgba(197, 160, 89, 0.05);
+    }
+
+    .continue-text {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--accent-color);
+      margin-bottom: 8px;
+    }
+
+    .continue-countdown {
+      font-size: 64px;
+      font-weight: 800;
+      font-family: monospace;
+      color: #ff4d4d;
+      text-shadow: 0 0 16px rgba(255, 77, 77, 0.6);
+      animation: heartbeat 1s infinite;
+      margin-bottom: 16px;
+    }
+
+    @keyframes heartbeat {
+      0% { transform: scale(1); }
+      14% { transform: scale(1.15); }
+      28% { transform: scale(1); }
+      42% { transform: scale(1.15); }
+      70% { transform: scale(1); }
+    }
+
     #pause-btn {
       width: 44px;
       height: 44px;
@@ -535,7 +573,15 @@
   <div id="gameover-screen" style="display: none;">
     <h2 id="gameover-title" class="gameover-title">Victory</h2>
     <p id="gameover-subtitle" class="gameover-subtitle">Your forces have successfully breached the enemy defensive lines and secured the field.</p>
-    <button class="start-btn" onclick="returnToLobby()">Return to Headquarters</button>
+
+    <!-- Continue countdown section (only visible upon defeat) -->
+    <div id="continue-section" class="continue-container" style="display: none;">
+      <div class="continue-text">Reinforcements Available in</div>
+      <div id="continue-timer" class="continue-countdown">10</div>
+      <button class="start-btn" onclick="continueGame()">Deploy Reinforcements</button>
+    </div>
+
+    <button id="gameover-btn" class="start-btn" onclick="returnToLobby()">Return to Headquarters</button>
   </div>
 
   <!-- Pause Menu Overlay Screen -->
@@ -697,6 +743,8 @@
     let gameRunning = false;
     let isPaused = false;
     let supplies = 100;
+    let continueCountdown = 10;
+    let continueInterval = null;
     let units = [];
     let particles = [];
     let images = {};
@@ -1379,6 +1427,10 @@
     }
 
     function returnToLobby() {
+      if (continueInterval) {
+        clearInterval(continueInterval);
+        continueInterval = null;
+      }
       gameRunning = false;
       isPaused = false;
       document.getElementById('gameover-screen').style.display = 'none';
@@ -1402,6 +1454,49 @@
       returnToLobby();
     }
 
+    function startContinueCountdown() {
+      if (continueInterval) clearInterval(continueInterval);
+      continueCountdown = 10;
+      document.getElementById('continue-timer').innerText = continueCountdown;
+      document.getElementById('continue-section').style.display = 'flex';
+      document.getElementById('gameover-btn').innerText = "Abandon Operation";
+
+      continueInterval = setInterval(() => {
+        continueCountdown--;
+        document.getElementById('continue-timer').innerText = continueCountdown;
+        if (continueCountdown <= 0) {
+          clearInterval(continueInterval);
+          document.getElementById('continue-section').style.display = 'none';
+          document.getElementById('gameover-btn').innerText = "Return to Headquarters";
+        }
+      }, 1000);
+    }
+
+    function continueGame() {
+      if (continueInterval) clearInterval(continueInterval);
+      document.getElementById('continue-section').style.display = 'none';
+      document.getElementById('gameover-screen').style.display = 'none';
+
+      playerHealth = 100;
+      // Boost player supplies if low
+      supplies = Math.max(supplies, 100);
+
+      // Clear all enemy units to give player a clean start, leave player units
+      units = units.filter(u => u.isPlayer);
+
+      // Reset health indicators in HTML
+      const pFill = document.getElementById('p-health-fill');
+      const pText = document.getElementById('p-health-text');
+      if (pFill) pFill.style.width = '100%';
+      if (pText) pText.innerText = 'HP: 100/100';
+
+      const pName = nations[playerNation].name;
+      updateNewsTicker(`REINFORCEMENTS ARRIVED: Commander, secondary forces have deployed! The battle for the line resumes.`);
+
+      gameRunning = true;
+      requestAnimationFrame(tick);
+    }
+
     function checkGameOver() {
       if (playerHealth <= 0 || enemyHealth <= 0) {
         gameRunning = false;
@@ -1417,11 +1512,16 @@
           title.style.color = "var(--central-color)";
           subtitle.innerText = "The front lines have collapsed. Hostile forces have breached our field headquarters.";
           updateNewsTicker(`ARMISTICE DECLARED: Defense lines collapsed. Hostile ${eName} troops have claimed battlefield triumph.`);
+
+          startContinueCountdown();
         } else {
           title.innerText = "Victory";
           title.style.color = "var(--accent-color)";
           subtitle.innerText = "Command operational efficacy confirmed. Your forces have successfully broken the enemy ranks.";
           updateNewsTicker(`WAR ENDS: Brilliant triumph! ${pName} field forces broke through lines to claim complete victory.`);
+
+          document.getElementById('continue-section').style.display = 'none';
+          document.getElementById('gameover-btn').innerText = "Return to Headquarters";
         }
 
         overScreen.style.display = "flex";
