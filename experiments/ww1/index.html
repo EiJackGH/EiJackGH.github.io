@@ -115,6 +115,65 @@
       color: var(--accent-color);
     }
 
+    /* Breaking News Ticker */
+    #news-ticker-container {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      max-width: 800px;
+      height: 38px;
+      padding: 0 12px;
+      overflow: hidden;
+      border: 1px solid rgba(166, 99, 99, 0.4);
+      background: rgba(22, 17, 14, 0.95);
+      box-shadow: 0 0 15px rgba(166, 99, 99, 0.1);
+    }
+
+    #news-badge {
+      background: #8b2626;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 4px 8px;
+      border-radius: 3px;
+      white-space: nowrap;
+      animation: newsPulse 1.5s infinite;
+      box-shadow: 0 0 8px rgba(139, 38, 38, 0.6);
+    }
+
+    @keyframes newsPulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(0.97); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    #news-text-wrapper {
+      flex-grow: 1;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      height: 100%;
+    }
+
+    #news-text {
+      font-family: "Georgia", serif;
+      font-style: italic;
+      font-size: 13px;
+      color: #eae3d2;
+      white-space: nowrap;
+      animation: marquee 25s linear infinite;
+      padding-left: 100%;
+    }
+
+    @keyframes marquee {
+      0% { transform: translate3d(0, 0, 0); }
+      100% { transform: translate3d(-100%, 0, 0); }
+    }
+
     /* Bottom Deck Controls */
     #bottom-bar {
       display: flex;
@@ -459,38 +518,48 @@
 
   <!-- Tactical HUD Layer -->
   <div id="ui-layer">
-    <div id="top-bar">
-      <div class="glass-panel hud-faction">
-        <img id="p-flag" class="hud-flag" src="" alt="Player Flag">
-        <div style="flex-grow: 1; display: flex; flex-direction: column;">
-          <div class="faction-title">Commander</div>
-          <div id="p-name" class="faction-name" style="margin-bottom: 4px;">United Kingdom</div>
-          <div style="width: 140px; height: 6px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); border-radius: 3px; overflow: hidden;">
-            <div id="p-health-fill" style="width: 100%; height: 100%; background: var(--ally-color); transition: width 0.3s ease;"></div>
+    <div id="top-bar" style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 10px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <div class="glass-panel hud-faction">
+          <img id="p-flag" class="hud-flag" src="" alt="Player Flag">
+          <div style="flex-grow: 1; display: flex; flex-direction: column;">
+            <div class="faction-title">Commander</div>
+            <div id="p-name" class="faction-name" style="margin-bottom: 4px;">United Kingdom</div>
+            <div style="width: 140px; height: 6px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); border-radius: 3px; overflow: hidden;">
+              <div id="p-health-fill" style="width: 100%; height: 100%; background: var(--ally-color); transition: width 0.3s ease;"></div>
+            </div>
+            <div id="p-health-text" style="font-size: 10px; font-family: monospace; color: var(--text-muted); margin-top: 2px;">HP: 100/100</div>
           </div>
-          <div id="p-health-text" style="font-size: 10px; font-family: monospace; color: var(--text-muted); margin-top: 2px;">HP: 100/100</div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+          <div class="glass-panel" id="supply-panel">
+            <div class="faction-title" style="font-size: 9px; margin-bottom: 0;">Logistics</div>
+            <div id="supply-count">100</div>
+          </div>
+          <div class="glass-panel" id="powerup-status" style="display: none; padding: 6px 16px; text-align: center; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #d4af37; border-color: #d4af37;">
+            SPREAD SHOT: <span id="powerup-timer">15.0</span>s
+          </div>
+        </div>
+
+        <div class="glass-panel hud-faction enemy">
+          <img id="e-flag" class="hud-flag" src="" alt="Enemy Flag">
+          <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: flex-end;">
+            <div class="faction-title">Hostile Force</div>
+            <div id="e-name" class="faction-name" style="margin-bottom: 4px;">German Empire</div>
+            <div style="width: 140px; height: 6px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); border-radius: 3px; overflow: hidden;">
+              <div id="e-health-fill" style="width: 100%; height: 100%; background: var(--central-color); transition: width 0.3s ease;"></div>
+            </div>
+            <div id="e-health-text" style="font-size: 10px; font-family: monospace; color: var(--text-muted); margin-top: 2px;">HP: 100/100</div>
+          </div>
         </div>
       </div>
 
-      <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-        <div class="glass-panel" id="supply-panel">
-          <div class="faction-title" style="font-size: 9px; margin-bottom: 0;">Logistics</div>
-          <div id="supply-count">100</div>
-        </div>
-        <div class="glass-panel" id="powerup-status" style="display: none; padding: 6px 16px; text-align: center; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #d4af37; border-color: #d4af37;">
-          SPREAD SHOT: <span id="powerup-timer">15.0</span>s
-        </div>
-      </div>
-
-      <div class="glass-panel hud-faction enemy">
-        <img id="e-flag" class="hud-flag" src="" alt="Enemy Flag">
-        <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: flex-end;">
-          <div class="faction-title">Hostile Force</div>
-          <div id="e-name" class="faction-name" style="margin-bottom: 4px;">German Empire</div>
-          <div style="width: 140px; height: 6px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); border-radius: 3px; overflow: hidden;">
-            <div id="e-health-fill" style="width: 100%; height: 100%; background: var(--central-color); transition: width 0.3s ease;"></div>
-          </div>
-          <div id="e-health-text" style="font-size: 10px; font-family: monospace; color: var(--text-muted); margin-top: 2px;">HP: 100/100</div>
+      <!-- Breaking News Ticker Container -->
+      <div id="news-ticker-container" class="glass-panel">
+        <div id="news-badge">Breaking News</div>
+        <div id="news-text-wrapper">
+          <div id="news-text">Operational headquarters active. Front line communications are online. Standby for field reports.</div>
         </div>
       </div>
     </div>
@@ -511,6 +580,46 @@
     let enemyNation = 'germany';
     let playerHealth = 100;
     let enemyHealth = 100;
+
+    // News Ticker Data and Functions
+    let newsTimer = 0;
+    let currentNewsIndex = 0;
+    const newsFeed = [
+      "WESTERN FRONT: Heavy bombardment reported along the trench networks. General staff urges defensive vigilance.",
+      "EASTERN FRONT: Forces report tactical realignment as weather conditions stabilize.",
+      "LOGISTICAL WARFARE: Materiel supply chains are running at maximum capacity to reinforce field commanders.",
+      "ARMORED BREAKTHROUGH: Experts claim heavy landships will revolutionize breakthrough operations.",
+      "BI-PLANE RECONNAISSANCE: Aerial observations reveal coordinates of key hostile supply cache drops.",
+      "THE HOME FRONT: Production of raw munitions reaches historic highs to support front line logistics."
+    ];
+
+    function updateNewsTicker(customMessage = null) {
+      const textEl = document.getElementById('news-text');
+      if (!textEl) return;
+
+      let headline = "";
+      if (customMessage) {
+        headline = customMessage;
+      } else {
+        const baseNews = newsFeed[currentNewsIndex];
+        // Dynamic replacements for active player/enemy nation
+        const pName = nations[playerNation].name.toUpperCase();
+        const eName = nations[enemyNation].name.toUpperCase();
+        headline = baseNews
+          .replace(/WESTERN FRONT/g, `${pName} FRONT LINE`)
+          .replace(/EASTERN FRONT/g, `${eName} POSITION`)
+          .replace(/hostile/gi, `${eName}`)
+          .replace(/enemy/gi, `${eName}`);
+
+        currentNewsIndex = (currentNewsIndex + 1) % newsFeed.length;
+      }
+
+      // Reset animation to ensure clean marquee scrolling from the right
+      textEl.style.animation = 'none';
+      textEl.offsetHeight; // trigger reflow
+      textEl.style.animation = 'marquee 25s linear infinite';
+      textEl.innerText = headline;
+    }
 
     const nations = {
       uk: { name: "British Empire", flag: "./assets/flag-uk.svg", alliance: "allies" },
@@ -720,6 +829,13 @@
       multishotTimer = 0;
       floatingTexts = [];
       artilleryShells = [];
+
+      // Reset News Ticker state
+      newsTimer = 0;
+      currentNewsIndex = 0;
+      const pName = nations[playerNation].name;
+      const eName = nations[enemyNation].name;
+      updateNewsTicker(`FIELD REPORT: Joint headquarters established. ${pName} and ${eName} armies are in position.`);
 
       requestAnimationFrame(tick);
     }
@@ -982,6 +1098,11 @@
           life: 120
         });
 
+        // Trigger News Headline: Artillery Barrage authorized!
+        const pName = nations[playerNation].name;
+        updateNewsTicker(`FRONT LINE TELEGRAM: Heavy field artillery authorized by ${pName} command! Bombardment imminent.`);
+        newsTimer = 600; // delay next random headline
+
         // Spawn 8 sequential artillery shells raining from the sky across the screen
         const totalShells = 8;
         for (let i = 0; i < totalShells; i++) {
@@ -1167,6 +1288,18 @@
       if (supplies >= cost) {
         supplies -= cost;
         units.push(new Unit(type, 50, true));
+
+        // News Headline Trigger: Player unit spawn
+        const pName = nations[playerNation].name;
+        const eName = nations[enemyNation].name;
+        if (type === 'tank') {
+          updateNewsTicker(`TACTICAL UPDATE: ${pName} deployed an armored Landship to breach the frontline!`);
+        } else if (type === 'plane') {
+          updateNewsTicker(`TACTICAL UPDATE: ${pName} authorized biplane tactical recon air support overhead!`);
+        } else {
+          updateNewsTicker(`TACTICAL UPDATE: ${pName} mobilized additional infantry forces into active service!`);
+        }
+        newsTimer = 480; // delay next random headline
       }
     }
 
@@ -1177,6 +1310,18 @@
         const roster = ['infantry', 'tank', 'plane'];
         const randomUnit = roster[Math.floor(Math.random() * roster.length)];
         units.push(new Unit(randomUnit, canvas.width - 100, false));
+
+        // News Headline Trigger: Hostile unit spawn
+        const eName = nations[enemyNation].name;
+        if (randomUnit === 'tank') {
+          updateNewsTicker(`SITUATION REPORT: Watch out! ${eName} deployed heavy armored support into the combat zone!`);
+        } else if (randomUnit === 'plane') {
+          updateNewsTicker(`SITUATION REPORT: Warning! Hostile ${eName} aviation spotted on reconnaissance course!`);
+        } else {
+          updateNewsTicker(`SITUATION REPORT: Active reports indicate ${eName} infantry advancing in standard formation!`);
+        }
+        newsTimer = 480; // delay next random headline
+
         spawnTimer = 140 + Math.random() * 100;
       }
     }
@@ -1194,19 +1339,28 @@
         const title = document.getElementById('gameover-title');
         const subtitle = document.getElementById('gameover-subtitle');
 
+        const pName = nations[playerNation].name;
+        const eName = nations[enemyNation].name;
+
         if (playerHealth <= 0) {
           title.innerText = "Defeat";
           title.style.color = "var(--central-color)";
           subtitle.innerText = "The front lines have collapsed. Hostile forces have breached our field headquarters.";
+          updateNewsTicker(`ARMISTICE DECLARED: Defense lines collapsed. Hostile ${eName} troops have claimed battlefield triumph.`);
         } else {
           title.innerText = "Victory";
           title.style.color = "var(--accent-color)";
           subtitle.innerText = "Command operational efficacy confirmed. Your forces have successfully broken the enemy ranks.";
+          updateNewsTicker(`WAR ENDS: Brilliant triumph! ${pName} field forces broke through lines to claim complete victory.`);
         }
 
         overScreen.style.display = "flex";
       }
     }
+
+    // Low health alarm tracking flags to prevent duplicate triggers
+    let lowHealthAlarmActive = false;
+    let lowEnemyHealthAlarmActive = false;
 
     function tick() {
       if (!gameRunning) return;
@@ -1218,6 +1372,32 @@
       document.getElementById('supply-count').innerText = Math.floor(supplies);
 
       runAI();
+
+      // Manage ticker automatic rotation
+      newsTimer++;
+      if (newsTimer >= 720) { // ~12 seconds at 60 FPS
+        newsTimer = 0;
+        updateNewsTicker();
+      }
+
+      // Check for high-priority low health state transitions
+      if (playerHealth <= 35 && !lowHealthAlarmActive) {
+        lowHealthAlarmActive = true;
+        const pName = nations[playerNation].name;
+        updateNewsTicker(`CRITICAL STATUS: Commander, our frontline defense points are under severe hostile pressure!`);
+        newsTimer = 300; // delay next random rotation
+      } else if (playerHealth > 35) {
+        lowHealthAlarmActive = false;
+      }
+
+      if (enemyHealth <= 35 && !lowEnemyHealthAlarmActive) {
+        lowEnemyHealthAlarmActive = true;
+        const eName = nations[enemyNation].name;
+        updateNewsTicker(`INTELLIGENCE REPORT: Enemy defenses cracking! ${eName} command is experiencing severe logistical distress!`);
+        newsTimer = 300; // delay next random rotation
+      } else if (enemyHealth > 35) {
+        lowEnemyHealthAlarmActive = false;
+      }
 
       // Update multishot timer and status text
       if (multishotTimer > 0) {
