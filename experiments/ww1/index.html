@@ -318,10 +318,42 @@
       cursor: pointer;
       border-radius: 4px;
       transition: background 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 50px;
+      box-sizing: border-box;
+      text-decoration: none;
     }
 
     .start-btn:hover {
       background: var(--accent-hover);
+    }
+
+    .start-btn-secondary {
+      background: transparent;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 16px 48px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 50px;
+      box-sizing: border-box;
+    }
+
+    .start-btn-secondary:hover {
+      border-color: var(--accent-color);
+      color: var(--accent-color);
+      box-shadow: 0 0 12px rgba(197, 160, 89, 0.15);
     }
 
     /* Immersive Loading Screen */
@@ -554,7 +586,10 @@
       </div>
     </div>
          
-    <button class="start-btn" onclick="initGame()">Launch Operation</button>
+    <div style="display: flex; gap: 16px; justify-content: center; width: 100%; max-width: 900px;">
+      <a class="start-btn-secondary" href="../../">Back to Lab</a>
+      <button class="start-btn" onclick="initGame()">Launch Operation</button>
+    </div>
   </div>
 
   <!-- Immersive Tactical Loading Screen -->
