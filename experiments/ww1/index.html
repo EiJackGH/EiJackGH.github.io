@@ -609,6 +609,11 @@
     <h2 id="gameover-title" class="gameover-title">Victory</h2>
     <p id="gameover-subtitle" class="gameover-subtitle">Your forces have successfully breached the enemy defensive lines and secured the field.</p>
 
+    <!-- Defeat Illustration (Commander Force President Scene Killed) -->
+    <div id="defeat-scene-container" style="display: none; margin: 15px 0 20px 0; text-align: center;">
+      <img src="./assets/commander-force-president-scene-killed.svg" alt="Commander-in-Chief Killed in Action" style="width: 320px; max-width: 100%; height: auto; border: 2px solid var(--central-color); border-radius: 8px; box-shadow: 0 0 20px rgba(183, 28, 28, 0.4); background: rgba(0, 0, 0, 0.6); display: block;">
+    </div>
+
     <!-- Continue countdown section (only visible upon defeat) -->
     <div id="continue-section" class="continue-container" style="display: none;">
       <div class="continue-text">Reinforcements Available in</div>
@@ -1510,6 +1515,7 @@
     function continueGame() {
       if (continueInterval) clearInterval(continueInterval);
       document.getElementById('continue-section').style.display = 'none';
+      document.getElementById('defeat-scene-container').style.display = 'none';
       document.getElementById('gameover-screen').style.display = 'none';
 
       playerHealth = 100;
@@ -1548,12 +1554,16 @@
           subtitle.innerText = "The front lines have collapsed. Hostile forces have breached our field headquarters.";
           updateNewsTicker(`ARMISTICE DECLARED: Defense lines collapsed. Hostile ${eName} troops have claimed battlefield triumph.`);
 
+          document.getElementById('defeat-scene-container').style.display = 'block';
+
           startContinueCountdown();
         } else {
           title.innerText = "Victory";
           title.style.color = "var(--accent-color)";
           subtitle.innerText = "Command operational efficacy confirmed. Your forces have successfully broken the enemy ranks.";
           updateNewsTicker(`WAR ENDS: Brilliant triumph! ${pName} field forces broke through lines to claim complete victory.`);
+
+          document.getElementById('defeat-scene-container').style.display = 'none';
 
           document.getElementById('continue-section').style.display = 'none';
           document.getElementById('gameover-btn').innerText = "Return to Headquarters";
