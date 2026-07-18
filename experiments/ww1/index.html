@@ -337,8 +337,8 @@
       padding: 40px;
     }
 
-    /* Game Over Overlay Screen */
-    #gameover-screen {
+    /* Game Over Overlay Screen & Pause Screen Overlay */
+    #gameover-screen, #pause-screen {
       position: absolute;
       inset: 0;
       background: rgba(11, 8, 7, 0.95);
@@ -349,6 +349,28 @@
       z-index: 102;
       padding: 40px;
       backdrop-filter: blur(10px);
+    }
+
+    #pause-btn {
+      width: 44px;
+      height: 44px;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    #pause-btn:hover {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 12px rgba(197, 160, 89, 0.25);
+    }
+
+    #pause-btn img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
 
     .gameover-title {
@@ -516,6 +538,16 @@
     <button class="start-btn" onclick="returnToLobby()">Return to Headquarters</button>
   </div>
 
+  <!-- Pause Menu Overlay Screen -->
+  <div id="pause-screen" style="display: none;">
+    <h2 class="gameover-title" style="color: var(--accent-color);">Operation Paused</h2>
+    <p class="gameover-subtitle">Field commanders have temporarily halted all logistical maneuvers and combat operations. Ready to resume orders.</p>
+    <div style="display: flex; gap: 16px;">
+      <button class="start-btn" onclick="resumeGame()">Resume Battle</button>
+      <button class="start-btn" style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color);" onclick="quitToMainMenu()">Abandon Operation</button>
+    </div>
+  </div>
+
   <!-- Tactical HUD Layer -->
   <div id="ui-layer">
     <div id="top-bar" style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 10px;">
@@ -532,13 +564,18 @@
           </div>
         </div>
 
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-          <div class="glass-panel" id="supply-panel">
-            <div class="faction-title" style="font-size: 9px; margin-bottom: 0;">Logistics</div>
-            <div id="supply-count">100</div>
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+            <div class="glass-panel" id="supply-panel">
+              <div class="faction-title" style="font-size: 9px; margin-bottom: 0;">Logistics</div>
+              <div id="supply-count">100</div>
+            </div>
+            <div class="glass-panel" id="powerup-status" style="display: none; padding: 6px 16px; text-align: center; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #d4af37; border-color: #d4af37;">
+              SPREAD SHOT: <span id="powerup-timer">15.0</span>s
+            </div>
           </div>
-          <div class="glass-panel" id="powerup-status" style="display: none; padding: 6px 16px; text-align: center; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #d4af37; border-color: #d4af37;">
-            SPREAD SHOT: <span id="powerup-timer">15.0</span>s
+          <div class="glass-panel" id="pause-btn" onclick="pauseGame()">
+            <img src="./assets/pause.svg" alt="Pause">
           </div>
         </div>
 
@@ -658,6 +695,7 @@
     }
 
     let gameRunning = false;
+    let isPaused = false;
     let supplies = 100;
     let units = [];
     let particles = [];
@@ -802,6 +840,7 @@
     function startGameLoop() {
       resize();
       gameRunning = true;
+      isPaused = false;
       supplies = 100;
       playerHealth = 100;
       enemyHealth = 100;
@@ -846,6 +885,18 @@
     }
     window.addEventListener('resize', resize);
 
+    // Escape and P keys to pause/resume the game
+    window.addEventListener('keydown', (e) => {
+      if (!gameRunning) return;
+      if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
+        if (isPaused) {
+          resumeGame();
+        } else {
+          pauseGame();
+        }
+      }
+    });
+
     // Mouse aiming and shooting variables
     let mouseX = 0;
     let mouseY = 0;
@@ -873,7 +924,7 @@
 
     canvas.addEventListener('mousedown', (e) => {
       // Trigger gunshot only when clicking on canvas and game is running
-      if (!gameRunning) return;
+      if (!gameRunning || isPaused) return;
 
       // Prevent shooting when clicking UI elements or bottom-bar area
       const rect = canvas.getBoundingClientRect();
@@ -1284,6 +1335,7 @@
     }
 
     function spawnUnit(type) {
+      if (isPaused) return;
       let cost = type === 'infantry' ? 25 : type === 'tank' ? 65 : 90;
       if (supplies >= cost) {
         supplies -= cost;
@@ -1328,8 +1380,26 @@
 
     function returnToLobby() {
       gameRunning = false;
+      isPaused = false;
       document.getElementById('gameover-screen').style.display = 'none';
+      document.getElementById('pause-screen').style.display = 'none';
       document.getElementById('lobby-screen').style.display = 'flex';
+    }
+
+    function pauseGame() {
+      if (!gameRunning || isPaused) return;
+      isPaused = true;
+      document.getElementById('pause-screen').style.display = 'flex';
+    }
+
+    function resumeGame() {
+      if (!gameRunning || !isPaused) return;
+      isPaused = false;
+      document.getElementById('pause-screen').style.display = 'none';
+    }
+
+    function quitToMainMenu() {
+      returnToLobby();
     }
 
     function checkGameOver() {
@@ -1364,6 +1434,14 @@
 
     function tick() {
       if (!gameRunning) return;
+
+      if (isPaused) {
+        // Maintain the marquee animation on news ticker if desired, but freeze game simulation.
+        // We still request another frame to check for unpause, or we could pause requestAnimationFrame entirely,
+        // but checking on every tick is standard, lightweight, and ensures responsive UI interaction.
+        requestAnimationFrame(tick);
+        return;
+      }
 
       checkGameOver();
       if (!gameRunning) return;
