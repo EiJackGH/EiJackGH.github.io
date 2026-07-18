@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab: Ages of Conflict (World Map Simulator)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            950: '#042f2e',
+                        }
+                    },
+                    boxShadow: {
+                        'glow-teal': '0 0 15px rgba(20, 184, 166, 0.25)',
+                        'glow-red': '0 0 15px rgba(239, 68, 68, 0.25)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700;800&family=JetBrains+Mono:wght=400;500;700&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0b0f19;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom scrollbar for log and leaderboard */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(51, 65, 85, 0.8);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(20, 184, 166, 0.5);
+        }
+    </style>
+</head>
+<body class="text-slate-200 min-h-screen flex flex-col selection:bg-teal-500/30 selection:text-teal-200 overflow-x-hidden">
+    <!-- Background glow blobs -->
+    <div class="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full pointer-events-none overflow-hidden z-0">
+        <div class="absolute top-[10%] left-[5%] w-[25rem] h-[25rem] rounded-full bg-teal-500/5 blur-[100px]"></div>
+        <div class="absolute bottom-[20%] right-[5%] w-[30rem] h-[30rem] rounded-full bg-indigo-500/5 blur-[120px]"></div>
+    </div>
+
+    <!-- Main Layout Container -->
+    <div class="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-grow flex flex-col py-6">
+        <!-- Navigation Header -->
+        <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-800/80 pb-4 mb-6 gap-4">
+            <div>
+                <div class="flex items-center gap-3">
+                    <a href="../../" class="text-xs font-bold text-teal-400 hover:text-teal-300 tracking-wider uppercase transition">&larr; Back to Lab</a>
+                    <span class="text-xs font-medium text-slate-500">|</span>
+                    <span class="inline-flex items-center gap-1 py-0.5 px-2 rounded-full text-[10px] font-semibold bg-teal-500/10 text-teal-400 border border-teal-500/20">
+                        Map Simulator Sandbox
+                    </span>
+                </div>
+                <h1 class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-teal-400 via-cyan-400 to-indigo-400 bg-clip-text text-transparent mt-1">
+                    Ages of Conflict
+                </h1>
+                <p class="text-slate-400 text-xs font-light">
+                    Spawn nations, manage diplomacy, paint maps, and watch world history unfold procedurally.
+                </p>
+            </div>
+
+            <!-- Quick Info Bar / Stats -->
+            <div class="flex flex-wrap items-center gap-4 text-xs">
+                <div class="bg-slate-900/60 border border-slate-800/80 px-3 py-1.5 rounded-xl flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
+                    <span class="text-slate-400">Year:</span>
+                    <span id="stat-year" class="font-mono font-bold text-teal-400">1</span>
+                </div>
+                <div class="bg-slate-900/60 border border-slate-800/80 px-3 py-1.5 rounded-xl flex items-center gap-2">
+                    <span class="text-slate-400">Nations:</span>
+                    <span id="stat-nations" class="font-mono font-bold text-indigo-400">0</span>
+                </div>
+                <div class="bg-slate-900/60 border border-slate-800/80 px-3 py-1.5 rounded-xl flex items-center gap-2">
+                    <span class="text-slate-400">Alliances:</span>
+                    <span id="stat-alliances" class="font-mono font-bold text-emerald-400">0</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Workspace -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start flex-grow">
+            <!-- LEFT PANEL: Controls & God Mode Brush Tools (4 Cols on LG) -->
+            <aside class="lg:col-span-3 space-y-6 flex flex-col h-full">
+                <!-- Simulation Engine Controls -->
+                <section class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-4 backdrop-blur-md">
+                    <div class="flex items-center gap-2 pb-2 border-b border-slate-800/50">
+                        <svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        <h2 class="text-sm font-bold tracking-wider text-slate-200 uppercase">Simulation Controls</h2>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="btn-play-pause" class="py-2 px-3 rounded-xl bg-teal-600 hover:bg-teal-500 font-bold text-xs text-slate-950 transition duration-300 flex items-center justify-center gap-1.5 shadow-glow-teal">
+                            <span id="btn-play-icon">⏸</span> <span id="btn-play-text">Pause</span>
+                        </button>
+                        <button id="btn-step" class="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700/50 transition duration-300 flex items-center justify-center gap-1.5">
+                            <span>⏭</span> Step
+                        </button>
+                    </div>
+
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[11px] text-slate-400 font-medium">
+                            <span>Simulation Speed</span>
+                            <span id="lbl-speed" class="font-mono text-teal-400">Normal</span>
+                        </div>
+                        <input id="slider-speed" type="range" min="1" max="5" value="3" class="w-full accent-teal-500 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[11px] text-slate-400 font-medium block">Pre-made Maps / Scenarios</label>
+                        <div class="grid grid-cols-1 gap-1.5">
+                            <select id="select-scenario" class="w-full bg-slate-950 text-slate-200 border border-slate-800 rounded-xl px-3 py-1.5 text-xs focus:border-teal-500/50 focus:outline-none focus:ring-1 focus:ring-teal-500/50">
+                                <option value="continents">Pangaea Continents</option>
+                                <option value="islands">Archipelago Islands</option>
+                                <option value="classic">Classic World Map Sketch</option>
+                                <option value="ring">The Ring World</option>
+                                <option value="empty">Empty Sandbox Ocean</option>
+                            </select>
+                            <button id="btn-reset-map" class="w-full py-1.5 bg-red-900/20 hover:bg-red-900/40 text-red-400 border border-red-500/20 rounded-xl text-xs font-bold transition duration-300">
+                                Reset & Regenerate Map
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- GOD MODE: God Controls -->
+                <section class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-4 backdrop-blur-md flex-grow">
+                    <div class="flex items-center gap-2 pb-2 border-b border-slate-800/50">
+                        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                        </svg>
+                        <h2 class="text-sm font-bold tracking-wider text-slate-200 uppercase">God Mode Tools</h2>
+                    </div>
+
+                    <!-- Tool Brush Selection -->
+                    <div class="space-y-3">
+                        <label class="text-[11px] text-slate-400 font-medium block">Active Tool / Brush</label>
+                        <div class="grid grid-cols-1 gap-1.5">
+                            <button id="tool-spawn-nation" data-tool="spawn-nation" class="btn-tool text-left py-1.5 px-3 rounded-xl bg-teal-600 font-semibold text-slate-950 flex items-center justify-between border border-teal-500/50 transition">
+                                <span>👑 Spawn New Nation</span>
+                                <span class="text-[10px] text-slate-950">Click Canvas</span>
+                            </button>
+                            <button id="tool-paint-land" data-tool="paint-land" class="btn-tool text-left py-1.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 flex items-center justify-between border border-slate-700/50 transition">
+                                <span>🌳 Paint Terrain: Land</span>
+                                <span class="text-[10px] text-slate-500">Drag to Draw</span>
+                            </button>
+                            <button id="tool-paint-water" data-tool="paint-water" class="btn-tool text-left py-1.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 flex items-center justify-between border border-slate-700/50 transition">
+                                <span>🌊 Paint Terrain: Ocean</span>
+                                <span class="text-[10px] text-slate-500">Drag to Draw</span>
+                            </button>
+                            <button id="tool-paint-mountain" data-tool="paint-mountain" class="btn-tool text-left py-1.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 flex items-center justify-between border border-slate-700/50 transition">
+                                <span>⛰️ Paint Terrain: Mountain</span>
+                                <span class="text-[10px] text-slate-500">Drag to Draw</span>
+                            </button>
+                            <button id="tool-meteor" data-tool="meteor" class="btn-tool text-left py-1.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 flex items-center justify-between border border-slate-700/50 transition">
+                                <span>☄️ Drop Meteor Strike</span>
+                                <span class="text-[10px] text-slate-500">Click Canvas</span>
+                            </button>
+                            <button id="tool-paint-gold" data-tool="paint-gold" class="btn-tool text-left py-1.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 flex items-center justify-between border border-slate-700/50 transition">
+                                <span>💰 Fund Nation (Gold)</span>
+                                <span class="text-[10px] text-slate-500">Click Territory</span>
+                            </button>
+                            <button id="tool-force-revolt" data-tool="force-revolt" class="btn-tool text-left py-1.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 flex items-center justify-between border border-slate-700/50 transition">
+                                <span>🔥 Trigger Local Revolt</span>
+                                <span class="text-[10px] text-slate-500">Click Territory</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Brush Size Selection -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[11px] text-slate-400 font-medium">
+                            <span>Brush Size</span>
+                            <span id="lbl-brush-size" class="font-mono text-teal-400">Medium (3)</span>
+                        </div>
+                        <input id="slider-brush-size" type="range" min="1" max="7" value="3" class="w-full accent-teal-500 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                    </div>
+
+                    <!-- Diplomacy Instigator Controls -->
+                    <div class="space-y-2 border-t border-slate-800/50 pt-3">
+                        <label class="text-[11px] text-slate-400 font-medium block">Diplomatic Instigator</label>
+                        <div class="grid grid-cols-2 gap-1.5 text-xs">
+                            <button id="btn-force-alliance" class="py-1.5 bg-emerald-950/30 hover:bg-emerald-900/40 text-emerald-400 border border-emerald-500/20 rounded-xl font-bold transition">
+                                Force Alliance
+                            </button>
+                            <button id="btn-force-war" class="py-1.5 bg-red-950/30 hover:bg-red-900/40 text-red-400 border border-red-500/20 rounded-xl font-bold transition">
+                                Force War
+                            </button>
+                        </div>
+                        <p class="text-[9px] text-slate-500 italic text-center">Select instigator tool first, then click on two target nations' territories.</p>
+                    </div>
+                </section>
+            </aside>
+
+            <!-- CENTER WORKSPACE: HTML5 Simulation Canvas (6 Cols on LG) -->
+            <main class="lg:col-span-6 flex flex-col gap-6">
+                <!-- Sandbox Canvas Holder -->
+                <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl overflow-hidden p-2 backdrop-blur-md relative">
+                    <!-- Map/Canvas -->
+                    <div class="relative rounded-xl overflow-hidden border border-slate-950 bg-slate-950 flex items-center justify-center">
+                        <canvas id="simulation-canvas" width="800" height="480" class="w-full h-auto cursor-crosshair block"></canvas>
+
+                        <!-- Overlay Legend / Tooltip indicator -->
+                        <div class="absolute bottom-3 left-3 bg-slate-900/95 border border-slate-800 text-[10px] font-mono rounded-lg px-2 py-1 text-slate-400 pointer-events-none flex gap-3 shadow-md">
+                            <div><span class="inline-block w-2 h-2 rounded bg-slate-800 border border-slate-700 mr-1"></span>Ocean</div>
+                            <div><span class="inline-block w-2 h-2 rounded bg-green-800 border border-green-700 mr-1"></span>Land</div>
+                            <div><span class="inline-block w-2 h-2 rounded bg-slate-600 border border-slate-500 mr-1"></span>Mountain</div>
+                        </div>
+
+                        <!-- Mini Canvas Loading Status -->
+                        <div id="canvas-loader" class="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center gap-3 transition duration-500">
+                            <span class="w-8 h-8 rounded-full border-2 border-teal-500 border-t-transparent animate-spin"></span>
+                            <span class="text-xs font-mono text-teal-400">Assembling World Continent...</span>
+                        </div>
+                    </div>
+
+                    <!-- Canvas Bottom Bar: God Operations -->
+                    <div class="flex items-center justify-between mt-2 px-1 text-xs">
+                        <div class="text-slate-400 flex items-center gap-1.5">
+                            <span id="canvas-coordinate" class="font-mono text-teal-500">X: 0, Y: 0</span>
+                            <span class="text-slate-700">|</span>
+                            <span id="canvas-hover-cell" class="text-slate-300">Ocean</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="btn-spawn-clash" class="py-1 px-3 bg-indigo-600 hover:bg-indigo-500 text-slate-950 font-bold rounded-lg text-[10px] tracking-wider uppercase transition shadow-sm">
+                                ⚔️ Fast Spawn 10 Nations
+                            </button>
+                            <button id="btn-clear-nations" class="py-1 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/50 rounded-lg text-[10px] tracking-wider uppercase transition">
+                                Clear Nations
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOTTOM DIPLOMACY EVENT LOG -->
+                <section class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-4 backdrop-blur-md flex flex-col h-48">
+                    <div class="flex items-center justify-between pb-2 border-b border-slate-800/50 mb-2">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                            <h2 class="text-xs font-bold tracking-wider text-slate-200 uppercase">Chronicles of World History</h2>
+                        </div>
+                        <button id="btn-clear-logs" class="text-[10px] text-slate-500 hover:text-slate-300 transition uppercase font-semibold">Clear Logs</button>
+                    </div>
+                    <div id="history-log" class="flex-grow overflow-y-auto space-y-1 font-mono text-xs pr-1">
+                        <div class="text-slate-500">[Year 1] Sandbox environment initiated. Ready for custom procedural clashing.</div>
+                    </div>
+                </section>
+            </main>
+
+            <!-- RIGHT PANEL: Leaderboard & Nation Statistics (3 Cols on LG) -->
+            <aside class="lg:col-span-3 h-full flex flex-col">
+                <section class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-4 backdrop-blur-md flex-grow flex flex-col h-[520px]">
+                    <div class="flex items-center justify-between pb-2 border-b border-slate-800/50 mb-3">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" />
+                            </svg>
+                            <h2 class="text-sm font-bold tracking-wider text-slate-200 uppercase">World Leaderboard</h2>
+                        </div>
+                        <span class="text-[10px] text-slate-500 font-mono">Ranked by Size</span>
+                    </div>
+
+                    <!-- Ranking list -->
+                    <div id="leaderboard-container" class="flex-grow overflow-y-auto pr-1 space-y-2">
+                        <div class="text-center text-slate-500 text-xs py-8">
+                            No nations have been spawned yet.
+                            <p class="text-[10px] text-slate-600 mt-2">Click the Fast Spawn button or paint a custom capital to begin the timeline.</p>
+                        </div>
+                    </div>
+
+                    <!-- Detail Card on hovered/clicked Nation -->
+                    <div id="detail-nation-card" class="hidden mt-4 pt-3 border-t border-slate-800/80 space-y-2">
+                        <div class="flex items-center gap-2">
+                            <span id="detail-color" class="w-3 h-3 rounded-full inline-block"></span>
+                            <h3 id="detail-name" class="font-bold text-xs text-slate-200">Nation Details</h3>
+                        </div>
+                        <div class="grid grid-cols-2 gap-1.5 text-[10px] font-mono text-slate-400">
+                            <div>Territory: <span id="detail-size" class="text-teal-400">0 tiles</span></div>
+                            <div>Gold: <span id="detail-gold" class="text-amber-400">0</span></div>
+                            <div>Kills: <span id="detail-kills" class="text-red-400">0</span></div>
+                            <div>Allies: <span id="detail-allies" class="text-emerald-400">None</span></div>
+                        </div>
+                    </div>
+                </section>
+            </aside>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-8 pt-4 border-t border-slate-800/80 text-center text-[10px] text-slate-500">
+            <p>© 2026 EiJackGH. Ages of Conflict Simulator Experiment. Sandbox God Mode controls available.</p>
+        </footer>
+    </div>
+
+    <!-- MAIN ENGINE SIMULATION SCRIPT -->
+    <script>
+        // Grid setup constants
+        const COLS = 80;
+        const ROWS = 48;
+        const CELL_SIZE = 10; // canvas width=800, height=480
+
+        const terrain = {
+            OCEAN: 0,
+            LAND: 1,
+            MOUNTAIN: 2
+        };
+
+        // Grid storage arrays
+        let mapGrid = Array(COLS * ROWS).fill(terrain.OCEAN);
+        let ownerGrid = Array(COLS * ROWS).fill(-1); // -1 means unowned (neutral)
+
+        // Simulation parameters
+        let isPlaying = true;
+        let simSpeed = 3; // 1 = Very Slow, 3 = Normal, 5 = Max
+        let year = 1;
+        let simInterval = null;
+        let selectedTool = 'spawn-nation';
+        let brushSize = 3;
+
+        // Nations Database
+        let nations = {}; // ID -> Nation Object
+        let nextNationId = 1;
+
+        // Diplomatic relationships
+        let alliances = []; // Array of sets containing allied nation IDs
+        let wars = [];      // Array of pairs containing opposing nation IDs
+
+        // Selected nations for force diplomacy tool
+        let instigatorAllianceFirst = null;
+        let instigatorWarFirst = null;
+
+        // Predefined beautiful nation names
+        const NATION_NAMES = [
+            "Aethelgard", "Vandor", "Gondaria", "Kharak", "Oakhaven", "Solitude", "Nirvana", "Avalon", "Valoria",
+            "Murnau", "Ostrogoth", "Vandalia", "Meridia", "Berytus", "Tarentum", "Calis", "Dacia", "Dalmatia",
+            "Syracuse", "Nicaea", "Sparta", "Corinth", "Thebes", "Tyre", "Sidon", "Carthage", "Ephesus",
+            "Rhodes", "Miletus", "Byzantium", "Crete", "Cyprus", "Sardis", "Babylon", "Nineveh", "Susa",
+            "Arbela", "Persepolis", "Ectabana", "Pasargadae", "Petra", "Palmyra", "Heliopolis", "Alexandria",
+            "Memphis", "Thebes", "Cyrene", "Leptis", "Tingis", "Gades", "Hispalis", "Tarraco", "Carthago"
+        ];
+
+        // Canvas element setup
+        const canvas = document.getElementById('simulation-canvas');
+        const ctx = canvas.getContext('2d');
+        const loader = document.getElementById('canvas-loader');
+
+        // Initial scenario load
+        window.addEventListener('load', () => {
+            generateScenario('continents');
+            setupInteractionHandlers();
+            setupCanvasMouseHandlers();
+            startLoop();
+
+            // Hide the loader
+            setTimeout(() => {
+                if (loader) loader.classList.add('opacity-0', 'pointer-events-none');
+            }, 600);
+        });
+
+        // 1. Map Generator Scenarios
+        function generateScenario(scenarioType) {
+            mapGrid.fill(terrain.OCEAN);
+            ownerGrid.fill(-1);
+            nations = {};
+            nextNationId = 1;
+            alliances = [];
+            wars = [];
+            year = 1;
+            instigatorAllianceFirst = null;
+            instigatorWarFirst = null;
+            updateStats();
+            updateLeaderboard();
+            logMessage(`New sandbox scenario generated: [${scenarioType}]`);
+
+            if (scenarioType === 'continents') {
+                // Pangaea continents: Generate noisy circles
+                const numCentres = 4;
+                for (let n = 0; n < numCentres; n++) {
+                    const cx = Math.floor(Math.random() * (COLS - 20)) + 10;
+                    const cy = Math.floor(Math.random() * (ROWS - 14)) + 7;
+                    const radius = Math.floor(Math.random() * 10) + 12;
+                    paintCircle(cx, cy, radius, terrain.LAND);
+                }
+                // Sprinkle mountains near continental centers
+                for (let i = 0; i < 40; i++) {
+                    const cx = Math.floor(Math.random() * (COLS - 10)) + 5;
+                    const cy = Math.floor(Math.random() * (ROWS - 10)) + 5;
+                    if (mapGrid[cy * COLS + cx] === terrain.LAND) {
+                        paintCircle(cx, cy, 2, terrain.MOUNTAIN);
+                    }
+                }
+            } else if (scenarioType === 'islands') {
+                // Archipelago style: many tiny isolated lands
+                const islandsCount = 14;
+                for (let i = 0; i < islandsCount; i++) {
+                    const cx = Math.floor(Math.random() * (COLS - 10)) + 5;
+                    const cy = Math.floor(Math.random() * (ROWS - 10)) + 5;
+                    const radius = Math.floor(Math.random() * 4) + 3;
+                    paintCircle(cx, cy, radius, terrain.LAND);
+                }
+            } else if (scenarioType === 'ring') {
+                // Circular ringworld island
+                const cx = COLS / 2;
+                const cy = ROWS / 2;
+                const outerRadius = 18;
+                const innerRadius = 8;
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        const dist = Math.hypot(c - cx, r - cy);
+                        if (dist >= innerRadius && dist <= outerRadius) {
+                            mapGrid[r * COLS + c] = terrain.LAND;
+                            if (dist > 13 && dist < 15 && Math.random() < 0.3) {
+                                mapGrid[r * COLS + c] = terrain.MOUNTAIN;
+                            }
+                        }
+                    }
+                }
+            } else if (scenarioType === 'classic') {
+                // Sketch of Earth: basic continents
+                // North America
+                paintCircle(15, 15, 10, terrain.LAND);
+                // South America
+                paintCircle(23, 32, 9, terrain.LAND);
+                // Eurasia/Africa
+                paintCircle(50, 18, 14, terrain.LAND);
+                paintCircle(52, 34, 10, terrain.LAND);
+                // Australia
+                paintCircle(68, 36, 6, terrain.LAND);
+            }
+            // empty remains all Ocean!
+
+            renderCanvas();
+        }
+
+        function paintCircle(cx, cy, radius, type) {
+            for (let r = -radius; r <= radius; r++) {
+                for (let c = -radius; c <= radius; c++) {
+                    if (c*c + r*r <= radius*radius) {
+                        const nx = cx + c;
+                        const ny = cy + r;
+                        if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS) {
+                            mapGrid[ny * COLS + nx] = type;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 2. Main Rendering Loop
+        function renderCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const idx = r * COLS + c;
+                    const tileType = mapGrid[idx];
+                    const ownerId = ownerGrid[idx];
+
+                    if (ownerId !== -1 && nations[ownerId]) {
+                        // Territory owned by a nation: Draw with transparent background color
+                        const nation = nations[ownerId];
+                        ctx.fillStyle = nation.color + "AA"; // slightly transparent
+                        ctx.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+
+                        // Draw borders around cells that touch other owners or ocean/mountain
+                        drawCellBorders(c, r, ownerId);
+                    } else {
+                        // Neutral unowned cell
+                        if (tileType === terrain.OCEAN) {
+                            ctx.fillStyle = "#0c1424"; // deep blue ocean
+                        } else if (tileType === terrain.LAND) {
+                            ctx.fillStyle = "#16281e"; // dark green forest-land
+                        } else if (tileType === terrain.MOUNTAIN) {
+                            ctx.fillStyle = "#2d353a"; // grey mountains
+                        }
+                        ctx.fillRect(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                    }
+
+                    // Special asset layer rendering
+                    if (tileType === terrain.MOUNTAIN && ownerId === -1) {
+                        // Draw a small peak triangle inside mountains
+                        ctx.fillStyle = "#4a5560";
+                        ctx.beginPath();
+                        ctx.moveTo(c * CELL_SIZE + CELL_SIZE/2, r * CELL_SIZE + 2);
+                        ctx.lineTo(c * CELL_SIZE + 1, r * CELL_SIZE + CELL_SIZE - 1);
+                        ctx.lineTo(c * CELL_SIZE + CELL_SIZE - 1, r * CELL_SIZE + CELL_SIZE - 1);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                }
+            }
+
+            // Draw Nation capitals / cities
+            Object.values(nations).forEach(n => {
+                if (n.size > 0 && n.capital) {
+                    ctx.fillStyle = "#ffffff";
+                    ctx.strokeStyle = "#000000";
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.arc(n.capital.x * CELL_SIZE + CELL_SIZE/2, n.capital.y * CELL_SIZE + CELL_SIZE/2, 4.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Tiny gold core for capitals
+                    ctx.fillStyle = "#fbbf24";
+                    ctx.beginPath();
+                    ctx.arc(n.capital.x * CELL_SIZE + CELL_SIZE/2, n.capital.y * CELL_SIZE + CELL_SIZE/2, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+        }
+
+        function drawCellBorders(c, r, ownerId) {
+            const dirs = [
+                { dx: 0, dy: -1, x: c * CELL_SIZE, y: r * CELL_SIZE, w: CELL_SIZE, h: 1.5 }, // top
+                { dx: 1, dy: 0, x: (c + 1) * CELL_SIZE - 1.5, y: r * CELL_SIZE, w: 1.5, h: CELL_SIZE }, // right
+                { dx: 0, dy: 1, x: c * CELL_SIZE, y: (r + 1) * CELL_SIZE - 1.5, w: CELL_SIZE, h: 1.5 }, // bottom
+                { dx: -1, dy: 0, x: c * CELL_SIZE, y: r * CELL_SIZE, w: 1.5, h: CELL_SIZE } // left
+            ];
+
+            ctx.fillStyle = "#ffffffdd"; // slightly off-white thin border lines
+            dirs.forEach(d => {
+                const nx = c + d.dx;
+                const ny = r + d.dy;
+                let differentOwner = false;
+                if (nx < 0 || nx >= COLS || ny < 0 || ny >= ROWS) {
+                    differentOwner = true; // map borders
+                } else {
+                    const neighborOwner = ownerGrid[ny * COLS + nx];
+                    if (neighborOwner !== ownerId) differentOwner = true;
+                }
+                if (differentOwner) {
+                    ctx.fillRect(d.x, d.y, d.w, d.h);
+                }
+            });
+        }
+
+        // 3. User Interaction Event Setup
+        function setupInteractionHandlers() {
+            // Play/Pause
+            const btnPlayPause = document.getElementById('btn-play-pause');
+            const playText = document.getElementById('btn-play-text');
+            const playIcon = document.getElementById('btn-play-icon');
+            if (btnPlayPause) {
+                btnPlayPause.addEventListener('click', () => {
+                    isPlaying = !isPlaying;
+                    if (playText) playText.innerText = isPlaying ? "Pause" : "Resume";
+                    if (playIcon) playIcon.innerText = isPlaying ? "⏸" : "▶";
+                    if (isPlaying) btnPlayPause.classList.add('shadow-glow-teal');
+                    else btnPlayPause.classList.remove('shadow-glow-teal');
+                });
+            }
+
+            // Single Step Mode
+            const btnStep = document.getElementById('btn-step');
+            if (btnStep) {
+                btnStep.addEventListener('click', () => {
+                    isPlaying = false;
+                    if (playText) playText.innerText = "Resume";
+                    if (playIcon) playIcon.innerText = "▶";
+                    btnPlayPause.classList.remove('shadow-glow-teal');
+                    simulationStep();
+                });
+            }
+
+            // Sim Speed
+            const sliderSpeed = document.getElementById('slider-speed');
+            const lblSpeed = document.getElementById('lbl-speed');
+            if (sliderSpeed && lblSpeed) {
+                sliderSpeed.addEventListener('input', (e) => {
+                    simSpeed = parseInt(e.target.value);
+                    const speeds = ["Very Slow", "Slow", "Normal", "Fast", "Hyper Drive"];
+                    lblSpeed.innerText = speeds[simSpeed - 1];
+                    startLoop();
+                });
+            }
+
+            // Brush Tool select clicks
+            document.querySelectorAll('.btn-tool').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const targetBtn = e.currentTarget;
+                    document.querySelectorAll('.btn-tool').forEach(b => {
+                        b.className = "btn-tool text-left py-1.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 flex items-center justify-between border border-slate-700/50 transition";
+                        const span = b.querySelector('span:last-child');
+                        if (span) span.className = "text-[10px] text-slate-500";
+                    });
+
+                    targetBtn.className = "btn-tool text-left py-1.5 px-3 rounded-xl bg-teal-600 font-semibold text-slate-950 flex items-center justify-between border border-teal-500/50 transition";
+                    const activeSpan = targetBtn.querySelector('span:last-child');
+                    if (activeSpan) activeSpan.className = "text-[10px] text-slate-950";
+
+                    selectedTool = targetBtn.getAttribute('data-tool');
+                });
+            });
+
+            // Force alliance / force war selects
+            const btnForceAlliance = document.getElementById('btn-force-alliance');
+            if (btnForceAlliance) {
+                btnForceAlliance.addEventListener('click', () => {
+                    selectedTool = 'force-alliance';
+                    instigatorAllianceFirst = null;
+                    logMessage(`Force Alliance instigator active. Click on territory 1, then territory 2.`);
+                });
+            }
+            const btnForceWar = document.getElementById('btn-force-war');
+            if (btnForceWar) {
+                btnForceWar.addEventListener('click', () => {
+                    selectedTool = 'force-war';
+                    instigatorWarFirst = null;
+                    logMessage(`Force War instigator active. Click on territory 1, then territory 2.`);
+                });
+            }
+
+            // Brush size slider
+            const sliderBrush = document.getElementById('slider-brush-size');
+            const lblBrush = document.getElementById('lbl-brush-size');
+            if (sliderBrush && lblBrush) {
+                sliderBrush.addEventListener('input', (e) => {
+                    brushSize = parseInt(e.target.value);
+                    let label = "Medium (3)";
+                    if (brushSize <= 2) label = `Fine (${brushSize})`;
+                    else if (brushSize >= 5) label = `Gigantic (${brushSize})`;
+                    lblBrush.innerText = label;
+                });
+            }
+
+            // Scenario dropdown selector
+            const selectScenario = document.getElementById('select-scenario');
+            if (selectScenario) {
+                selectScenario.addEventListener('change', (e) => {
+                    generateScenario(e.target.value);
+                });
+            }
+
+            // Reset Map trigger button
+            const btnResetMap = document.getElementById('btn-reset-map');
+            if (btnResetMap) {
+                btnResetMap.addEventListener('click', () => {
+                    const val = selectScenario ? selectScenario.value : 'continents';
+                    generateScenario(val);
+                });
+            }
+
+            // Clear Nations
+            const btnClearNations = document.getElementById('btn-clear-nations');
+            if (btnClearNations) {
+                btnClearNations.addEventListener('click', () => {
+                    ownerGrid.fill(-1);
+                    nations = {};
+                    alliances = [];
+                    wars = [];
+                    updateStats();
+                    updateLeaderboard();
+                    renderCanvas();
+                    logMessage(`Clear operation triggered. All current nations dismantled.`);
+                });
+            }
+
+            // Fast Spawn button
+            const btnSpawnClash = document.getElementById('btn-spawn-clash');
+            if (btnSpawnClash) {
+                btnSpawnClash.addEventListener('click', () => {
+                    spawnClashingNations(10);
+                });
+            }
+
+            // Clear Logs button
+            const btnClearLogs = document.getElementById('btn-clear-logs');
+            if (btnClearLogs) {
+                btnClearLogs.addEventListener('click', () => {
+                    const log = document.getElementById('history-log');
+                    if (log) log.innerHTML = "";
+                });
+            }
+        }
+
+        // 4. Interactive Canvas Click and Drag Handlers
+        function setupCanvasMouseHandlers() {
+            let isDrawing = false;
+
+            const coordSpan = document.getElementById('canvas-coordinate');
+            const hoverSpan = document.getElementById('canvas-hover-cell');
+
+            function getCoordinates(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const x = Math.floor((e.clientX - rect.left) * scaleX / CELL_SIZE);
+                const y = Math.floor((e.clientY - rect.top) * scaleY / CELL_SIZE);
+                return { x: Math.max(0, Math.min(COLS-1, x)), y: Math.max(0, Math.min(ROWS-1, y)) };
+            }
+
+            canvas.addEventListener('mousemove', (e) => {
+                const coords = getCoordinates(e);
+                if (coordSpan) coordSpan.innerText = `X: ${coords.x}, Y: ${coords.y}`;
+
+                // Show info about what is underneath the mouse cursor
+                const idx = coords.y * COLS + coords.x;
+                const tileVal = mapGrid[idx];
+                const ownerVal = ownerGrid[idx];
+                let info = "Ocean";
+                if (ownerVal !== -1 && nations[ownerVal]) {
+                    info = `Territory: ${nations[ownerVal].name}`;
+                } else if (tileVal === terrain.LAND) {
+                    info = "Neutral Land";
+                } else if (tileVal === terrain.MOUNTAIN) {
+                    info = "Neutral Mountain";
+                }
+                if (hoverSpan) hoverSpan.innerText = info;
+
+                if (isDrawing) {
+                    applyBrushTool(coords.x, coords.y);
+                }
+            });
+
+            canvas.addEventListener('mousedown', (e) => {
+                isDrawing = true;
+                const coords = getCoordinates(e);
+                applyBrushTool(coords.x, coords.y);
+            });
+
+            window.addEventListener('mouseup', () => {
+                isDrawing = false;
+            });
+        }
+
+        function applyBrushTool(x, y) {
+            const idx = y * COLS + x;
+
+            if (selectedTool === 'spawn-nation') {
+                if (mapGrid[idx] === terrain.OCEAN) {
+                    logMessage(`⚠️ Cannot spawn nation on water! Paint some land terrain first.`);
+                    return;
+                }
+                if (ownerGrid[idx] !== -1) {
+                    logMessage(`⚠️ Territory already occupied by another nation!`);
+                    return;
+                }
+                const name = NATION_NAMES[Math.floor(Math.random() * NATION_NAMES.length)];
+                const color = getRandomVibrantColor();
+                const id = createNation(name, color, x, y);
+                if (id) {
+                    logMessage(`👑 Sovereign nation of <span class="font-bold" style="color:${color}">${name}</span> was established by divine intervention!`);
+                    recalculateNationSizes();
+                    updateLeaderboard();
+                    renderCanvas();
+                }
+                return;
+            }
+
+            if (selectedTool === 'meteor') {
+                // Drop a massive celestial meteor that clears everything inside its radius!
+                const rSize = brushSize + 1;
+                let landsCleared = 0;
+                let nationsInjured = new Set();
+
+                for (let r = -rSize; r <= rSize; r++) {
+                    for (let c = -rSize; c <= rSize; c++) {
+                        if (c*c + r*r <= rSize*rSize) {
+                            const nx = x + c;
+                            const ny = y + r;
+                            if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS) {
+                                const nIdx = ny * COLS + nx;
+                                const oId = ownerGrid[nIdx];
+                                if (oId !== -1) nationsInjured.add(oId);
+
+                                // Evaporate to ocean!
+                                mapGrid[nIdx] = terrain.OCEAN;
+                                ownerGrid[nIdx] = -1;
+                                landsCleared++;
+                            }
+                        }
+                    }
+                }
+
+                // Log divine disaster
+                logMessage(`☄️ METEOR! A massive asteroid struck coordinates (${x}, ${y}), evaporating ${landsCleared} land tiles. Affected realms suffered horrific casualties.`);
+                recalculateNationSizes();
+                updateLeaderboard();
+                renderCanvas();
+                return;
+            }
+
+            if (selectedTool === 'paint-gold') {
+                const owner = ownerGrid[idx];
+                if (owner === -1 || !nations[owner]) {
+                    logMessage(`⚠️ Click on a nation's active territory to fund them.`);
+                    return;
+                }
+                const nation = nations[owner];
+                nation.gold += 500;
+                logMessage(`💰 Divine charity: Funded <span style="color:${nation.color}">${nation.name}</span> with +500 treasury gold.`);
+                updateLeaderboard();
+                return;
+            }
+
+            if (selectedTool === 'force-revolt') {
+                const owner = ownerGrid[idx];
+                if (owner === -1 || !nations[owner]) {
+                    logMessage(`⚠️ Click on a nation's active territory to instigate civil unrest.`);
+                    return;
+                }
+                triggerRevolt(owner);
+                return;
+            }
+
+            if (selectedTool === 'force-alliance') {
+                const owner = ownerGrid[idx];
+                if (owner === -1 || !nations[owner]) return;
+                if (!instigatorAllianceFirst) {
+                    instigatorAllianceFirst = owner;
+                    logMessage(`First alliance member selected: <span style="color:${nations[owner].color}">${nations[owner].name}</span>. Now click on partner territory.`);
+                } else {
+                    if (instigatorAllianceFirst === owner) {
+                        logMessage(`⚠️ Cannot alliance a nation to itself.`);
+                        return;
+                    }
+                    setAllianceState(instigatorAllianceFirst, owner, true);
+                    logMessage(`🤝 Divine Alliance forged between <span style="color:${nations[instigatorAllianceFirst].color}">${nations[instigatorAllianceFirst].name}</span> and <span style="color:${nations[owner].color}">${nations[owner].name}</span>.`);
+                    instigatorAllianceFirst = null;
+                    selectedTool = 'spawn-nation'; // reset
+                    updateStats();
+                }
+                return;
+            }
+
+            if (selectedTool === 'force-war') {
+                const owner = ownerGrid[idx];
+                if (owner === -1 || !nations[owner]) return;
+                if (!instigatorWarFirst) {
+                    instigatorWarFirst = owner;
+                    logMessage(`First war participant selected: <span style="color:${nations[owner].color}">${nations[owner].name}</span>. Now click on the target opponent.`);
+                } else {
+                    if (instigatorWarFirst === owner) {
+                        logMessage(`⚠️ A nation cannot declare war on itself.`);
+                        return;
+                    }
+                    setWarState(instigatorWarFirst, owner, true);
+                    logMessage(`⚔️ Divine War instantiated! <span style="color:${nations[instigatorWarFirst].color}">${nations[instigatorWarFirst].name}</span> is now at war with <span style="color:${nations[owner].color}">${nations[owner].name}</span>.`);
+                    instigatorWarFirst = null;
+                    selectedTool = 'spawn-nation'; // reset
+                    updateStats();
+                }
+                return;
+            }
+
+            // Standard terrain painting brushes
+            const brushRadius = brushSize - 1;
+            let typeToPaint = terrain.LAND;
+            if (selectedTool === 'paint-water') typeToPaint = terrain.OCEAN;
+            else if (selectedTool === 'paint-mountain') typeToPaint = terrain.MOUNTAIN;
+            else if (selectedTool !== 'paint-land') return; // fail-safe
+
+            for (let r = -brushRadius; r <= brushRadius; r++) {
+                for (let c = -brushRadius; c <= brushRadius; c++) {
+                    if (c*c + r*r <= brushRadius*brushRadius) {
+                        const nx = x + c;
+                        const ny = y + r;
+                        if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS) {
+                            const nIdx = ny * COLS + nx;
+                            mapGrid[nIdx] = typeToPaint;
+                            if (typeToPaint === terrain.OCEAN || typeToPaint === terrain.MOUNTAIN) {
+                                // Strip ownership if cell is drowned or converted to mountainous peaks
+                                ownerGrid[nIdx] = -1;
+                            }
+                        }
+                    }
+                }
+            }
+
+            recalculateNationSizes();
+            renderCanvas();
+        }
+
+        // Help Logger function to stream simulator output
+        function logMessage(text) {
+            const historyLog = document.getElementById('history-log');
+            if (historyLog) {
+                const entry = document.createElement('div');
+                entry.className = "text-slate-300 border-l border-teal-500/30 pl-2 leading-relaxed";
+                entry.innerHTML = `<span class="text-teal-500 font-bold">[Year ${year}]</span> ${text}`;
+                historyLog.appendChild(entry);
+                historyLog.scrollTop = historyLog.scrollHeight;
+            }
+        }
+
+        function updateStats() {
+            const elYear = document.getElementById('stat-year');
+            const elNations = document.getElementById('stat-nations');
+            const elAlliances = document.getElementById('stat-alliances');
+
+            if (elYear) elYear.innerText = year;
+            if (elNations) elNations.innerText = Object.keys(nations).length;
+            if (elAlliances) elAlliances.innerText = alliances.length;
+        }
+
+        // 5. Leaderboard Ranking Panel updater
+        function updateLeaderboard() {
+            const container = document.getElementById('leaderboard-container');
+            const detailCard = document.getElementById('detail-nation-card');
+            if (!container) return;
+
+            const ranking = Object.values(nations).sort((a, b) => b.size - a.size);
+
+            if (ranking.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-slate-500 text-xs py-8">
+                        No nations have been spawned yet.
+                        <p class="text-[10px] text-slate-600 mt-2">Click the Fast Spawn button or paint a custom capital to begin the timeline.</p>
+                    </div>
+                `;
+                if (detailCard) detailCard.classList.add('hidden');
+                return;
+            }
+
+            let html = "";
+            ranking.forEach((n, idx) => {
+                const rankNum = idx + 1;
+                const isTop = rankNum <= 3;
+                const rankBadge = isTop ? (rankNum === 1 ? '🥇' : rankNum === 2 ? '🥈' : '🥉') : `#${rankNum}`;
+
+                html += `
+                    <div class="p-2 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-teal-500/40 cursor-pointer flex items-center justify-between transition" onclick="showNationDetails(${n.id})">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-mono font-bold text-slate-500 w-5 text-right">${rankBadge}</span>
+                            <span class="w-2.5 h-2.5 rounded-full inline-block" style="background-color:${n.color}"></span>
+                            <span class="text-xs font-bold text-slate-200 truncate max-w-[120px]">${n.name}</span>
+                        </div>
+                        <span class="text-[10px] font-mono text-teal-400 font-semibold">${n.size} tiles</span>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        window.showNationDetails = function(id) {
+            const nation = nations[id];
+            const detailCard = document.getElementById('detail-nation-card');
+            if (!nation || !detailCard) return;
+
+            detailCard.classList.remove('hidden');
+
+            const detailColor = document.getElementById('detail-color');
+            const detailName = document.getElementById('detail-name');
+            const detailSize = document.getElementById('detail-size');
+            const detailGold = document.getElementById('detail-gold');
+            const detailKills = document.getElementById('detail-kills');
+            const detailAllies = document.getElementById('detail-allies');
+
+            if (detailColor) detailColor.style.backgroundColor = nation.color;
+            if (detailName) detailName.innerText = nation.name;
+            if (detailSize) detailSize.innerText = `${nation.size} tiles`;
+            if (detailGold) detailGold.innerText = nation.gold;
+            if (detailKills) detailKills.innerText = nation.kills;
+
+            // Compute Allies
+            const allyNames = [];
+            alliances.forEach(set => {
+                if (set.has(id)) {
+                    set.forEach(allyId => {
+                        if (allyId !== id && nations[allyId]) {
+                            allyNames.push(nations[allyId].name);
+                        }
+                    });
+                }
+            });
+            if (detailAllies) {
+                detailAllies.innerText = allyNames.length > 0 ? allyNames.join(', ') : 'None';
+            }
+        };
+
+        // 4. AI Timeline Engine Step
+        function simulationStep() {
+            year++;
+            updateStats();
+
+            // Part A: Core Expansion
+            const activeNationIds = Object.keys(nations).map(Number);
+
+            // Speed up loops by pre-calculating candidates
+            const expansionMoves = [];
+
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const idx = r * COLS + c;
+                    const owner = ownerGrid[idx];
+
+                    if (owner !== -1 && nations[owner]) {
+                        // Spread owner outward to neighboring unowned or hostile cells
+                        const neighbors = getNeighbors(c, r);
+                        neighbors.forEach(n => {
+                            const nIdx = n.y * COLS + n.x;
+                            const nOwner = ownerGrid[nIdx];
+                            const nTerrain = mapGrid[nIdx];
+
+                            if (nTerrain !== terrain.OCEAN) {
+                                if (nOwner === -1) {
+                                    // Expand neutral land
+                                    expansionMoves.push({ idx: nIdx, nextOwner: owner, type: 'spread' });
+                                } else if (nOwner !== owner) {
+                                    // Hostile collision / combat attack!
+                                    if (areAtWar(owner, nOwner) && Math.random() < 0.28) {
+                                        expansionMoves.push({ idx: nIdx, nextOwner: owner, type: 'attack', target: nOwner });
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+
+            // Execute expansion actions
+            expansionMoves.forEach(move => {
+                const prevOwner = ownerGrid[move.idx];
+                ownerGrid[move.idx] = move.nextOwner;
+
+                if (move.type === 'attack') {
+                    // Update stats
+                    const attacker = nations[move.nextOwner];
+                    const defender = nations[move.target];
+                    if (attacker && defender) {
+                        attacker.size++;
+                        defender.size--;
+                        attacker.gold += 3; // Looting bonus
+
+                        // Check if defender completely wiped out
+                        if (defender.size <= 0) {
+                            eliminateNation(move.target, move.nextOwner);
+                        }
+                    }
+                } else if (move.type === 'spread') {
+                    const nation = nations[move.nextOwner];
+                    if (nation) {
+                        nation.size++;
+                    }
+                }
+            });
+
+            // Part B: Diplomacy, Alliances, Revolts, stability
+            activeNationIds.forEach(id => {
+                const nation = nations[id];
+                if (!nation) return;
+
+                // Gold accumulation
+                nation.gold += Math.ceil(nation.size * 0.08);
+
+                // Stability and Revolt risks for giant empires
+                if (nation.size > 140 && Math.random() < 0.045) {
+                    triggerRevolt(id);
+                }
+
+                // AI Diplomacy trigger
+                if (Math.random() < 0.015) {
+                    executeAIDiplomacy(id);
+                }
+            });
+
+            // Recalculate sizes to ensure accuracy
+            recalculateNationSizes();
+
+            updateLeaderboard();
+            renderCanvas();
+        }
+
+        function getNeighbors(x, y) {
+            const list = [];
+            const dirs = [{ dx: 0, dy: -1 }, { dx: 1, dy: 0 }, { dx: 0, dy: 1 }, { dx: -1, dy: 0 }];
+            dirs.forEach(d => {
+                const nx = x + d.dx;
+                const ny = y + d.dy;
+                if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS) {
+                    list.push({ x: nx, y: ny });
+                }
+            });
+            return list;
+        }
+
+        function areAtWar(id1, id2) {
+            return wars.some(pair => pair.has(id1) && pair.has(id2));
+        }
+
+        function areAllied(id1, id2) {
+            return alliances.some(set => set.has(id1) && set.has(id2));
+        }
+
+        function setAllianceState(id1, id2, establish) {
+            if (establish) {
+                // Break wars first
+                breakWar(id1, id2);
+                if (!areAllied(id1, id2)) {
+                    alliances.push(new Set([id1, id2]));
+                }
+            } else {
+                alliances = alliances.filter(set => !(set.has(id1) && set.has(id2)));
+            }
+            updateStats();
+        }
+
+        function setWarState(id1, id2, establish) {
+            if (establish) {
+                // Break alliances first
+                setAllianceState(id1, id2, false);
+                if (!areAtWar(id1, id2)) {
+                    wars.push(new Set([id1, id2]));
+                }
+            } else {
+                breakWar(id1, id2);
+            }
+        }
+
+        function breakWar(id1, id2) {
+            wars = wars.filter(pair => !(pair.has(id1) && pair.has(id2)));
+        }
+
+        // 5. Revolt, Birth, and Collapse Actions
+        function triggerRevolt(parentNationId) {
+            const parent = nations[parentNationId];
+            if (!parent || parent.size < 20) return;
+
+            // Find land territory belonging to this parent
+            const cells = [];
+            for (let i = 0; i < ownerGrid.length; i++) {
+                if (ownerGrid[i] === parentNationId) {
+                    cells.push(i);
+                }
+            }
+
+            if (cells.length < 15) return;
+
+            // Choose a random cell on the border or far away to cluster the revolt
+            const clusterCenterIdx = cells[Math.floor(Math.random() * cells.length)];
+            const cx = clusterCenterIdx % COLS;
+            const cy = Math.floor(clusterCenterIdx / COLS);
+
+            // Spawn a brand new nation on this territory!
+            const newName = NATION_NAMES[Math.floor(Math.random() * NATION_NAMES.length)] + " Rebel Core";
+            const newColor = getRandomVibrantColor();
+            const rebelId = createNation(newName, newColor, cx, cy);
+
+            if (rebelId) {
+                // Seize surrounding land within radius
+                const radius = 3;
+                let seizedCount = 0;
+                for (let r = -radius; r <= radius; r++) {
+                    for (let c = -radius; c <= radius; c++) {
+                        const nx = cx + c;
+                        const ny = cy + r;
+                        if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS && c*c + r*r <= radius*radius) {
+                            const idx = ny * COLS + nx;
+                            if (ownerGrid[idx] === parentNationId) {
+                                ownerGrid[idx] = rebelId;
+                                seizedCount++;
+                            }
+                        }
+                    }
+                }
+
+                // Force Instant War!
+                setWarState(parentNationId, rebelId, true);
+                logMessage(`🔥 REVOLT! Outraged rebels in <span class="font-bold" style="color:${parent.color}">${parent.name}</span> broke off and established the sovereign state of <span class="font-bold" style="color:${newColor}">${newName}</span>! Civil war declared.`);
+            }
+        }
+
+        function executeAIDiplomacy(nationId) {
+            const nation = nations[nationId];
+            if (!nation) return;
+
+            const activeIds = Object.keys(nations).map(Number).filter(id => id !== nationId);
+            if (activeIds.length === 0) return;
+
+            const targetId = activeIds[Math.floor(Math.random() * activeIds.length)];
+            const target = nations[targetId];
+            if (!target) return;
+
+            // Roll diplomatic event
+            const roll = Math.random();
+            if (roll < 0.45) {
+                // Peace offer or alliance
+                if (areAtWar(nationId, targetId)) {
+                    setWarState(nationId, targetId, false);
+                    logMessage(`🕊️ Peace Treaty signed between <span style="color:${nation.color}">${nation.name}</span> and <span style="color:${target.color}">${target.name}</span> after intense negotiations.`);
+                } else if (!areAllied(nationId, targetId)) {
+                    setAllianceState(nationId, targetId, true);
+                    logMessage(`🤝 Alliance forged! <span style="color:${nation.color}">${nation.name}</span> and <span style="color:${target.color}">${target.name}</span> sign a mutual defensive pact.`);
+                }
+            } else {
+                // Dec War!
+                if (!areAtWar(nationId, targetId)) {
+                    setWarState(nationId, targetId, true);
+                    logMessage(`⚔️ WAR DECLARATION! <span style="color:${nation.color}">${nation.name}</span> has officially declared war on <span style="color:${target.color}">${target.name}</span>!`);
+                }
+            }
+        }
+
+        function createNation(name, color, cx, cy) {
+            // Must have Land terrain to spawn capital
+            if (mapGrid[cy * COLS + cx] === terrain.OCEAN) return null;
+
+            const id = nextNationId++;
+            nations[id] = {
+                id: id,
+                name: name,
+                color: color,
+                gold: 150,
+                kills: 0,
+                size: 1,
+                capital: { x: cx, y: cy }
+            };
+
+            ownerGrid[cy * COLS + cx] = id;
+            updateStats();
+            return id;
+        }
+
+        function eliminateNation(id, conquerorId) {
+            const nation = nations[id];
+            const conqueror = nations[conquerorId];
+            if (!nation) return;
+
+            // Break all treaties
+            alliances = alliances.filter(set => !set.has(id));
+            wars = wars.filter(pair => !pair.has(id));
+
+            if (conqueror) {
+                conqueror.kills++;
+                conqueror.gold += nation.gold; // loot remaining gold
+                logMessage(`💀 COLLAPSE! <span class="font-bold" style="color:${nation.color}">${nation.name}</span> has been completely conquered and annexed by <span class="font-bold" style="color:${conqueror.color}">${conqueror.name}</span>!`);
+            } else {
+                logMessage(`💀 COLLAPSE! <span class="font-bold" style="color:${nation.color}">${nation.name}</span> dissolved into regional chaos and ceased to exist.`);
+            }
+
+            delete nations[id];
+            updateStats();
+        }
+
+        function recalculateNationSizes() {
+            // Reset sizes to 0
+            Object.values(nations).forEach(n => n.size = 0);
+
+            // Accumulate
+            for (let i = 0; i < ownerGrid.length; i++) {
+                const owner = ownerGrid[i];
+                if (owner !== -1 && nations[owner]) {
+                    nations[owner].size++;
+                }
+            }
+
+            // Wipe nations that have 0 cells but somehow skipped elimination
+            Object.keys(nations).forEach(id => {
+                if (nations[id].size <= 0) {
+                    eliminateNation(Number(id), null);
+                }
+            });
+        }
+
+        function spawnClashingNations(count) {
+            let spawned = 0;
+            let attempts = 0;
+            while (spawned < count && attempts < 150) {
+                attempts++;
+                const cx = Math.floor(Math.random() * COLS);
+                const cy = Math.floor(Math.random() * ROWS);
+                const terrainType = mapGrid[cy * COLS + cx];
+                const currentOwner = ownerGrid[cy * COLS + cx];
+
+                if (terrainType === terrain.LAND && currentOwner === -1) {
+                    const name = NATION_NAMES[Math.floor(Math.random() * NATION_NAMES.length)];
+                    const color = getRandomVibrantColor();
+                    createNation(name, color, cx, cy);
+                    spawned++;
+                }
+            }
+            if (spawned > 0) {
+                logMessage(`Procedural deployment: [${spawned}] sovereign nations spawned on land cores.`);
+                recalculateNationSizes();
+                updateLeaderboard();
+                renderCanvas();
+            }
+        }
+
+        function hslToHex(h, s, l) {
+            l /= 100;
+            const a = s * Math.min(l, 1 - l) / 100;
+            const f = n => {
+                const k = (n + h / 30) % 12;
+                const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+                return Math.round(255 * color).toString(16).padStart(2, '0');
+            };
+            return `#${f(0)}${f(8)}${f(4)}`;
+        }
+
+        function getRandomVibrantColor() {
+            const h = Math.floor(Math.random() * 360);
+            return hslToHex(h, 85, 55);
+        }
+
+        function startLoop() {
+            if (simInterval) clearInterval(simInterval);
+            const fps = simSpeed === 1 ? 1 : simSpeed === 2 ? 3 : simSpeed === 3 ? 8 : simSpeed === 4 ? 18 : 35;
+            simInterval = setInterval(() => {
+                if (isPlaying) {
+                    simulationStep();
+                }
+            }, 1000 / fps);
+        }
+    </script>
+</body>
+</html>
