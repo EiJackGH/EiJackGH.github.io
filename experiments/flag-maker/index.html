@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vexillology Studio | Interactive Flag Maker & Simulator</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Custom Scrollbar for a premium look */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    /* Checkerboard background for transparency preview */
+    .checkerboard-pattern {
+      background-image: linear-gradient(45deg, #1e293b 25%, transparent 25%),
+                        linear-gradient(-45deg, #1e293b 25%, transparent 25%),
+                        linear-gradient(45deg, transparent 75%, #1e293b 75%),
+                        linear-gradient(-45deg, transparent 75%, #1e293b 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+      background-color: #0f172a;
+    }
+  </style>
+</head>
+<body class="bg-[#0b0f19] text-slate-100 min-h-screen flex flex-col font-sans selection:bg-teal-500 selection:text-slate-900">
+
+  <!-- Feature detection check -->
+  <script src="noscript.js"></script>
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="bg-gradient-to-tr from-teal-500 to-cyan-500 p-2.5 rounded-xl shadow-lg shadow-teal-500/20">
+          <i class="fa-solid fa-flag text-xl text-slate-950"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
+            Vexillology Studio
+          </h1>
+          <p class="text-xs text-slate-400 font-medium">Interactive Flag Designer & Waving Simulator</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-4">
+        <a href="../../" class="inline-flex items-center space-x-2 text-sm font-semibold text-slate-400 hover:text-teal-400 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-800 hover:border-teal-500/30 px-3.5 py-1.5 rounded-xl transition-all duration-200">
+          <i class="fa-solid fa-flask text-xs"></i>
+          <span>Back to Lab</span>
+        </a>
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-400/10 text-teal-400 border border-teal-500/20">
+          <span class="w-1.5 h-1.5 mr-1.5 bg-teal-400 rounded-full animate-pulse"></span>
+          HTML5 Canvas
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex flex-col">
+
+    <!-- Workspace Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start flex-grow">
+
+      <!-- Left Column: Live Flag Preview Board & Physics Controls -->
+      <div class="lg:col-span-7 space-y-6">
+
+        <!-- Live Preview Board -->
+        <div class="bg-slate-900/40 border border-slate-800/80 rounded-3xl p-6 shadow-xl backdrop-blur-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h4 class="font-semibold text-slate-200 flex items-center">
+              <i class="fa-solid fa-eye text-teal-400 mr-2.5"></i> Flag Viewport
+            </h4>
+
+            <!-- View Mode Switcher -->
+            <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs font-medium">
+              <button id="viewFlatBtn" class="px-3 py-1 rounded-lg transition duration-200 text-slate-400 hover:text-slate-200">
+                <i class="fa-solid fa-border-all mr-1.5"></i>Flat
+              </button>
+              <button id="viewWaveBtn" class="px-3 py-1 rounded-lg transition duration-200 bg-teal-500/10 text-teal-400">
+                <i class="fa-solid fa-wind mr-1.5"></i>Waving Wind
+              </button>
+            </div>
+          </div>
+
+          <!-- Preview Wrapper -->
+          <div class="relative aspect-video w-full checkerboard-pattern rounded-2xl overflow-hidden border border-slate-800 shadow-inner flex items-center justify-center p-8">
+
+            <!-- Flagpole Illustration -->
+            <div id="flagpole" class="absolute left-12 top-6 bottom-6 w-3 bg-gradient-to-r from-slate-400 to-slate-600 rounded-full shadow-lg z-10 hidden sm:block">
+              <div class="absolute -top-1.5 -left-1.5 w-6 h-6 bg-amber-400 rounded-full border border-amber-500 shadow-md"></div>
+              <div class="absolute bottom-0 -left-1 w-5 h-1.5 bg-slate-800 rounded-t-sm"></div>
+            </div>
+
+            <!-- Canvas for wave simulation -->
+            <canvas id="flagCanvas" class="max-w-full max-h-full cursor-grab active:cursor-grabbing transition-transform duration-300 hover:scale-[1.01]" width="600" height="400"></canvas>
+
+            <!-- Flat Image View Container -->
+            <div id="flatContainer" class="hidden max-w-full max-h-full flex items-center justify-center shadow-2xl transition-all duration-300">
+              <!-- Raw SVG element injected dynamically -->
+            </div>
+          </div>
+
+          <!-- Simulator Settings -->
+          <div id="simulatorSettings" class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-950/40 p-4 rounded-2xl border border-slate-800/60">
+            <div class="space-y-2">
+              <div class="flex justify-between items-center">
+                <label for="windSpeed" class="text-xs font-semibold text-slate-300">Wind Intensity</label>
+                <span id="windSpeedVal" class="text-xs font-mono text-teal-400">Normal</span>
+              </div>
+              <input type="range" id="windSpeed" min="2" max="15" value="6" step="1" class="w-full accent-teal-500 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+            </div>
+
+            <div class="space-y-2">
+              <div class="flex justify-between items-center">
+                <label for="waveAmplitude" class="text-xs font-semibold text-slate-300">Wave Amplitude</label>
+                <span id="waveAmpVal" class="text-xs font-mono text-teal-400">12px</span>
+              </div>
+              <input type="range" id="waveAmplitude" min="3" max="30" value="12" step="1" class="w-full accent-teal-500 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+            </div>
+          </div>
+
+          <!-- Export Actions -->
+          <div class="pt-4 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <button id="btnExportPNG" class="w-full relative group bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-slate-950 font-bold py-3 px-4 rounded-xl shadow-xl shadow-teal-500/10 hover:shadow-teal-400/20 active:scale-[0.98] transition-all duration-150 flex items-center justify-center space-x-2 text-sm">
+              <i class="fa-solid fa-file-arrow-down text-base"></i>
+              <span>Download PNG</span>
+            </button>
+            <button id="btnExportSVG" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-slate-200 font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center space-x-2 text-sm">
+              <i class="fa-solid fa-code"></i>
+              <span>Download SVG</span>
+            </button>
+            <button id="btnCopySVG" class="w-full bg-slate-800/50 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center space-x-2 text-sm">
+              <i class="fa-solid fa-copy"></i>
+              <span>Copy Markup</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Control Panels (Presets, Base Layout, Symbols) -->
+      <div class="lg:col-span-5 space-y-6">
+
+        <!-- Preset Templates -->
+        <div class="bg-slate-900/40 border border-slate-800/80 rounded-3xl p-6 shadow-xl backdrop-blur-sm space-y-3">
+          <h3 class="text-sm font-bold text-slate-400 tracking-wider uppercase flex items-center justify-between">
+            <span><i class="fa-solid fa-wand-magic-sparkles text-teal-400 mr-2"></i> Quick presets</span>
+          </h3>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <button onclick="loadPreset('france')" class="px-2.5 py-2 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 hover:border-teal-500/30 text-xs font-semibold rounded-xl transition duration-200 text-left flex items-center space-x-2">
+              <span class="w-3.5 h-2.5 bg-blue-600 border border-slate-700 inline-block rounded-xs"></span>
+              <span>France</span>
+            </button>
+            <button onclick="loadPreset('germany')" class="px-2.5 py-2 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 hover:border-teal-500/30 text-xs font-semibold rounded-xl transition duration-200 text-left flex items-center space-x-2">
+              <span class="w-3.5 h-2.5 bg-red-600 border border-slate-700 inline-block rounded-xs"></span>
+              <span>Germany</span>
+            </button>
+            <button onclick="loadPreset('sweden')" class="px-2.5 py-2 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 hover:border-teal-500/30 text-xs font-semibold rounded-xl transition duration-200 text-left flex items-center space-x-2">
+              <span class="w-3.5 h-2.5 bg-yellow-400 border border-slate-700 inline-block rounded-xs"></span>
+              <span>Sweden</span>
+            </button>
+            <button onclick="loadPreset('japan')" class="px-2.5 py-2 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 hover:border-teal-500/30 text-xs font-semibold rounded-xl transition duration-200 text-left flex items-center space-x-2">
+              <span class="w-3.5 h-2.5 bg-red-500 border border-slate-700 inline-block rounded-full"></span>
+              <span>Japan</span>
+            </button>
+            <button onclick="loadPreset('somalia')" class="px-2.5 py-2 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 hover:border-teal-500/30 text-xs font-semibold rounded-xl transition duration-200 text-left flex items-center space-x-2">
+              <span class="w-3.5 h-2.5 bg-cyan-400 border border-slate-700 inline-block rounded-xs"></span>
+              <span>Somalia</span>
+            </button>
+            <button onclick="loadPreset('pirate')" class="px-2.5 py-2 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 hover:border-teal-500/30 text-xs font-semibold rounded-xl transition duration-200 text-left flex items-center space-x-2">
+              <span class="w-3.5 h-2.5 bg-slate-950 border border-slate-700 inline-block rounded-xs"></span>
+              <span>Jolly Roger</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Designer Core Panels -->
+        <div class="bg-slate-900/40 border border-slate-800/80 rounded-3xl p-6 shadow-xl backdrop-blur-sm space-y-6">
+          <h3 class="text-base font-bold text-slate-200 border-b border-slate-800/80 pb-3 flex items-center">
+            <i class="fa-solid fa-sliders text-teal-400 mr-2.5"></i> Customizations
+          </h3>
+
+          <!-- Aspect Ratio & Ratio Switcher -->
+          <div class="space-y-2">
+            <label class="block text-xs text-slate-400 font-semibold uppercase tracking-wider">Flag Proportions</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button onclick="setRatio('3-2')" id="ratio32" class="px-3 py-2 bg-teal-500/10 text-teal-400 border border-teal-500/30 text-xs font-semibold rounded-xl transition">
+                3 : 2 (Standard)
+              </button>
+              <button onclick="setRatio('2-1')" id="ratio21" class="px-3 py-2 bg-slate-800 border border-slate-700/50 text-xs text-slate-400 font-semibold rounded-xl transition">
+                2 : 1 (Wide)
+              </button>
+              <button onclick="setRatio('1-1')" id="ratio11" class="px-3 py-2 bg-slate-800 border border-slate-700/50 text-xs text-slate-400 font-semibold rounded-xl transition">
+                1 : 1 (Square)
+              </button>
+            </div>
+          </div>
+
+          <!-- Base Flag Pattern/Layout -->
+          <div class="space-y-4">
+            <label for="patternSelect" class="block text-xs text-slate-400 font-semibold uppercase tracking-wider">Base Pattern Layout</label>
+            <select id="patternSelect" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-sm focus:border-teal-500 focus:outline-none text-slate-300">
+              <option value="solid">Solid Color</option>
+              <option value="horizontal-stripes">Horizontal Stripes</option>
+              <option value="vertical-stripes">Vertical Stripes</option>
+              <option value="nordic-cross">Nordic Cross</option>
+              <option value="saltire">Saltire (Diagonal Cross)</option>
+              <option value="canton">Canton (Upper Left Corner)</option>
+              <option value="triband-v">Vertical Triband (Tricolor)</option>
+              <option value="triband-h">Horizontal Triband (Tricolor)</option>
+              <option value="chevron">Left Chevron (Triangle)</option>
+            </select>
+          </div>
+
+          <!-- Layout Colors Grid (Dynamically updated via JS) -->
+          <div class="space-y-3 bg-slate-950/30 p-4 rounded-2xl border border-slate-800/40">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold text-slate-300 uppercase tracking-wider">Layout Options</label>
+              <!-- Stripe count selector (Only displayed if horizontal/vertical patterns selected) -->
+              <div id="stripeCountContainer" class="flex items-center space-x-2 hidden">
+                <span class="text-xs text-slate-500">Count:</span>
+                <input type="number" id="stripeCount" min="2" max="10" value="3" class="w-12 bg-slate-900 border border-slate-800 rounded px-1.5 py-0.5 text-xs text-center font-mono">
+              </div>
+            </div>
+
+            <div id="layoutColors" class="grid grid-cols-1 gap-2.5 max-h-48 overflow-y-auto pr-1">
+              <!-- Colors injected by script dynamically -->
+            </div>
+          </div>
+
+          <!-- Symbol Overlay (Charge) -->
+          <div class="space-y-4 border-t border-slate-800/80 pt-5">
+            <label class="block text-xs text-slate-400 font-semibold uppercase tracking-wider">Symbol Overlay (Charge)</label>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="symbolSelect" class="block text-[11px] text-slate-500 mb-1">Select Symbol</label>
+                <select id="symbolSelect" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:border-teal-500 focus:outline-none text-slate-300">
+                  <option value="none">None</option>
+                  <option value="star">★ Five-point Star</option>
+                  <option value="crescent">🌙 Crescent Moon</option>
+                  <option value="sun">☀ Radiant Sun</option>
+                  <option value="shield">🛡 Crowned Shield</option>
+                  <option value="crown">👑 Royal Crown</option>
+                  <option value="anchor">⚓ Navy Anchor</option>
+                  <option value="fleur">⚜ Fleur-de-lis</option>
+                  <option value="crossed-swords">⚔ Crossed Swords</option>
+                  <option value="maple">🍁 Maple Leaf</option>
+                  <option value="skull">☠ Pirate Skull & Bones</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="symbolColor" class="block text-[11px] text-slate-500 mb-1">Symbol Color</label>
+                <div class="relative flex items-center bg-slate-950 border border-slate-800 rounded-xl px-2 py-1.5 h-8.5">
+                  <input type="color" id="symbolColor" class="w-6 h-6 border-0 bg-transparent cursor-pointer rounded" value="#ffffff">
+                  <span id="symbolColorHex" class="ml-2.5 text-xs font-mono text-slate-300">#ffffff</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Position / Scale Controls -->
+            <div id="symbolControls" class="space-y-3.5 bg-slate-950/30 p-4 rounded-2xl border border-slate-800/40 hidden">
+              <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1.5">
+                  <div class="flex justify-between text-[11px] text-slate-400">
+                    <span>Horizontal Offset</span>
+                    <span id="symbolXVal" class="font-mono text-teal-400">0%</span>
+                  </div>
+                  <input type="range" id="symbolX" min="-50" max="50" value="0" step="1" class="w-full accent-teal-500 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <div class="space-y-1.5">
+                  <div class="flex justify-between text-[11px] text-slate-400">
+                    <span>Vertical Offset</span>
+                    <span id="symbolYVal" class="font-mono text-teal-400">0%</span>
+                  </div>
+                  <input type="range" id="symbolY" min="-50" max="50" value="0" step="1" class="w-full accent-teal-500 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1.5">
+                  <div class="flex justify-between text-[11px] text-slate-400">
+                    <span>Scale / Size</span>
+                    <span id="symbolScaleVal" class="font-mono text-teal-400">25%</span>
+                  </div>
+                  <input type="range" id="symbolScale" min="5" max="80" value="25" step="1" class="w-full accent-teal-500 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <div class="space-y-1.5">
+                  <div class="flex justify-between text-[11px] text-slate-400">
+                    <span>Rotation Angle</span>
+                    <span id="symbolRotateVal" class="font-mono text-teal-400">0°</span>
+                  </div>
+                  <input type="range" id="symbolRotate" min="0" max="360" value="0" step="5" class="w-full accent-teal-500 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-auto border-t border-slate-900 bg-slate-950/80 py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+      <div class="flex items-center space-x-1">
+        <span>&copy; 2026 Vexillology Studio &bull; Safe, fast, 100% client-side flag design toolkit.</span>
+      </div>
+      <div class="flex items-center space-x-4">
+        <span>Runs locally offline &bull; Procedural canvas simulator</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    // State variables
+    let flagRatio = '3-2'; // '3-2', '2-1', '1-1'
+    let flagWidth = 600;
+    let flagHeight = 400;
+    let viewMode = 'wave'; // 'flat' or 'wave'
+    let waveAmplitude = 12;
+    let windSpeed = 6;
+    let animateTime = 0;
+    let animationFrameId = null;
+
+    // SVG shapes mapping
+    const SYMBOLS = {
+      star: `<polygon points="50,9 61,38 92,38 67,57 76,87 50,69 24,87 33,57 8,38 39,38" />`,
+      crescent: `<path d="M40 10 A35 35 0 1 0 75 75 A27 27 0 1 1 40 10 Z" />`,
+      sun: `<g>
+              <circle cx="50" cy="50" r="18" />
+              <!-- Radiating Rays -->
+              <path d="M50 5 L50 18 M50 82 L50 95 M5 50 L18 50 M82 50 L95 50 M18 18 L28 28 M72 72 L82 82 M18 82 L28 72 M72 18 L82 28" stroke-width="4" stroke-linecap="round" />
+            </g>`,
+      shield: `<path d="M20 15 C20 15 50 5 50 5 C50 5 80 15 80 15 C80 15 80 50 80 60 C80 75 50 95 50 95 C50 95 20 75 20 60 C20 50 20 15 20 15 Z M50 15 L50 85" fill-rule="evenodd" />`,
+      crown: `<path d="M15 85 L85 85 L80 40 L60 65 L50 30 L40 65 L20 40 Z M20 85 A5 5 0 0 1 20 75 L80 75 A5 5 0 0 1 80 85 Z" />`,
+      anchor: `<g stroke-width="6" stroke-linecap="round" fill="none">
+                 <circle cx="50" cy="20" r="8" stroke-width="5" />
+                 <line x1="50" y1="28" x2="50" y2="78" />
+                 <line x1="30" y1="42" x2="70" y2="42" />
+                 <path d="M20 58 C25 80, 75 80, 80 58" />
+                 <path d="M15 55 L20 58 L25 55 M85 55 L80 58 L75 55" />
+               </g>`,
+      fleur: `<path d="M50 10 C46 30 33 40 33 55 C33 75 42 80 50 90 C58 80 67 75 67 55 C67 40 54 30 50 10 Z
+                       M50 90 C45 75 20 70 20 55 C20 40 35 45 42 55 C41 70 47 75 50 80 C53 75 59 70 58 55 C65 45 80 40 80 55 C80 70 55 75 50 90 Z
+                       M15 70 C30 70 42 66 50 62 C58 66 70 70 85 70 C75 75 60 78 50 78 C40 78 25 75 15 70 Z" />`,
+      'crossed-swords': `<g stroke-linecap="round">
+                            <!-- Sword 1 -->
+                            <path d="M15 85 L75 25 M70 20 L80 30 M25 75 L15 85" stroke-width="4" />
+                            <path d="M20 70 L30 80" stroke-width="8" />
+                            <!-- Sword 2 -->
+                            <path d="M85 85 L25 25 M20 30 L30 20 M75 75 L85 85" stroke-width="4" />
+                            <path d="M80 70 L70 80" stroke-width="8" />
+                         </g>`,
+      maple: `<path d="M50 95 L50 80
+                       M50 10 L40 25 L45 28 L30 30 L35 38 L20 45 L25 52 L15 62 L32 60 L38 68 L42 62 L48 78 L52 78 L58 62 L62 68 L68 60 L85 62 L75 52 L80 45 L65 38 L70 30 L55 28 L60 25 Z" fill-rule="evenodd" />`,
+      skull: `<g>
+                <!-- Crossed Bones -->
+                <path d="M15 15 L85 85 M85 15 L15 85" stroke-width="12" stroke-linecap="round" />
+                <circle cx="15" cy="15" r="9" />
+                <circle cx="85" cy="85" r="9" />
+                <circle cx="85" cy="15" r="9" />
+                <circle cx="15" cy="85" r="9" />
+                <!-- Skull Head -->
+                <rect x="35" y="25" width="30" height="35" rx="15" />
+                <rect x="42" y="55" width="16" height="15" rx="4" />
+                <!-- Eye sockets -->
+                <circle cx="43" cy="38" r="5" fill="#000" />
+                <circle cx="57" cy="38" r="5" fill="#000" />
+                <!-- Nose cavity -->
+                <polygon points="50,45 47,50 53,50" fill="#000" />
+                <!-- Teeth slots -->
+                <line x1="46" y1="62" x2="46" y2="68" stroke="#000" stroke-width="2" />
+                <line x1="50" y1="62" x2="50" y2="68" stroke="#000" stroke-width="2" />
+                <line x1="54" y1="62" x2="54" y2="68" stroke="#000" stroke-width="2" />
+              </g>`
+    };
+
+    // DOM Elements
+    const flagCanvas = document.getElementById('flagCanvas');
+    const canvasCtx = flagCanvas.getContext('2d');
+    const flatContainer = document.getElementById('flatContainer');
+    const viewFlatBtn = document.getElementById('viewFlatBtn');
+    const viewWaveBtn = document.getElementById('viewWaveBtn');
+    const windSpeedSlider = document.getElementById('windSpeed');
+    const windSpeedVal = document.getElementById('windSpeedVal');
+    const waveAmpSlider = document.getElementById('waveAmplitude');
+    const waveAmpVal = document.getElementById('waveAmpVal');
+    const flagpole = document.getElementById('flagpole');
+
+    const patternSelect = document.getElementById('patternSelect');
+    const stripeCountContainer = document.getElementById('stripeCountContainer');
+    const stripeCountInput = document.getElementById('stripeCount');
+    const layoutColorsDiv = document.getElementById('layoutColors');
+
+    const symbolSelect = document.getElementById('symbolSelect');
+    const symbolColorInput = document.getElementById('symbolColor');
+    const symbolColorHex = document.getElementById('symbolColorHex');
+    const symbolControls = document.getElementById('symbolControls');
+    const symbolXSlider = document.getElementById('symbolX');
+    const symbolYSlider = document.getElementById('symbolY');
+    const symbolScaleSlider = document.getElementById('symbolScale');
+    const symbolRotateSlider = document.getElementById('symbolRotate');
+
+    const symbolXVal = document.getElementById('symbolXVal');
+    const symbolYVal = document.getElementById('symbolYVal');
+    const symbolScaleVal = document.getElementById('symbolScaleVal');
+    const symbolRotateVal = document.getElementById('symbolRotateVal');
+
+    const btnExportPNG = document.getElementById('btnExportPNG');
+    const btnExportSVG = document.getElementById('btnExportSVG');
+    const btnCopySVG = document.getElementById('btnCopySVG');
+
+    // Preset configurations
+    const PRESETS = {
+      france: {
+        ratio: '3-2',
+        pattern: 'triband-v',
+        colors: ['#00209f', '#ffffff', '#e70020'],
+        symbol: 'none'
+      },
+      germany: {
+        ratio: '3-2',
+        pattern: 'triband-h',
+        colors: ['#000000', '#dd0000', '#ffce00'],
+        symbol: 'none'
+      },
+      sweden: {
+        ratio: '3-2',
+        pattern: 'nordic-cross',
+        colors: ['#006aa7', '#fecc00', '#fecc00'], // Field, Cross, Inner Cross
+        symbol: 'none'
+      },
+      japan: {
+        ratio: '3-2',
+        pattern: 'solid',
+        colors: ['#ffffff'],
+        symbol: 'sun',
+        symbolColor: '#bc002d',
+        symbolScale: 35,
+        symbolX: 0,
+        symbolY: 0,
+        symbolRotate: 0
+      },
+      somalia: {
+        ratio: '3-2',
+        pattern: 'solid',
+        colors: ['#4189dd'],
+        symbol: 'star',
+        symbolColor: '#ffffff',
+        symbolScale: 24,
+        symbolX: 0,
+        symbolY: 0,
+        symbolRotate: 0
+      },
+      pirate: {
+        ratio: '3-2',
+        pattern: 'solid',
+        colors: ['#111111'],
+        symbol: 'skull',
+        symbolColor: '#ffffff',
+        symbolScale: 40,
+        symbolX: 0,
+        symbolY: 0,
+        symbolRotate: 0
+      }
+    };
+
+    // Offscreen Canvas for texture drawing
+    const textureCanvas = document.createElement('canvas');
+    const textureCtx = textureCanvas.getContext('2d');
+    const offscreenImg = new Image();
+
+    // Event Listeners for ratio
+    function setRatio(ratio) {
+      flagRatio = ratio;
+      document.getElementById('ratio32').className = ratio === '3-2' ? "px-3 py-2 bg-teal-500/10 text-teal-400 border border-teal-500/30 text-xs font-semibold rounded-xl transition" : "px-3 py-2 bg-slate-800 border border-slate-700/50 text-xs text-slate-400 font-semibold rounded-xl transition";
+      document.getElementById('ratio21').className = ratio === '2-1' ? "px-3 py-2 bg-teal-500/10 text-teal-400 border border-teal-500/30 text-xs font-semibold rounded-xl transition" : "px-3 py-2 bg-slate-800 border border-slate-700/50 text-xs text-slate-400 font-semibold rounded-xl transition";
+      document.getElementById('ratio11').className = ratio === '1-1' ? "px-3 py-2 bg-teal-500/10 text-teal-400 border border-teal-500/30 text-xs font-semibold rounded-xl transition" : "px-3 py-2 bg-slate-800 border border-slate-700/50 text-xs text-slate-400 font-semibold rounded-xl transition";
+
+      if (ratio === '3-2') {
+        flagWidth = 600;
+        flagHeight = 400;
+      } else if (ratio === '2-1') {
+        flagWidth = 600;
+        flagHeight = 300;
+      } else {
+        flagWidth = 400;
+        flagHeight = 400;
+      }
+
+      flagCanvas.width = flagWidth;
+      flagCanvas.height = flagHeight;
+      textureCanvas.width = flagWidth;
+      textureCanvas.height = flagHeight;
+
+      updateFlag();
+    }
+
+    // View mode handlers
+    viewFlatBtn.addEventListener('click', () => {
+      viewMode = 'flat';
+      viewFlatBtn.className = "px-3 py-1 rounded-lg transition duration-200 bg-teal-500/10 text-teal-400";
+      viewWaveBtn.className = "px-3 py-1 rounded-lg transition duration-200 text-slate-400 hover:text-slate-200";
+      flagCanvas.classList.add('hidden');
+      flatContainer.classList.remove('hidden');
+      flagpole.classList.add('hidden');
+      cancelAnimationFrame(animationFrameId);
+    });
+
+    viewWaveBtn.addEventListener('click', () => {
+      viewMode = 'wave';
+      viewWaveBtn.className = "px-3 py-1 rounded-lg transition duration-200 bg-teal-500/10 text-teal-400";
+      viewFlatBtn.className = "px-3 py-1 rounded-lg transition duration-200 text-slate-400 hover:text-slate-200";
+      flatContainer.classList.add('hidden');
+      flagCanvas.classList.remove('hidden');
+      flagpole.classList.remove('hidden');
+      startAnimation();
+    });
+
+    // Wave and wind speed inputs
+    windSpeedSlider.addEventListener('input', () => {
+      windSpeed = parseInt(windSpeedSlider.value);
+      if (windSpeed <= 4) windSpeedVal.textContent = 'Gentle Breeze';
+      else if (windSpeed <= 8) windSpeedVal.textContent = 'Normal';
+      else if (windSpeed <= 12) windSpeedVal.textContent = 'Strong Wind';
+      else windSpeedVal.textContent = 'Gale Storm';
+    });
+
+    waveAmpSlider.addEventListener('input', () => {
+      waveAmplitude = parseInt(waveAmpSlider.value);
+      waveAmpVal.textContent = `${waveAmplitude}px`;
+    });
+
+    // Patterns & Options selection
+    patternSelect.addEventListener('change', () => {
+      const pat = patternSelect.value;
+      if (pat === 'horizontal-stripes' || pat === 'vertical-stripes') {
+        stripeCountContainer.classList.remove('hidden');
+      } else {
+        stripeCountContainer.classList.add('hidden');
+      }
+      buildColorInputs();
+      updateFlag();
+    });
+
+    stripeCountInput.addEventListener('input', () => {
+      let count = parseInt(stripeCountInput.value) || 3;
+      if (count < 2) count = 2;
+      if (count > 10) count = 10;
+      stripeCountInput.value = count;
+      buildColorInputs();
+      updateFlag();
+    });
+
+    // Dynamic Color Input builders
+    function buildColorInputs(customColors = null) {
+      layoutColorsDiv.innerHTML = '';
+      const pat = patternSelect.value;
+      let labelCount = 1;
+      let names = ['Primary Field'];
+
+      if (pat === 'horizontal-stripes' || pat === 'vertical-stripes') {
+        labelCount = parseInt(stripeCountInput.value) || 3;
+        names = [];
+        for (let i = 1; i <= labelCount; i++) {
+          names.push(`Stripe ${i}`);
+        }
+      } else if (pat === 'nordic-cross') {
+        labelCount = 3;
+        names = ['Field Color', 'Cross Outer Border', 'Cross Inner Color'];
+      } else if (pat === 'saltire') {
+        labelCount = 2;
+        names = ['Field Color', 'Diagonal Cross Color'];
+      } else if (pat === 'canton') {
+        labelCount = 3;
+        names = ['Field Base Stripe A', 'Field Base Stripe B', 'Canton Background'];
+      } else if (pat === 'triband-v' || pat === 'triband-h') {
+        labelCount = 3;
+        names = ['Left / Top Band', 'Middle Band', 'Right / Bottom Band'];
+      } else if (pat === 'chevron') {
+        labelCount = 3;
+        names = ['Top Band', 'Bottom Band', 'Left Chevron (Triangle)'];
+      }
+
+      const defaultPalettes = ['#0f766e', '#f1f5f9', '#dc2626', '#eab308', '#2563eb', '#16a34a', '#111827'];
+
+      for (let i = 0; i < labelCount; i++) {
+        const colorVal = customColors && customColors[i] ? customColors[i] : (defaultPalettes[i % defaultPalettes.length]);
+
+        const wrapper = document.createElement('div');
+        wrapper.className = "flex items-center justify-between space-x-3";
+
+        const label = document.createElement('span');
+        label.className = "text-xs font-semibold text-slate-400";
+        label.textContent = names[i] || `Color ${i + 1}`;
+
+        const inputWrapper = document.createElement('div');
+        inputWrapper.className = "relative flex items-center bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 h-8 w-32";
+
+        const input = document.createElement('input');
+        input.type = 'color';
+        input.className = "w-5 h-5 border-0 bg-transparent cursor-pointer rounded layout-color-picker";
+        input.value = colorVal;
+        input.dataset.index = i;
+
+        const hexText = document.createElement('span');
+        hexText.className = "ml-2 text-[11px] font-mono text-slate-400";
+        hexText.textContent = colorVal;
+
+        input.addEventListener('input', (e) => {
+          hexText.textContent = e.target.value;
+          updateFlag();
+        });
+
+        inputWrapper.appendChild(input);
+        inputWrapper.appendChild(hexText);
+        wrapper.appendChild(label);
+        wrapper.appendChild(inputWrapper);
+        layoutColorsDiv.appendChild(wrapper);
+      }
+    }
+
+    // Symbol customization handlers
+    symbolSelect.addEventListener('change', () => {
+      if (symbolSelect.value === 'none') {
+        symbolControls.classList.add('hidden');
+      } else {
+        symbolControls.classList.remove('hidden');
+      }
+      updateFlag();
+    });
+
+    symbolColorInput.addEventListener('input', () => {
+      symbolColorHex.textContent = symbolColorInput.value;
+      updateFlag();
+    });
+
+    [symbolXSlider, symbolYSlider, symbolScaleSlider, symbolRotateSlider].forEach(slider => {
+      slider.addEventListener('input', () => {
+        symbolXVal.textContent = `${symbolXSlider.value}%`;
+        symbolYVal.textContent = `${symbolYSlider.value}%`;
+        symbolScaleVal.textContent = `${symbolScaleSlider.value}%`;
+        symbolRotateVal.textContent = `${symbolRotateSlider.value}°`;
+        updateFlag();
+      });
+    });
+
+    // Preset loader function
+    window.loadPreset = function(key) {
+      const pr = PRESETS[key];
+      if (!pr) return;
+
+      // Set ratio
+      setRatio(pr.ratio);
+
+      // Set pattern
+      patternSelect.value = pr.pattern;
+      if (pr.pattern === 'horizontal-stripes' || pr.pattern === 'vertical-stripes') {
+        stripeCountContainer.classList.remove('hidden');
+        stripeCountInput.value = pr.colors.length;
+      } else {
+        stripeCountContainer.classList.add('hidden');
+      }
+
+      // Build dynamic inputs with preset values
+      buildColorInputs(pr.colors);
+
+      // Symbol
+      symbolSelect.value = pr.symbol;
+      if (pr.symbol !== 'none') {
+        symbolControls.classList.remove('hidden');
+        symbolColorInput.value = pr.symbolColor || '#ffffff';
+        symbolColorHex.textContent = symbolColorInput.value;
+        symbolScaleSlider.value = pr.symbolScale || 25;
+        symbolXSlider.value = pr.symbolX || 0;
+        symbolYSlider.value = pr.symbolY || 0;
+        symbolRotateSlider.value = pr.symbolRotate || 0;
+
+        symbolXVal.textContent = `${symbolXSlider.value}%`;
+        symbolYVal.textContent = `${symbolYSlider.value}%`;
+        symbolScaleVal.textContent = `${symbolScaleSlider.value}%`;
+        symbolRotateVal.textContent = `${symbolRotateSlider.value}°`;
+      } else {
+        symbolControls.classList.add('hidden');
+      }
+
+      updateFlag();
+    };
+
+    // Vector SVG String Builder
+    function generateSVGString() {
+      const colors = Array.from(document.querySelectorAll('.layout-color-picker'))
+                         .sort((a, b) => a.dataset.index - b.dataset.index)
+                         .map(el => el.value);
+
+      const pat = patternSelect.value;
+      let layers = '';
+
+      if (pat === 'solid') {
+        const fill = colors[0] || '#0f766e';
+        layers += `<rect width="${flagWidth}" height="${flagHeight}" fill="${fill}" />`;
+      } else if (pat === 'horizontal-stripes') {
+        const c = colors.length;
+        const h = flagHeight / c;
+        for (let i = 0; i < c; i++) {
+          layers += `<rect y="${i * h}" width="${flagWidth}" height="${h}" fill="${colors[i]}" />`;
+        }
+      } else if (pat === 'vertical-stripes') {
+        const c = colors.length;
+        const w = flagWidth / c;
+        for (let i = 0; i < c; i++) {
+          layers += `<rect x="${i * w}" width="${w}" height="${flagHeight}" fill="${colors[i]}" />`;
+        }
+      } else if (pat === 'nordic-cross') {
+        const bg = colors[0] || '#006aa7';
+        const crossOuter = colors[1] || '#fecc00';
+        const crossInner = colors[2] || '#fecc00';
+
+        const thick1 = flagHeight * 0.28;
+        const thick2 = flagHeight * 0.16;
+        const offsetLeft1 = flagWidth * 0.32;
+        const offsetLeft2 = flagWidth * 0.35;
+
+        layers += `<rect width="${flagWidth}" height="${flagHeight}" fill="${bg}" />`;
+
+        // Outer Cross (or simple solid cross if identical to inner)
+        layers += `<rect x="${offsetLeft1 - (thick1-thick2)/2}" width="${thick1}" height="${flagHeight}" fill="${crossOuter}" />`;
+        layers += `<rect y="${(flagHeight - thick1)/2}" width="${flagWidth}" height="${thick1}" fill="${crossOuter}" />`;
+
+        // Inner Cross
+        layers += `<rect x="${offsetLeft2 - (thick2/10)}" width="${thick2}" height="${flagHeight}" fill="${crossInner}" />`;
+        layers += `<rect y="${(flagHeight - thick2)/2}" width="${flagWidth}" height="${thick2}" fill="${crossInner}" />`;
+      } else if (pat === 'saltire') {
+        const bg = colors[0] || '#006aa7';
+        const crossCol = colors[1] || '#ffffff';
+        const thick = flagHeight * 0.15;
+
+        layers += `<rect width="${flagWidth}" height="${flagHeight}" fill="${bg}" />`;
+        layers += `<path d="M0,0 L${flagWidth},${flagHeight} M${flagWidth},0 L0,${flagHeight}" stroke="${crossCol}" stroke-width="${thick}" />`;
+      } else if (pat === 'canton') {
+        const colA = colors[0] || '#dc2626';
+        const colB = colors[1] || '#ffffff';
+        const cantonBg = colors[2] || '#2563eb';
+
+        const stripeCount = 9;
+        const h = flagHeight / stripeCount;
+        for (let i = 0; i < stripeCount; i++) {
+          layers += `<rect y="${i * h}" width="${flagWidth}" height="${h}" fill="${i % 2 === 0 ? colA : colB}" />`;
+        }
+
+        // Canton Box
+        const cantonW = flagWidth * 0.42;
+        const cantonH = h * 5;
+        layers += `<rect width="${cantonW}" height="${cantonH}" fill="${cantonBg}" />`;
+      } else if (pat === 'triband-v') {
+        const w = flagWidth / 3;
+        layers += `<rect width="${w}" height="${flagHeight}" fill="${colors[0]}" />`;
+        layers += `<rect x="${w}" width="${w}" height="${flagHeight}" fill="${colors[1]}" />`;
+        layers += `<rect x="${w * 2}" width="${w}" height="${flagHeight}" fill="${colors[2]}" />`;
+      } else if (pat === 'triband-h') {
+        const h = flagHeight / 3;
+        layers += `<rect width="${flagWidth}" height="${h}" fill="${colors[0]}" />`;
+        layers += `<rect y="${h}" width="${flagWidth}" height="${h}" fill="${colors[1]}" />`;
+        layers += `<rect y="${h * 2}" width="${flagWidth}" height="${h}" fill="${colors[2]}" />`;
+      } else if (pat === 'chevron') {
+        const h = flagHeight / 2;
+        layers += `<rect width="${flagWidth}" height="${h}" fill="${colors[0]}" />`;
+        layers += `<rect y="${h}" width="${flagWidth}" height="${h}" fill="${colors[1]}" />`;
+
+        // Chevron (Triangle on the left)
+        const trigW = flagWidth * 0.38;
+        layers += `<polygon points="0,0 ${trigW},${flagHeight/2} 0,${flagHeight}" fill="${colors[2]}" />`;
+      }
+
+      // Add Symbol Layer if selected
+      const sym = symbolSelect.value;
+      if (sym !== 'none' && SYMBOLS[sym]) {
+        const scale = parseInt(symbolScaleSlider.value) / 100;
+        const dx = (parseInt(symbolXSlider.value) / 100) * flagWidth;
+        const dy = (parseInt(symbolYSlider.value) / 100) * flagHeight;
+        const rotate = parseInt(symbolRotateSlider.value);
+        const col = symbolColorInput.value;
+
+        // Calculate absolute symbol box
+        const size = Math.min(flagWidth, flagHeight) * scale;
+        const px = (flagWidth - size) / 2 + dx;
+        const py = (flagHeight - size) / 2 + dy;
+
+        layers += `<g transform="translate(${px}, ${py}) scale(${size/100}) rotate(${rotate}, 50, 50)" fill="${col}" stroke="${col}">
+                    ${SYMBOLS[sym]}
+                  </g>`;
+      }
+
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${flagWidth} ${flagHeight}" width="${flagWidth}" height="${flagHeight}">
+        ${layers}
+      </svg>`;
+    }
+
+    // Live viewport renderer synchronizer
+    function updateFlag() {
+      const svgStr = generateSVGString();
+
+      // Inject flat preview
+      flatContainer.innerHTML = svgStr;
+
+      // Update offscreen Canvas Texture for Waving Animation
+      const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+
+      offscreenImg.onload = () => {
+        textureCtx.clearRect(0, 0, flagWidth, flagHeight);
+        textureCtx.drawImage(offscreenImg, 0, 0, flagWidth, flagHeight);
+        URL.revokeObjectURL(url);
+      };
+      offscreenImg.src = url;
+    }
+
+    // Flag-waving real-time math simulation
+    function renderWaveAnimation() {
+      if (viewMode !== 'wave') return;
+
+      animateTime += windSpeed;
+      canvasCtx.clearRect(0, 0, flagWidth, flagHeight);
+
+      // Center of canvas view
+      const startX = 0;
+      const startY = 0;
+
+      // Parameters
+      const freq = 0.015; // horizontal spacing of the waves
+
+      for (let x = 0; x < flagWidth; x++) {
+        // Damping pins the flag left-edge (flagpole joint)
+        const damp = Math.min(x / 40, 1.0);
+
+        // Dynamic offset using sine waves
+        const yOffset = Math.sin(x * freq - animateTime * 0.007) * waveAmplitude * damp;
+        // Secondary composite micro-wave
+        const yOffset2 = Math.cos(x * 0.008 - animateTime * 0.003) * (waveAmplitude / 4) * damp;
+
+        const finalY = yOffset + yOffset2;
+
+        // Simple normal/slope derivative brightness modifier
+        const slope = Math.cos(x * freq - animateTime * 0.007) * waveAmplitude * freq * damp;
+        const shade = 1.0 + slope * 0.35; // directional top-left illumination modifier
+
+        canvasCtx.save();
+
+        // Draw individual 1-pixel vertical slices
+        canvasCtx.drawImage(
+          textureCanvas,
+          x, 0, 1, flagHeight,
+          startX + x, startY + finalY, 1, flagHeight
+        );
+
+        // Apply light/shadow multiplying map
+        canvasCtx.globalCompositeOperation = 'multiply';
+        canvasCtx.fillStyle = `rgb(${Math.floor(255 * shade)}, ${Math.floor(255 * shade)}, ${Math.floor(255 * shade)})`;
+        canvasCtx.fillRect(startX + x, startY + finalY, 1, flagHeight);
+
+        // Flagpole connection joint shadow
+        if (x < 15) {
+          canvasCtx.globalCompositeOperation = 'source-over';
+          canvasCtx.fillStyle = `rgba(0, 0, 0, ${0.45 * (1 - x / 15)})`;
+          canvasCtx.fillRect(startX + x, startY + finalY, 1, flagHeight);
+        }
+
+        canvasCtx.restore();
+      }
+
+      animationFrameId = requestAnimationFrame(renderWaveAnimation);
+    }
+
+    function startAnimation() {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      renderWaveAnimation();
+    }
+
+    // EXPORT DOWNLOAD TRIGGERS
+    btnExportSVG.addEventListener('click', () => {
+      const svgData = generateSVGString();
+      const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `flag_designer_export.svg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    });
+
+    btnCopySVG.addEventListener('click', () => {
+      const svgData = generateSVGString();
+      navigator.clipboard.writeText(svgData).then(() => {
+        const originalText = btnCopySVG.innerHTML;
+        btnCopySVG.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> <span>Copied!</span>';
+        btnCopySVG.classList.add('border-emerald-500/40', 'bg-emerald-500/10');
+        setTimeout(() => {
+          btnCopySVG.innerHTML = originalText;
+          btnCopySVG.classList.remove('border-emerald-500/40', 'bg-emerald-500/10');
+        }, 1800);
+      }).catch(err => {
+        alert("Unable to copy markup: " + err);
+      });
+    });
+
+    btnExportPNG.addEventListener('click', () => {
+      // Export at pristine 2x high definition resolution
+      const exportCanvas = document.createElement('canvas');
+      exportCanvas.width = flagWidth * 2;
+      exportCanvas.height = flagHeight * 2;
+      const exportCtx = exportCanvas.getContext('2d');
+
+      const svgData = generateSVGString();
+      const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+
+      img.onload = () => {
+        exportCtx.drawImage(img, 0, 0, exportCanvas.width, exportCanvas.height);
+        URL.revokeObjectURL(url);
+
+        const link = document.createElement('a');
+        link.download = 'flag_designer_export.png';
+        link.href = exportCanvas.toDataURL('image/png');
+        link.click();
+      };
+      img.src = url;
+    });
+
+    // Initialize Vexillology Studio on start
+    buildColorInputs();
+    setRatio('3-2');
+    loadPreset('france');
+    startAnimation();
+
+  </script>
+</body>
+</html>
