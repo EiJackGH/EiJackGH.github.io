@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schoolboy Runaway 3D: Stealth Escape</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        horror: {
+                            900: '#080101',
+                            800: '#150505',
+                            500: '#ef4444',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Special+Elite&family=Courier+Prime&display=swap');
+
+        .font-creepy {
+            font-family: 'Creepster', cursive;
+        }
+        .font-typewriter {
+            font-family: 'Special Elite', cursive;
+        }
+        .font-retro {
+            font-family: 'Courier Prime', monospace;
+        }
+
+        /* Hide scrollbars */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        body {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            user-select: none;
+            overflow: hidden;
+            background-color: #050202;
+        }
+
+        /* Virtual joystick styles */
+        .joystick-zone {
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="w-screen h-screen flex flex-col relative text-gray-200 overflow-hidden font-retro">
+
+    <!-- Screen Vignette / Blood Splatter for Jumpscares -->
+    <div id="vignette" class="absolute inset-0 pointer-events-none z-30 transition-all duration-300 border-[0px] border-red-900/40 shadow-[inset_0_0_50px_rgba(0,0,0,0.9)]"></div>
+    <div id="flash-overlay" class="absolute inset-0 pointer-events-none z-40 bg-red-600 opacity-0 transition-opacity duration-100"></div>
+
+    <!-- Main Game Canvas Container -->
+    <div id="canvas-container" class="w-full h-full absolute inset-0 z-0 bg-black"></div>
+
+    <!-- Retro CRT Scanline overlay -->
+    <div class="absolute inset-0 pointer-events-none z-10 opacity-[0.03] bg-[linear-gradient(rgba(18,16,16,0)_50%,_rgba(0,0,0,0.25)_50%),_linear-gradient(90deg,_rgba(255,0,0,0.06),_rgba(0,255,0,0.02),_rgba(0,0,255,0.06))] bg-[size:100%_4px,_6px_100%]"></div>
+
+    <!-- TOP HUD: Game Status & Instruction -->
+    <div class="absolute top-4 left-4 right-4 z-20 flex justify-between items-start pointer-events-none">
+        <!-- Objective & Items -->
+        <div class="flex flex-col gap-2">
+            <div class="bg-black/85 border border-red-900/60 p-3 rounded-xl max-w-sm backdrop-blur-md">
+                <div class="text-red-500 font-bold text-xs uppercase tracking-widest mb-1">Current Objective</div>
+                <div id="hud-objective" class="text-sm font-semibold text-white">Find a screwdriver to unlock the desk drawer.</div>
+            </div>
+
+            <!-- Inventory HUD -->
+            <div class="flex gap-2 items-center">
+                <div class="bg-black/80 border border-gray-800 px-3 py-1.5 rounded-lg text-xs flex items-center gap-2">
+                    <span class="text-gray-400">Inventory:</span>
+                    <span id="hud-inventory" class="text-yellow-400 font-bold">Empty</span>
+                </div>
+                <div id="hud-holding" class="bg-black/80 border border-gray-800 px-3 py-1.5 rounded-lg text-xs flex items-center gap-2 hidden">
+                    <span class="text-gray-400">Holding:</span>
+                    <span id="hud-held-item" class="text-cyan-400 font-bold">Vase</span>
+                    <span class="text-[10px] text-gray-500 font-mono">[Click/Tap to Throw]</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Suspicion Meter -->
+        <div class="flex flex-col items-end gap-1">
+            <div class="bg-black/85 border border-red-900/60 p-3 rounded-xl backdrop-blur-md flex flex-col gap-1 items-end w-48">
+                <div class="flex justify-between w-full text-[10px] text-red-500 font-bold uppercase tracking-wider">
+                    <span>Dad Suspicion</span>
+                    <span id="suspicion-text" class="font-mono">0%</span>
+                </div>
+                <div class="w-full bg-red-950/40 h-2.5 rounded-full overflow-hidden border border-red-900/30">
+                    <div id="suspicion-bar" class="bg-red-600 w-0 h-full transition-all duration-150"></div>
+                </div>
+            </div>
+
+            <!-- Noise Indicator -->
+            <div class="bg-black/80 border border-gray-800 px-3 py-1 rounded-lg text-xs flex items-center gap-2 mt-1">
+                <span class="text-gray-400">Noise:</span>
+                <span id="noise-level" class="text-emerald-500 font-bold uppercase tracking-widest">Silent</span>
+                <span id="noise-wave" class="flex gap-0.5 items-end h-3">
+                    <span class="w-0.5 h-1 bg-emerald-500 rounded-full transition-all duration-100"></span>
+                    <span class="w-0.5 h-1 bg-emerald-500 rounded-full transition-all duration-100"></span>
+                    <span class="w-0.5 h-1 bg-emerald-500 rounded-full transition-all duration-100"></span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- CROSSHAIR & INTERACTIVE TOOLTIP (Center of screen on Desktop) -->
+    <div id="reticle-container" class="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+        <div id="crosshair" class="w-2 h-2 rounded-full bg-white opacity-40 transition-all duration-150"></div>
+        <div id="interaction-tooltip" class="absolute translate-y-8 bg-black/90 border border-teal-500/50 text-teal-300 text-xs px-3 py-1.5 rounded-lg opacity-0 transition-opacity duration-150 flex flex-col items-center gap-0.5">
+            <span id="interaction-action" class="font-bold text-white">INTERACT</span>
+            <span id="interaction-hint" class="text-[9px] text-gray-400">Press [E] or Tap</span>
+        </div>
+    </div>
+
+    <!-- BOTTOM HUD / MOBILE CONTROLS (Only visible on touch devices or toggled via screen size) -->
+    <div id="mobile-controls" class="absolute bottom-6 left-6 right-6 z-20 flex justify-between items-end pointer-events-none">
+        <!-- Virtual Joystick Area (Left) -->
+        <div class="flex flex-col gap-1 items-start pointer-events-auto">
+            <div id="joystick-boundary" class="w-32 h-32 rounded-full bg-black/40 border border-gray-700/50 backdrop-blur-sm relative flex items-center justify-center joystick-zone shadow-lg">
+                <div id="joystick-handle" class="w-12 h-12 rounded-full bg-white/40 border border-white/60 absolute transition-all duration-75 active:scale-95 shadow-md"></div>
+            </div>
+            <div class="text-[9px] text-gray-500 font-mono mt-1 select-none">DRAG JOYSTICK TO MOVE</div>
+        </div>
+
+        <!-- Action Buttons Grid (Right) -->
+        <div class="flex flex-col gap-3 items-end pointer-events-auto">
+            <!-- Secondary controls like interact, crouch, throw -->
+            <div class="flex gap-2">
+                <!-- Crouch Button -->
+                <button id="btn-crouch" class="w-14 h-14 rounded-full bg-black/75 border border-cyan-500/30 text-cyan-400 font-bold text-xs uppercase flex flex-col items-center justify-center active:bg-cyan-950/50 active:scale-95 transition shadow-lg select-none">
+                    <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 13l-7 7-7-7m14-6l-7 7-7-7" />
+                    </svg>
+                    <span class="text-[8px]">Crouch</span>
+                </button>
+
+                <!-- Interact Button -->
+                <button id="btn-interact" class="w-16 h-16 rounded-full bg-teal-600 border border-teal-400 text-white font-bold text-sm uppercase flex flex-col items-center justify-center active:scale-95 active:bg-teal-700 transition shadow-lg select-none">
+                    <svg class="w-6 h-6 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                    </svg>
+                    <span class="text-[9px]">Use</span>
+                </button>
+            </div>
+
+            <div class="text-[9px] text-gray-500 font-mono select-none">TAP RIGHT AREA TO LOOK / ROTATE</div>
+        </div>
+    </div>
+
+    <!-- HIDING STATE SCREEN OVERLAY -->
+    <div id="hiding-overlay" class="absolute inset-0 bg-black/95 z-10 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="text-center space-y-4">
+            <div class="font-creepy text-red-500 text-4xl tracking-widest animate-pulse">YOU ARE HIDING</div>
+            <p class="text-gray-400 text-xs font-mono">Stay absolutely silent. Wait for Dad to walk away...</p>
+            <button id="btn-exit-hiding" class="pointer-events-auto bg-slate-900 border border-red-900 hover:border-red-500 hover:bg-red-950/30 text-red-400 font-bold px-6 py-2 rounded-xl text-xs tracking-wider transition">
+                LEAVE HIDING SPOT
+            </button>
+        </div>
+    </div>
+
+    <!-- LANDING GAMEPLAY INSTRUCTIONS & START DIALOG MODAL -->
+    <div id="intro-modal" class="absolute inset-0 bg-black/95 z-50 flex items-center justify-center p-4">
+        <div class="max-w-xl w-full bg-horror-900 border-2 border-red-900/60 p-6 sm:p-8 rounded-2xl shadow-[0_0_50px_rgba(239,68,68,0.15)] flex flex-col gap-6 backdrop-blur-md">
+
+            <div class="text-center space-y-2 border-b border-red-950/80 pb-4">
+                <h1 class="font-creepy text-red-500 text-4xl sm:text-5xl tracking-widest animate-pulse">SCHOOLBOY RUNAWAY</h1>
+                <p class="text-xs text-gray-400 uppercase tracking-widest font-mono">3D First-Person Horror Stealth Lab</p>
+            </div>
+
+            <!-- Context Story -->
+            <div class="text-slate-300 text-xs sm:text-sm leading-relaxed font-typewriter bg-red-950/20 border border-red-950 p-4 rounded-xl">
+                "Ah, you scoundrel! Hurry up and study your lessons!" said your dad, locking the bedroom door and putting you under strict house arrest. But your friends are waiting outside!
+                <br><br>
+                To escape, you must find a <strong>screwdriver</strong>, break open the <strong>locked drawer</strong> to steal the <strong>main key</strong>, and open the <strong>front exit door</strong> without getting caught.
+            </div>
+
+            <!-- Game controls guide -->
+            <div class="grid grid-cols-2 gap-4 text-xs font-mono">
+                <div class="space-y-1.5">
+                    <span class="text-red-500 font-bold uppercase tracking-wider block">Desktop Controls</span>
+                    <div class="text-gray-400 space-y-1">
+                        <div><strong class="text-white">WASD / Arrows</strong> - Walk around</div>
+                        <div><strong class="text-white">Mouse Drag / Move</strong> - Rotate camera</div>
+                        <div><strong class="text-white">SHIFT</strong> - Toggle Crouch (Quiet)</div>
+                        <div><strong class="text-white">E / Left-Click</strong> - Use / Interact</div>
+                    </div>
+                </div>
+                <div class="space-y-1.5">
+                    <span class="text-red-500 font-bold uppercase tracking-wider block">Mobile Controls</span>
+                    <div class="text-gray-400 space-y-1">
+                        <div><strong class="text-white">Left Joystick</strong> - Walk around</div>
+                        <div><strong class="text-white">Right Drag Zone</strong> - Rotate camera</div>
+                        <div><strong class="text-white">Crouch Button</strong> - Toggle Crouch</div>
+                        <div><strong class="text-white">Use Button</strong> - Use / Interact</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive instructions tips -->
+            <div class="bg-black/40 border border-gray-800 p-3 rounded-lg text-[11px] text-gray-400 space-y-1 font-mono">
+                <div class="flex items-center gap-2">
+                    <span class="text-red-500">👁️</span>
+                    <span><strong>Stealth is key:</strong> Dad patrols the house. Crouching makes zero noise.</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-yellow-400">🏺</span>
+                    <span><strong>Distractions:</strong> Throw green vases to lure Dad to other rooms.</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-teal-400">🚪</span>
+                    <span><strong>Hide:</strong> Jump inside Closets or Crawl under Beds when Dad is near.</span>
+                </div>
+            </div>
+
+            <button id="btn-start-game" class="w-full py-3.5 bg-red-600 hover:bg-red-500 active:scale-95 text-white font-bold text-sm tracking-widest uppercase rounded-xl transition duration-300 shadow-[0_0_20px_rgba(220,38,38,0.4)]">
+                BREACH HOUSE ARREST
+            </button>
+        </div>
+    </div>
+
+    <!-- GAME OVER OVERLAY MODAL -->
+    <div id="gameover-modal" class="absolute inset-0 bg-black/95 z-50 flex items-center justify-center p-4 hidden">
+        <div class="max-w-md w-full bg-horror-900 border-2 border-red-900/60 p-6 sm:p-8 rounded-2xl text-center flex flex-col gap-6 shadow-[0_0_50px_rgba(220,38,38,0.4)]">
+            <h2 class="font-creepy text-red-600 text-5xl sm:text-6xl tracking-wider animate-pulse">CAUGHT!</h2>
+            <div class="text-slate-300 font-typewriter text-sm bg-red-950/20 border border-red-950 p-4 rounded-xl">
+                "No lessons done, and you tried to run away?! Back to study, scoundrel!"
+                <br><br>
+                Dad caught you sneakily breaking house arrest.
+            </div>
+            <button id="btn-restart-gameover" class="w-full py-3 bg-red-600 hover:bg-red-500 active:scale-95 text-white font-bold text-xs tracking-widest uppercase rounded-xl transition">
+                TRY AGAIN SNEAKY BOY
+            </button>
+        </div>
+    </div>
+
+    <!-- GAME WIN OVERLAY MODAL -->
+    <div id="win-modal" class="absolute inset-0 bg-black/95 z-50 flex items-center justify-center p-4 hidden">
+        <div class="max-w-md w-full bg-[#05160e] border-2 border-emerald-950 p-6 sm:p-8 rounded-2xl text-center flex flex-col gap-6 shadow-[0_0_50px_rgba(16,185,129,0.25)]">
+            <h2 class="font-creepy text-emerald-500 text-5xl sm:text-6xl tracking-wider animate-pulse">FREEDOM!</h2>
+            <div class="text-slate-300 font-typewriter text-sm bg-emerald-950/20 border border-emerald-950 p-4 rounded-xl">
+                You successfully broke out through the front exit!
+                <br><br>
+                Your friends are cheered, and you finally head out to play soccer. Safe escape, clever child!
+            </div>
+            <button id="btn-restart-win" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs tracking-widest uppercase rounded-xl transition">
+                REPLAY ADVENTURE
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN GAMEPLAY CODE -->
+    <script>
+        // --- Game Setup Constants & Globals ---
+        const HOUSE_WIDTH = 24;
+        const HOUSE_DEPTH = 18;
+
+        let scene, camera, renderer;
+        let houseGroup;
+        let ambientLight, directionalLight, flashlightSpotlight;
+
+        // Game state variables
+        let gameActive = false;
+        let isHiding = false;
+        let currentHidingSpotType = ''; // 'closet' or 'bed'
+        let previousPositionBeforeHiding = new THREE.Vector3();
+        let currentObjective = "screwdriver"; // "screwdriver", "key", "escape"
+        let playerInventory = []; // "screwdriver", "key"
+        let isCrouching = false;
+
+        let playerStats = {
+            suspicion: 0,
+            noise: 0,
+            holding: null // 'vase' item if picked up for throwing
+        };
+
+        // Initialize three.js engine
+        function initEngine() {
+            const container = document.getElementById('canvas-container');
+
+            // Create Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x020101);
+            scene.fog = new THREE.FogExp2(0x020101, 0.08);
+
+            // Create Camera
+            camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(0, 1.6, 6); // default position in spawn bedroom
+
+            // Create Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            // Setup Ambient & Directional Lights (very dark atmosphere)
+            ambientLight = new THREE.AmbientLight(0x0a0505, 0.6);
+            scene.add(ambientLight);
+
+            directionalLight = new THREE.DirectionalLight(0x351515, 0.4);
+            directionalLight.position.set(10, 20, 5);
+            scene.add(directionalLight);
+
+            // Flashlight on Player's face (Camera direction flashlight)
+            const flashlight = new THREE.SpotLight(0xfff8d0, 1.2, 12, Math.PI / 6, 0.5, 1);
+            flashlight.position.set(0, 0, 0);
+            flashlight.castShadow = true;
+            flashlight.shadow.mapSize.width = 512;
+            flashlight.shadow.mapSize.height = 512;
+            camera.add(flashlight);
+            flashlight.target = new THREE.Object3D();
+            flashlight.target.position.set(0, 0, -1);
+            camera.add(flashlight.target);
+            scene.add(camera); // critical so flashlight moves with camera
+
+            // Create low-poly house structure
+            houseGroup = new THREE.Group();
+            scene.add(houseGroup);
+
+            buildHouseScene();
+
+            // Window resize adjustment
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- Low-Poly House & Furniture Generation ---
+        const wallsArray = []; // bounding boxes / obstacles for player collision
+        const interactables = []; // items or hiding spots player can interact with
+
+        // Materials Helper
+        const materials = {
+            floor: new THREE.MeshStandardMaterial({ color: 0x422d1f, roughness: 0.9 }), // wooden planks look
+            wall: new THREE.MeshStandardMaterial({ color: 0x2e3532, roughness: 0.8 }), // retro wallpaper feel
+            ceiling: new THREE.MeshStandardMaterial({ color: 0x151816, roughness: 0.9 }),
+            wood: new THREE.MeshStandardMaterial({ color: 0x5c4033, roughness: 0.8 }),
+            metal: new THREE.MeshStandardMaterial({ color: 0x7a7a7a, metalness: 0.8, roughness: 0.2 }),
+            bedColor: new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.6 }), // blue bedspread
+            sheets: new THREE.MeshStandardMaterial({ color: 0xeeeeee }),
+            vaseColor: new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.4 }), // green vibrant ceramic
+            gold: new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.9, roughness: 0.1 }),
+            carpetRed: new THREE.MeshStandardMaterial({ color: 0x7f1d1d, roughness: 0.9 }),
+            doorColor: new THREE.MeshStandardMaterial({ color: 0x3f2d1e, roughness: 0.7 }),
+            lockedDoorColor: new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: 0.7 })
+        };
+
+        function buildHouseScene() {
+            // 1. Floor & Ceiling
+            const floorGeo = new THREE.BoxGeometry(HOUSE_WIDTH, 0.2, HOUSE_DEPTH);
+            const floorMesh = new THREE.Mesh(floorGeo, materials.floor);
+            floorMesh.position.y = -0.1;
+            floorMesh.receiveShadow = true;
+            houseGroup.add(floorMesh);
+
+            const ceilingGeo = new THREE.PlaneGeometry(HOUSE_WIDTH, HOUSE_DEPTH);
+            const ceilingMesh = new THREE.Mesh(ceilingGeo, materials.ceiling);
+            ceilingMesh.rotation.x = Math.PI / 2;
+            ceilingMesh.position.y = 3;
+            houseGroup.add(ceilingMesh);
+
+            // 2. Outer Perimeter Walls (Left, Right, Back, Front)
+            createWall(0, 1.5, -HOUSE_DEPTH/2, HOUSE_WIDTH, 3, 0.4); // Back outer wall
+            createWall(0, 1.5, HOUSE_DEPTH/2, HOUSE_WIDTH, 3, 0.4);  // Front outer wall
+            createWall(-HOUSE_WIDTH/2, 1.5, 0, 0.4, 3, HOUSE_DEPTH); // Left outer wall
+            createWall(HOUSE_WIDTH/2, 1.5, 0, 0.4, 3, HOUSE_DEPTH);  // Right outer wall
+
+            // 3. Inner Partition Walls (Dividing house into rooms)
+            // Layout Rooms:
+            // Spawn Bedroom (Back Left, roughly -12 to -4 X, 0 to 9 Z)
+            // Hallway (Center passage along Z-axis)
+            // Living Room (Front Left & Center)
+            // Kitchen (Right wing)
+
+            // Bedroom Wall dividing it from Hallway/Living Room
+            createWall(-3.5, 1.5, 3, 0.3, 3, 6); // vertical wall dividing bedroom/hallway (has a doorway slot at Z=1)
+            createWall(-8, 1.5, 0, 9, 3, 0.3);   // horizontal wall dividing bedroom from living room (has a doorway)
+
+            // Kitchen Wall dividing it from Living room
+            createWall(4, 1.5, -2, 0.3, 3, 10);  // partition separating kitchen on right side
+
+            // Carpets for rooms
+            createCarpet(-8, 0.01, 4, 6, 6, materials.carpetRed); // Bedroom carpet
+            createCarpet(8, 0.01, -3, 6, 8, new THREE.MeshStandardMaterial({ color: 0x065f46, roughness: 0.9 })); // Kitchen linoleum
+            createCarpet(0, 0.01, 3, 5, 8, new THREE.MeshStandardMaterial({ color: 0x1e3a8a, roughness: 0.9 })); // Living room blue carpet
+
+            // 4. Place Furniture & Interactive Items
+            spawnFurniture();
+        }
+
+        function createWall(x, y, z, w, h, d) {
+            const wallGeo = new THREE.BoxGeometry(w, h, d);
+            const wallMesh = new THREE.Mesh(wallGeo, materials.wall);
+            wallMesh.position.set(x, y, z);
+            wallMesh.castShadow = true;
+            wallMesh.receiveShadow = true;
+            houseGroup.add(wallMesh);
+
+            // Compute wall bounding boxes for collision
+            const bbox = new THREE.Box3().setFromObject(wallMesh);
+            wallsArray.push({ bbox: bbox, mesh: wallMesh });
+        }
+
+        function createCarpet(x, y, z, w, d, material) {
+            const carpetGeo = new THREE.PlaneGeometry(w, d);
+            const carpet = new THREE.Mesh(carpetGeo, material);
+            carpet.rotation.x = -Math.PI / 2;
+            carpet.position.set(x, y, z);
+            carpet.receiveShadow = true;
+            houseGroup.add(carpet);
+        }
+
+        function spawnFurniture() {
+            // Spawn Bed (In Bedroom at top-left corner)
+            const bedGroup = createBedMesh(-9, 0.45, 6);
+            houseGroup.add(bedGroup);
+
+            // Register Bed as a hiding spot
+            interactables.push({
+                type: 'bed',
+                name: 'Bed',
+                action: 'HIDE UNDER BED',
+                position: new THREE.Vector3(-9, 0, 6),
+                radius: 1.8,
+                mesh: bedGroup
+            });
+
+            // Spawn Closet/Wardrobe (In Bedroom against back wall)
+            const closetGroup = createClosetMesh(-6, 1.2, 8);
+            houseGroup.add(closetGroup);
+
+            // Register Closet as interactive hiding spot
+            interactables.push({
+                type: 'closet',
+                name: 'Closet',
+                action: 'HIDE IN CLOSET',
+                position: new THREE.Vector3(-6, 0, 8),
+                radius: 1.5,
+                mesh: closetGroup
+            });
+
+            // Spawn Desk & Drawer (In Living Room or Bedroom)
+            const deskGroup = createDeskMesh(-8, 0.6, -4);
+            houseGroup.add(deskGroup);
+
+            // Register Locked Drawer
+            interactables.push({
+                type: 'desk_drawer',
+                name: 'Locked Drawer',
+                action: 'UNLOCK DRAWER',
+                position: new THREE.Vector3(-8, 0.6, -4.2),
+                radius: 1.4,
+                mesh: deskGroup,
+                locked: true
+            });
+
+            // Spawn Main Exit Door (Front center of hallway)
+            const exitDoorGroup = createDoorMesh(0, 1.1, 8.8, 2.2, 2.2, 0.2, true);
+            houseGroup.add(exitDoorGroup);
+
+            interactables.push({
+                type: 'exit_door',
+                name: 'Locked Exit Door',
+                action: 'ESCAPE HOME',
+                position: new THREE.Vector3(0, 1.1, 8.6),
+                radius: 1.8,
+                mesh: exitDoorGroup,
+                locked: true
+            });
+
+            // Spawn Screwdriver (Placed on a shelf in Kitchen/Living room area)
+            const screwdriverMesh = createScrewdriverMesh(8, 0.8, -4);
+            houseGroup.add(screwdriverMesh);
+
+            interactables.push({
+                type: 'screwdriver',
+                name: 'Rusty Screwdriver',
+                action: 'TAKE SCREWDRIVER',
+                position: new THREE.Vector3(8, 0.8, -4),
+                radius: 1.2,
+                mesh: screwdriverMesh
+            });
+
+            // Spawn collectible throwing distractions (ceramic green vases)
+            const vaseLocations = [
+                { x: -5, y: 0.9, z: -5 },
+                { x: 5, y: 0.8, z: 2 },
+                { x: 9, y: 0.9, z: 6 }
+            ];
+
+            vaseLocations.forEach((loc, index) => {
+                const vase = createVaseMesh(loc.x, loc.y, loc.z);
+                houseGroup.add(vase);
+
+                interactables.push({
+                    type: 'vase',
+                    name: `Vase Distraction #${index+1}`,
+                    action: 'PICK UP VASE',
+                    position: new THREE.Vector3(loc.x, loc.y, loc.z),
+                    radius: 1.2,
+                    mesh: vase
+                });
+            });
+
+            // Add a kitchen counter and table
+            createKitchenAssets();
+        }
+
+        // --- Low-Poly Object Creation Functions ---
+        function createBedMesh(x, y, z) {
+            const bedGroup = new THREE.Group();
+            bedGroup.position.set(x, y, z);
+
+            // Bed frame
+            const frameGeo = new THREE.BoxGeometry(1.6, 0.5, 2.2);
+            const frame = new THREE.Mesh(frameGeo, materials.wood);
+            frame.castShadow = true;
+            frame.receiveShadow = true;
+            bedGroup.add(frame);
+
+            // Mattress
+            const matGeo = new THREE.BoxGeometry(1.5, 0.3, 2.0);
+            const mattress = new THREE.Mesh(matGeo, materials.sheets);
+            mattress.position.y = 0.35;
+            mattress.castShadow = true;
+            bedGroup.add(mattress);
+
+            // Blanket/Cover
+            const blanketGeo = new THREE.BoxGeometry(1.52, 0.31, 1.4);
+            const blanket = new THREE.Mesh(blanketGeo, materials.bedColor);
+            blanket.position.set(0, 0.36, -0.3);
+            blanket.castShadow = true;
+            bedGroup.add(blanket);
+
+            // Pillow
+            const pillowGeo = new THREE.BoxGeometry(1.1, 0.15, 0.4);
+            const pillow = new THREE.Mesh(pillowGeo, materials.sheets);
+            pillow.position.set(0, 0.45, 0.7);
+            pillow.castShadow = true;
+            bedGroup.add(pillow);
+
+            // Bounding collision box for the bed
+            const box = new THREE.BoxGeometry(1.8, 1.0, 2.4);
+            const boxMesh = new THREE.Mesh(box, new THREE.MeshBasicMaterial({ visible: false }));
+            boxMesh.position.y = 0.1;
+            bedGroup.add(boxMesh);
+
+            const bbox = new THREE.Box3().setFromObject(boxMesh);
+            wallsArray.push({ bbox: bbox, mesh: bedGroup });
+
+            return bedGroup;
+        }
+
+        function createClosetMesh(x, y, z) {
+            const closetGroup = new THREE.Group();
+            closetGroup.position.set(x, y, z);
+
+            const bodyGeo = new THREE.BoxGeometry(1.8, 2.4, 0.9);
+            const body = new THREE.Mesh(bodyGeo, materials.wood);
+            body.castShadow = true;
+            body.receiveShadow = true;
+            closetGroup.add(body);
+
+            // Handle metals
+            const handleGeo = new THREE.BoxGeometry(0.1, 0.4, 0.08);
+            const lHandle = new THREE.Mesh(handleGeo, materials.metal);
+            lHandle.position.set(-0.2, 0.1, 0.46);
+            closetGroup.add(lHandle);
+
+            const rHandle = lHandle.clone();
+            rHandle.position.x = 0.2;
+            closetGroup.add(rHandle);
+
+            // Collision Box
+            const bbox = new THREE.Box3().setFromObject(body);
+            wallsArray.push({ bbox: bbox, mesh: closetGroup });
+
+            return closetGroup;
+        }
+
+        function createDeskMesh(x, y, z) {
+            const deskGroup = new THREE.Group();
+            deskGroup.position.set(x, y, z);
+
+            // Desk tabletop
+            const topGeo = new THREE.BoxGeometry(2.0, 0.1, 1.0);
+            const tableTop = new THREE.Mesh(topGeo, materials.wood);
+            tableTop.position.y = 0.5;
+            tableTop.castShadow = true;
+            tableTop.receiveShadow = true;
+            deskGroup.add(tableTop);
+
+            // Desk sides/drawers panel
+            const sideGeo = new THREE.BoxGeometry(0.6, 1.0, 0.95);
+            const leftSide = new THREE.Mesh(sideGeo, materials.wood);
+            leftSide.position.set(-0.6, 0, 0);
+            leftSide.castShadow = true;
+            deskGroup.add(leftSide);
+
+            const rightLegGeo = new THREE.BoxGeometry(0.1, 1.0, 0.9);
+            const rightLeg = new THREE.Mesh(rightLegGeo, materials.wood);
+            rightLeg.position.set(0.9, 0, 0);
+            rightLeg.castShadow = true;
+            deskGroup.add(rightLeg);
+
+            // Handle / golden locks of locked drawer
+            const lockGeo = new THREE.BoxGeometry(0.15, 0.08, 0.08);
+            const drawerLock = new THREE.Mesh(lockGeo, materials.gold);
+            drawerLock.position.set(-0.6, 0.2, 0.49);
+            deskGroup.add(drawerLock);
+
+            // Collision Box
+            const collisionBox = new THREE.Mesh(
+                new THREE.BoxGeometry(2.2, 1.2, 1.1),
+                new THREE.MeshBasicMaterial({ visible: false })
+            );
+            collisionBox.position.y = 0.1;
+            deskGroup.add(collisionBox);
+
+            const bbox = new THREE.Box3().setFromObject(collisionBox);
+            wallsArray.push({ bbox: bbox, mesh: deskGroup });
+
+            return deskGroup;
+        }
+
+        function createDoorMesh(x, y, z, w, h, d, isExit = false) {
+            const doorGroup = new THREE.Group();
+            doorGroup.position.set(x, y, z);
+
+            const frameGeo = new THREE.BoxGeometry(w, h, d);
+            const frame = new THREE.Mesh(frameGeo, isExit ? materials.lockedDoorColor : materials.doorColor);
+            frame.castShadow = true;
+            frame.receiveShadow = true;
+            doorGroup.add(frame);
+
+            // Handle
+            const knobGeo = new THREE.SphereGeometry(0.1, 8, 8);
+            const knob = new THREE.Mesh(knobGeo, materials.gold);
+            knob.position.set(w/2 - 0.2, 0, d/2 + 0.05);
+            doorGroup.add(knob);
+
+            const knobBack = knob.clone();
+            knobBack.position.z = -d/2 - 0.05;
+            doorGroup.add(knobBack);
+
+            // Obstacle Bounding Box
+            const bbox = new THREE.Box3().setFromObject(frame);
+            wallsArray.push({ bbox: bbox, mesh: doorGroup });
+
+            return doorGroup;
+        }
+
+        function createScrewdriverMesh(x, y, z) {
+            const screwdriver = new THREE.Group();
+            screwdriver.position.set(x, y, z);
+
+            // Handle (plastic blue block)
+            const handleGeo = new THREE.BoxGeometry(0.08, 0.22, 0.08);
+            const handleMesh = new THREE.Mesh(handleGeo, new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.3 }));
+            handleMesh.castShadow = true;
+            screwdriver.add(handleMesh);
+
+            // Metallic shaft
+            const shaftGeo = new THREE.CylinderGeometry(0.015, 0.015, 0.28, 6);
+            const shaftMesh = new THREE.Mesh(shaftGeo, materials.metal);
+            shaftMesh.position.y = 0.22;
+            shaftMesh.castShadow = true;
+            screwdriver.add(shaftMesh);
+
+            // Highlight glow to make it findable in dark
+            const itemGlow = new THREE.PointLight(0x60a5fa, 0.4, 1.5);
+            itemGlow.position.y = 0.1;
+            screwdriver.add(itemGlow);
+
+            return screwdriver;
+        }
+
+        function createVaseMesh(x, y, z) {
+            const vase = new THREE.Group();
+            vase.position.set(x, y, z);
+
+            // Base bowl
+            const bowlGeo = new THREE.CylinderGeometry(0.12, 0.16, 0.35, 8);
+            const bowl = new THREE.Mesh(bowlGeo, materials.vaseColor);
+            bowl.castShadow = true;
+            vase.add(bowl);
+
+            // Neck
+            const neckGeo = new THREE.CylinderGeometry(0.08, 0.12, 0.12, 8);
+            const neck = new THREE.Mesh(neckGeo, materials.vaseColor);
+            neck.position.y = 0.2;
+            neck.castShadow = true;
+            vase.add(neck);
+
+            // Rim
+            const rimGeo = new THREE.CylinderGeometry(0.1, 0.07, 0.04, 8);
+            const rim = new THREE.Mesh(rimGeo, materials.vaseColor);
+            rim.position.y = 0.26;
+            rim.castShadow = true;
+            vase.add(rim);
+
+            // Tiny subtle light glow
+            const glow = new THREE.PointLight(0x34d399, 0.3, 1.2);
+            vase.add(glow);
+
+            return vase;
+        }
+
+        function createKitchenAssets() {
+            // Kitchen Counter block
+            const counterGroup = new THREE.Group();
+            counterGroup.position.set(8, 0.5, 1);
+
+            const counterGeo = new THREE.BoxGeometry(1.6, 1.0, 5.0);
+            const counter = new THREE.Mesh(counterGeo, materials.wood);
+            counter.castShadow = true;
+            counter.receiveShadow = true;
+            counterGroup.add(counter);
+
+            // Countertop marble slab
+            const topGeo = new THREE.BoxGeometry(1.7, 0.1, 5.1);
+            const counterTop = new THREE.Mesh(topGeo, new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.1 }));
+            counterTop.position.y = 0.55;
+            counterTop.castShadow = true;
+            counterGroup.add(counterTop);
+
+            houseGroup.add(counterGroup);
+
+            // Obstacle Bounding Box
+            const bbox = new THREE.Box3().setFromObject(counterGroup);
+            wallsArray.push({ bbox: bbox, mesh: counterGroup });
+
+            // Living Room Sofa Table
+            const tableGroup = new THREE.Group();
+            tableGroup.position.set(0, 0.4, 3);
+
+            const tTopGeo = new THREE.BoxGeometry(1.2, 0.08, 2.0);
+            const tTop = new THREE.Mesh(tTopGeo, materials.wood);
+            tTop.position.y = 0.2;
+            tTop.castShadow = true;
+            tableGroup.add(tTop);
+
+            // Sofa Table legs
+            const legGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.4, 4);
+            for (let dx of [-0.5, 0.5]) {
+                for (let dz of [-0.8, 0.8]) {
+                    const leg = new THREE.Mesh(legGeo, materials.metal);
+                    leg.position.set(dx, 0, dz);
+                    leg.castShadow = true;
+                    tableGroup.add(leg);
+                }
+            }
+
+            houseGroup.add(tableGroup);
+            const tableBBox = new THREE.Box3().setFromObject(tableGroup);
+            wallsArray.push({ bbox: tableBBox, mesh: tableGroup });
+        }
+
+        // --- Camera, Movement, & Controller Logic ---
+        let moveForward = false;
+        let moveBackward = false;
+        let moveLeft = false;
+        let moveRight = false;
+
+        // Rotation angles
+        let yaw = Math.PI; // Look towards south on start
+        let pitch = 0;
+
+        const PLAYER_HEIGHT_STAND = 1.6;
+        const PLAYER_HEIGHT_CROUCH = 0.8;
+        let currentHeight = PLAYER_HEIGHT_STAND;
+
+        let velocity = new THREE.Vector3();
+        let direction = new THREE.Vector3();
+
+        // Virtual mobile joystick offsets
+        let joystickActive = false;
+        let joystickStartX = 0;
+        let joystickStartY = 0;
+        let joystickCurX = 0;
+        let joystickCurY = 0;
+        let mobileMoveVector = new THREE.Vector2(0, 0);
+
+        function setupControllers() {
+            // Keyboard Keydown Events
+            document.addEventListener('keydown', (e) => {
+                if (!gameActive || isHiding) return;
+                switch (e.code) {
+                    case 'KeyW':
+                    case 'ArrowUp':
+                        moveForward = true;
+                        break;
+                    case 'KeyS':
+                    case 'ArrowDown':
+                        moveBackward = true;
+                        break;
+                    case 'KeyA':
+                    case 'ArrowLeft':
+                        moveLeft = true;
+                        break;
+                    case 'KeyD':
+                    case 'ArrowRight':
+                        moveRight = true;
+                        break;
+                    case 'ShiftLeft':
+                    case 'ShiftRight':
+                        toggleCrouch(true);
+                        break;
+                    case 'KeyE':
+                        triggerInteraction();
+                        break;
+                }
+            });
+
+            // Keyboard Keyup Events
+            document.addEventListener('keyup', (e) => {
+                switch (e.code) {
+                    case 'KeyW':
+                    case 'ArrowUp':
+                        moveForward = false;
+                        break;
+                    case 'KeyS':
+                    case 'ArrowDown':
+                        moveBackward = false;
+                        break;
+                    case 'KeyA':
+                    case 'ArrowLeft':
+                        moveLeft = false;
+                        break;
+                    case 'KeyD':
+                    case 'ArrowRight':
+                        moveRight = false;
+                        break;
+                    case 'ShiftLeft':
+                    case 'ShiftRight':
+                        toggleCrouch(false);
+                        break;
+                }
+            });
+
+            // Mouse Move Looking around on Desktop (Drag anywhere on canvas to rotate look)
+            let isMouseDown = false;
+            let previousMousePosition = { x: 0, y: 0 };
+
+            document.addEventListener('mousedown', (e) => {
+                if (e.target.closest('button') || e.target.closest('#joystick-boundary')) return;
+                isMouseDown = true;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+
+                // If holding a throwable vase, throw it on click
+                if (gameActive && !isHiding && playerStats.holding === 'vase') {
+                    throwVase();
+                }
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!gameActive || isHiding) return;
+                if (isMouseDown) {
+                    const deltaX = e.clientX - previousMousePosition.x;
+                    const deltaY = e.clientY - previousMousePosition.y;
+
+                    yaw -= deltaX * 0.004;
+                    pitch -= deltaY * 0.004;
+
+                    // Constrain pitch to avoid flipping upside down
+                    pitch = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, pitch));
+
+                    previousMousePosition = { x: e.clientX, y: e.clientY };
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isMouseDown = false;
+            });
+
+            // Touch Screen Mobile Looking around (Right side Touch/Drag)
+            let rightTouchId = null;
+            let prevRightTouchX = 0;
+            let prevRightTouchY = 0;
+
+            document.addEventListener('touchstart', (e) => {
+                if (!gameActive || isHiding) return;
+
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const touch = e.changedTouches[i];
+
+                    // Left half is for joystick, right half for looking
+                    if (touch.clientX > window.innerWidth / 2) {
+                        if (rightTouchId === null) {
+                            rightTouchId = touch.identifier;
+                            prevRightTouchX = touch.clientX;
+                            prevRightTouchY = touch.clientY;
+                        }
+                    }
+                }
+            }, { passive: true });
+
+            document.addEventListener('touchmove', (e) => {
+                if (!gameActive || isHiding) return;
+
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const touch = e.changedTouches[i];
+                    if (touch.identifier === rightTouchId) {
+                        const deltaX = touch.clientX - prevRightTouchX;
+                        const deltaY = touch.clientY - prevRightTouchY;
+
+                        yaw -= deltaX * 0.006;
+                        pitch -= deltaY * 0.006;
+                        pitch = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, pitch));
+
+                        prevRightTouchX = touch.clientX;
+                        prevRightTouchY = touch.clientY;
+                    }
+                }
+            }, { passive: true });
+
+            document.addEventListener('touchend', (e) => {
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const touch = e.changedTouches[i];
+                    if (touch.identifier === rightTouchId) {
+                        rightTouchId = null;
+                    }
+                }
+            });
+
+            // Mobile Joystick Controllers (Left Side)
+            setupMobileJoystick();
+
+            // Mobile buttons click events
+            document.getElementById('btn-crouch').addEventListener('click', () => {
+                toggleCrouch(!isCrouching);
+            });
+            document.getElementById('btn-interact').addEventListener('click', () => {
+                triggerInteraction();
+            });
+            document.getElementById('btn-exit-hiding').addEventListener('click', () => {
+                exitHidingSpot();
+            });
+        }
+
+        function setupMobileJoystick() {
+            const boundary = document.getElementById('joystick-boundary');
+            const handle = document.getElementById('joystick-handle');
+            const maxRadius = 50; // pixels handle can move outward
+
+            boundary.addEventListener('touchstart', (e) => {
+                if (!gameActive || isHiding) return;
+                joystickActive = true;
+                const touch = e.targetTouches[0];
+                const rect = boundary.getBoundingClientRect();
+                joystickStartX = rect.left + rect.width / 2;
+                joystickStartY = rect.top + rect.height / 2;
+            }, { passive: true });
+
+            boundary.addEventListener('touchmove', (e) => {
+                if (!joystickActive || isHiding) return;
+                const touch = e.targetTouches[0];
+
+                let dx = touch.clientX - joystickStartX;
+                let dy = touch.clientY - joystickStartY;
+
+                const distance = Math.hypot(dx, dy);
+                if (distance > maxRadius) {
+                    dx = (dx / distance) * maxRadius;
+                    dy = (dy / distance) * maxRadius;
+                }
+
+                // Move visual handle
+                handle.style.transform = `translate(${dx}px, ${dy}px)`;
+
+                // Compute normalised movement strength
+                mobileMoveVector.set(dx / maxRadius, -dy / maxRadius);
+            }, { passive: true });
+
+            boundary.addEventListener('touchend', () => {
+                joystickActive = false;
+                handle.style.transform = `translate(0px, 0px)`;
+                mobileMoveVector.set(0, 0);
+            });
+        }
+
+        function toggleCrouch(state) {
+            isCrouching = state;
+            currentHeight = isCrouching ? PLAYER_HEIGHT_CROUCH : PLAYER_HEIGHT_STAND;
+
+            // Adjust crouch visual button class
+            const crouchBtn = document.getElementById('btn-crouch');
+            if (isCrouching) {
+                crouchBtn.classList.add('bg-cyan-600', 'text-white');
+                crouchBtn.classList.remove('bg-black/75', 'text-cyan-400');
+            } else {
+                crouchBtn.classList.remove('bg-cyan-600', 'text-white');
+                crouchBtn.classList.add('bg-black/75', 'text-cyan-400');
+            }
+        }
+
+        function updatePlayerMovement(delta) {
+            if (!gameActive || isHiding) return;
+
+            // Interpolate player camera height for crouching smoothness
+            camera.position.y += (currentHeight - camera.position.y) * 10 * delta;
+
+            // Camera orientation updates
+            const targetRotation = new THREE.Quaternion();
+            const euler = new THREE.Euler(pitch, yaw, 0, 'YXZ');
+            camera.quaternion.setFromEuler(euler);
+
+            // Movement speeds
+            const speedMultiplier = isCrouching ? 1.5 : 3.8;
+
+            // Decelerate/friction
+            velocity.x -= velocity.x * 10.0 * delta;
+            velocity.z -= velocity.z * 10.0 * delta;
+
+            direction.z = Number(moveForward) - Number(moveBackward);
+            direction.x = Number(moveRight) - Number(moveLeft);
+            direction.normalize();
+
+            // Keyboard moving
+            if (moveForward || moveBackward) velocity.z -= direction.z * speedMultiplier * 10.0 * delta;
+            if (moveLeft || moveRight) velocity.x -= direction.x * speedMultiplier * 10.0 * delta;
+
+            // Mobile joystick moving override
+            if (joystickActive) {
+                velocity.z += mobileMoveVector.y * speedMultiplier * 10.0 * delta;
+                velocity.x += mobileMoveVector.x * speedMultiplier * 10.0 * delta;
+            }
+
+            // Apply movement along camera horizontal plane
+            const camDirForward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+            camDirForward.y = 0;
+            camDirForward.normalize();
+
+            const camDirRight = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+            camDirRight.y = 0;
+            camDirRight.normalize();
+
+            const moveStep = new THREE.Vector3()
+                .addScaledVector(camDirForward, -velocity.z * delta)
+                .addScaledVector(camDirRight, velocity.x * delta);
+
+            // House boundaries collision checks
+            const nextPos = camera.position.clone().add(moveStep);
+
+            // Restrict movement to outer walls
+            nextPos.x = Math.max(-HOUSE_WIDTH/2 + 0.5, Math.min(HOUSE_WIDTH/2 - 0.5, nextPos.x));
+            nextPos.z = Math.max(-HOUSE_DEPTH/2 + 0.5, Math.min(HOUSE_DEPTH/2 - 0.5, nextPos.z));
+
+            // Collision against solid partition walls or tables
+            let collisionDetected = false;
+            const playerBBox = new THREE.Box3(
+                new THREE.Vector3(nextPos.x - 0.35, nextPos.y - 1.2, nextPos.z - 0.35),
+                new THREE.Vector3(nextPos.x + 0.35, nextPos.y + 0.4, nextPos.z + 0.35)
+            );
+
+            for (let i = 0; i < wallsArray.length; i++) {
+                if (playerBBox.intersectsBox(wallsArray[i].bbox)) {
+                    collisionDetected = true;
+                    break;
+                }
+            }
+
+            if (!collisionDetected) {
+                camera.position.x = nextPos.x;
+                camera.position.z = nextPos.z;
+            } else {
+                // sliding helper logic - try moving only in X
+                const testXPos = camera.position.clone();
+                testXPos.x += moveStep.x;
+                const playerXBox = playerBBox.clone().translate(new THREE.Vector3(moveStep.x, 0, 0));
+                let colX = false;
+                for (let i = 0; i < wallsArray.length; i++) {
+                    if (playerXBox.intersectsBox(wallsArray[i].bbox)) { colX = true; break; }
+                }
+                if (!colX) {
+                    camera.position.x = testXPos.x;
+                } else {
+                    // Try moving only in Z
+                    const testZPos = camera.position.clone();
+                    testZPos.z += moveStep.z;
+                    const playerZBox = playerBBox.clone().translate(new THREE.Vector3(0, 0, moveStep.z));
+                    let colZ = false;
+                    for (let i = 0; i < wallsArray.length; i++) {
+                        if (playerZBox.intersectsBox(wallsArray[i].bbox)) { colZ = true; break; }
+                    }
+                    if (!colZ) {
+                        camera.position.z = testZPos.z;
+                    }
+                }
+            }
+
+            // Calculate Noise level based on walking
+            const isMoving = velocity.length() > 0.1 || (joystickActive && mobileMoveVector.length() > 0.1);
+            if (isMoving) {
+                playerStats.noise = isCrouching ? 5 : 45; // standing walk makes louder waves
+            } else {
+                playerStats.noise = 0;
+            }
+            updateNoiseHUD();
+        }
+
+        function updateNoiseHUD() {
+            const wave = document.getElementById('noise-wave');
+            const bars = wave.querySelectorAll('span');
+            const lblNoise = document.getElementById('noise-level');
+
+            if (playerStats.noise === 0) {
+                lblNoise.innerText = "Silent";
+                lblNoise.className = "text-emerald-500 font-bold uppercase tracking-widest";
+                bars.forEach(b => { b.style.height = '4px'; b.className = "w-0.5 h-1 bg-emerald-500 rounded-full transition-all duration-100"; });
+            } else if (playerStats.noise <= 10) {
+                lblNoise.innerText = "Soft";
+                lblNoise.className = "text-cyan-400 font-bold uppercase tracking-widest";
+                bars[0].style.height = '8px';
+                bars[1].style.height = '4px';
+                bars[2].style.height = '4px';
+                bars.forEach(b => b.className = "w-0.5 bg-cyan-400 rounded-full transition-all duration-100");
+            } else {
+                lblNoise.innerText = "Loud";
+                lblNoise.className = "text-red-500 font-bold uppercase tracking-widest";
+                bars[0].style.height = '12px';
+                bars[1].style.height = '14px';
+                bars[2].style.height = '10px';
+                bars.forEach(b => b.className = "w-0.5 bg-red-500 rounded-full transition-all duration-100");
+            }
+        }
+
+        // --- Dad (Parent AI) Patrol & Vision Cone Logic ---
+        let dadMesh;
+        let dadSpotlight;
+
+        // Patrol paths (waypoints coordinates)
+        const dadPatrolWaypoints = [
+            new THREE.Vector3(-9, 0, 6),   // Bedroom bed area
+            new THREE.Vector3(-4, 0, 2),   // Bedroom door
+            new THREE.Vector3(0, 0, 2),    // Living Room center
+            new THREE.Vector3(0, 0, -4),   // Hallway end
+            new THREE.Vector3(8, 0, -4),   // Kitchen counter
+            new THREE.Vector3(8, 0, 4),    // Kitchen front
+            new THREE.Vector3(0, 0, 6)     // Exit hallway
+        ];
+
+        let currentWaypointIndex = 0;
+
+        // Dad State Machine: "patrol", "investigate", "chase", "catch"
+        let dadState = "patrol";
+        let dadSpeed = 2.0;
+        let dadInvestigatePoint = null;
+        let dadInvestigateTimer = 0;
+
+        function spawnDad() {
+            // Dad is a tall red-clothed scary silhouette low-poly block
+            const dadGroup = new THREE.Group();
+
+            // Legs
+            const legGeo = new THREE.BoxGeometry(0.24, 0.9, 0.24);
+            const pantsMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 });
+
+            const lLeg = new THREE.Mesh(legGeo, pantsMat);
+            lLeg.position.set(-0.16, 0.45, 0);
+            dadGroup.add(lLeg);
+
+            const rLeg = lLeg.clone();
+            rLeg.position.x = 0.16;
+            dadGroup.add(rLeg);
+
+            // Torso (Scary red polo shirt)
+            const torsoGeo = new THREE.BoxGeometry(0.65, 1.0, 0.35);
+            const shirtMat = new THREE.MeshStandardMaterial({ color: 0xb91c1c, roughness: 0.7 });
+            const torso = new THREE.Mesh(torsoGeo, shirtMat);
+            torso.position.y = 1.4;
+            torso.castShadow = true;
+            dadGroup.add(torso);
+
+            // Head & Glasses
+            const headGeo = new THREE.BoxGeometry(0.35, 0.35, 0.35);
+            const skinMat = new THREE.MeshStandardMaterial({ color: 0xffd1a4 });
+            const head = new THREE.Mesh(headGeo, skinMat);
+            head.position.y = 1.95;
+            head.castShadow = true;
+            dadGroup.add(head);
+
+            // Glasses
+            const glassGeo = new THREE.BoxGeometry(0.24, 0.08, 0.1);
+            const glass = new THREE.Mesh(glassGeo, new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.9 }));
+            glass.position.set(0, 1.98, 0.18);
+            dadGroup.add(glass);
+
+            // Flashlight / Patrol Cone carried in Dad's hand
+            const flGroup = new THREE.Group();
+            flGroup.position.set(0.4, 1.2, 0.2);
+
+            const torchBody = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.04, 0.04, 0.24),
+                materials.metal
+            );
+            torchBody.rotation.x = Math.PI / 2;
+            flGroup.add(torchBody);
+
+            dadGroup.add(flGroup);
+
+            // Flashlight light cone targeting forward
+            dadSpotlight = new THREE.SpotLight(0xfffa00, 3.5, 9, Math.PI / 4.5, 0.4, 1);
+            dadSpotlight.position.set(0.4, 1.2, 0.25);
+            dadSpotlight.castShadow = true;
+            dadSpotlight.shadow.mapSize.width = 512;
+            dadSpotlight.shadow.mapSize.height = 512;
+            dadGroup.add(dadSpotlight);
+
+            // Spot target forward
+            const spotTarget = new THREE.Object3D();
+            spotTarget.position.set(0.4, 1.2, 4);
+            dadGroup.add(spotTarget);
+            dadSpotlight.target = spotTarget;
+
+            // Positioning Dad initially at the hallway front
+            dadGroup.position.set(0, 0, 2);
+            scene.add(dadGroup);
+            dadMesh = dadGroup;
+        }
+
+        function updateDadAI(delta) {
+            if (!gameActive || !dadMesh) return;
+
+            const dadPos = dadMesh.position;
+            const playerPos = camera.position;
+
+            // Target Point depends on State
+            let targetPoint = dadPatrolWaypoints[currentWaypointIndex];
+
+            // 1. Sight & Hearing checks
+            const playerDistance = dadPos.distanceTo(playerPos);
+
+            // Vision Cone Check
+            let playerVisible = false;
+
+            if (!isHiding && playerDistance < 9) {
+                // Calculate direction vector from dad to player
+                const dirToPlayer = new THREE.Vector3().subVectors(playerPos, dadPos).normalize();
+
+                // Dad's forward direction (defined by spotlight target rotation)
+                const dadForward = new THREE.Vector3(0, 0, 1).applyQuaternion(dadMesh.quaternion).normalize();
+
+                // Angled degree dot product
+                const angle = dadForward.angleTo(dirToPlayer);
+
+                if (angle < Math.PI / 4) { // Vision cone degree threshold roughly ~45 deg
+                    // Raycast check to ensure no partition walls are in the way
+                    const raycaster = new THREE.Raycaster(dadPos.clone().add(new THREE.Vector3(0, 1.6, 0)), dirToPlayer, 0.1, playerDistance);
+                    const solidWalls = wallsArray.map(w => w.mesh);
+                    const intersects = raycaster.intersectObjects(solidWalls, true);
+
+                    if (intersects.length === 0) {
+                        playerVisible = true;
+                    }
+                }
+            }
+
+            // Hearing Noise check
+            let noiseHeard = false;
+            if (!isHiding && playerStats.noise > 0) {
+                const audibilityRadius = playerStats.noise === 5 ? 1.5 : 8.5; // Crouch walks are extremely quiet
+                if (playerDistance <= audibilityRadius) {
+                    noiseHeard = true;
+                    dadInvestigatePoint = playerPos.clone();
+                }
+            }
+
+            // State Transitions
+            if (playerVisible) {
+                if (dadState !== "chase") {
+                    dadState = "chase";
+                    triggerVignetteFlash(true);
+                }
+            } else if (dadState === "chase" && !playerVisible) {
+                // If chasing and lost visual, go search his last seen spot
+                dadState = "investigate";
+                dadInvestigatePoint = playerPos.clone();
+                dadInvestigateTimer = 3.5; // wait/search 3.5 seconds
+                triggerVignetteFlash(false);
+            }
+
+            if (noiseHeard && dadState !== "chase") {
+                dadState = "investigate";
+                dadInvestigateTimer = 4.0;
+            }
+
+            // Execute States Behavior
+            if (dadState === "chase") {
+                targetPoint = playerPos;
+                dadSpeed = 3.4; // Sprints to catch you!
+
+                // Suspect bar builds up rapidly
+                playerStats.suspicion = Math.min(100, playerStats.suspicion + 65 * delta);
+
+                if (playerDistance < 1.1) {
+                    dadState = "catch";
+                    triggerGameOver();
+                }
+            } else if (dadState === "investigate") {
+                targetPoint = dadInvestigatePoint;
+                dadSpeed = 2.2;
+
+                if (dadPos.distanceTo(dadInvestigatePoint) < 0.8) {
+                    // Search looking around
+                    dadInvestigateTimer -= delta;
+                    if (dadInvestigateTimer <= 0) {
+                        dadState = "patrol";
+                        dadInvestigatePoint = null;
+                    }
+                }
+
+                // Slowly drain suspicion
+                playerStats.suspicion = Math.max(0, playerStats.suspicion - 8 * delta);
+            } else {
+                // Patrol Mode
+                targetPoint = dadPatrolWaypoints[currentWaypointIndex];
+                dadSpeed = 1.6;
+
+                if (dadPos.distanceTo(targetPoint) < 0.8) {
+                    currentWaypointIndex = (currentWaypointIndex + 1) % dadPatrolWaypoints.length;
+                }
+
+                // Safely clear suspicion slowly
+                playerStats.suspicion = Math.max(0, playerStats.suspicion - 12 * delta);
+            }
+
+            // Update Suspicion visual HUD
+            document.getElementById('suspicion-text').innerText = `${Math.round(playerStats.suspicion)}%`;
+            document.getElementById('suspicion-bar').style.width = `${playerStats.suspicion}%`;
+
+            // Movement Physics toward target point
+            if (dadState !== "investigate" || dadPos.distanceTo(dadInvestigatePoint) >= 0.8) {
+                const moveDirection = new THREE.Vector3().subVectors(targetPoint, dadPos);
+                moveDirection.y = 0; // lock height
+                moveDirection.normalize();
+
+                dadPos.addScaledVector(moveDirection, dadSpeed * delta);
+
+                // Rotate Dad to face movement direction smoothly
+                const targetAngle = Math.atan2(moveDirection.x, moveDirection.z);
+
+                // Smooth rotational interpolation
+                let diff = targetAngle - dadMesh.rotation.y;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                dadMesh.rotation.y += diff * 6 * delta;
+            } else if (dadState === "investigate") {
+                // Look side to side in confusion
+                dadMesh.rotation.y += Math.sin(Date.now() * 0.005) * 0.01;
+            }
+        }
+
+        function triggerVignetteFlash(isActive) {
+            const vig = document.getElementById('vignette');
+            if (isActive) {
+                vig.classList.remove('shadow-[inset_0_0_50px_rgba(0,0,0,0.9)]');
+                vig.classList.add('shadow-[inset_0_0_80px_rgba(239,68,68,0.7)]', 'border-[16px]', 'border-red-600/30');
+            } else {
+                vig.classList.add('shadow-[inset_0_0_50px_rgba(0,0,0,0.9)]');
+                vig.classList.remove('shadow-[inset_0_0_80px_rgba(239,68,68,0.7)]', 'border-[16px]', 'border-red-600/30');
+            }
+        }
+
+        // --- Puzzle Items, Throwing Vases, & Hiding Logic ---
+        let thrownVaseMesh = null;
+        let thrownVaseVelocity = new THREE.Vector3();
+        let activeInteractableNearby = null;
+
+        function updateRaycastInteraction() {
+            if (!gameActive || isHiding) {
+                hideInteractionTooltip();
+                return;
+            }
+
+            // Find closest interactive item within trigger radius
+            let closestItem = null;
+            let minDistance = Infinity;
+
+            interactables.forEach(item => {
+                if (item.collected || item.completed) return;
+
+                const dist = camera.position.distanceTo(item.position);
+                if (dist < item.radius && dist < minDistance) {
+                    minDistance = dist;
+                    closestItem = item;
+                }
+            });
+
+            if (closestItem) {
+                activeInteractableNearby = closestItem;
+                showInteractionTooltip(closestItem);
+            } else {
+                activeInteractableNearby = null;
+                hideInteractionTooltip();
+            }
+        }
+
+        function showInteractionTooltip(item) {
+            const tooltip = document.getElementById('interaction-tooltip');
+            const action = document.getElementById('interaction-action');
+            const hint = document.getElementById('interaction-hint');
+
+            // Adjust action description text
+            let actionText = item.action;
+            if (item.type === 'desk_drawer' && currentObjective === 'key' && !item.unlocked) {
+                actionText = 'UNSCREW DRAWER WITH SCREWDRIVER';
+            }
+
+            action.innerText = actionText;
+            tooltip.style.opacity = '1';
+
+            const crosshair = document.getElementById('crosshair');
+            crosshair.classList.add('scale-[2.5]', 'bg-teal-400');
+            crosshair.classList.remove('opacity-40');
+        }
+
+        function hideInteractionTooltip() {
+            const tooltip = document.getElementById('interaction-tooltip');
+            tooltip.style.opacity = '0';
+
+            const crosshair = document.getElementById('crosshair');
+            crosshair.classList.remove('scale-[2.5]', 'bg-teal-400');
+            crosshair.classList.add('opacity-40');
+        }
+
+        function triggerInteraction() {
+            if (!activeInteractableNearby) return;
+
+            const item = activeInteractableNearby;
+
+            if (item.type === 'screwdriver') {
+                // Collect Screwdriver
+                item.collected = true;
+                scene.remove(item.mesh);
+                playerInventory.push('screwdriver');
+                currentObjective = 'key';
+
+                updateObjectivesHUD("Unscrew the locked desk drawer with the screwdriver.");
+                updateInventoryHUD();
+                logHUDMessage("Picked up Rusty Screwdriver!");
+            }
+            else if (item.type === 'vase') {
+                // Pick up throwable
+                if (playerStats.holding === 'vase') {
+                    logHUDMessage("Already holding a vase! Throw it first.");
+                    return;
+                }
+                item.collected = true;
+                scene.remove(item.mesh);
+
+                playerStats.holding = 'vase';
+                document.getElementById('hud-holding').classList.remove('hidden');
+                logHUDMessage("Picked up vase. Drag or Left-click to throw and distract Dad.");
+            }
+            else if (item.type === 'desk_drawer') {
+                if (playerInventory.includes('screwdriver')) {
+                    // Unlock desk drawer and reveal key
+                    item.completed = true;
+                    item.mesh.rotation.y += 0.4; // slide open rotation animation
+
+                    // Spawn Main Key inside desk drawer
+                    const keyMesh = createKeyMesh(item.position.x, 0.45, item.position.z + 0.1);
+                    houseGroup.add(keyMesh);
+
+                    interactables.push({
+                        type: 'key',
+                        name: 'Main Door Key',
+                        action: 'TAKE MAIN DOOR KEY',
+                        position: new THREE.Vector3(item.position.x, 0.45, item.position.z + 0.1),
+                        radius: 1.2,
+                        mesh: keyMesh
+                    });
+
+                    currentObjective = 'take_key';
+                    updateObjectivesHUD("Grab the Main Door Key from the open drawer.");
+                    logHUDMessage("Unscrewed desk drawer successfully!");
+                } else {
+                    logHUDMessage("The drawer is tightly screwed shut. You need a screwdriver.");
+                }
+            }
+            else if (item.type === 'key') {
+                item.collected = true;
+                scene.remove(item.mesh);
+                playerInventory.push('key');
+                currentObjective = 'escape';
+
+                updateObjectivesHUD("Unlock the front exit door and escape!");
+                updateInventoryHUD();
+                logHUDMessage("Obtained Main Door Key!");
+            }
+            else if (item.type === 'exit_door') {
+                if (playerInventory.includes('key')) {
+                    triggerWin();
+                } else {
+                    logHUDMessage("The Exit Door is double locked. Retrieve the Main Door Key.");
+                }
+            }
+            else if (item.type === 'closet' || item.type === 'bed') {
+                enterHidingSpot(item);
+            }
+        }
+
+        function createKeyMesh(x, y, z) {
+            const keyGroup = new THREE.Group();
+            keyGroup.position.set(x, y, z);
+
+            const ringGeo = new THREE.TorusGeometry(0.06, 0.02, 4, 12);
+            const ring = new THREE.Mesh(ringGeo, materials.gold);
+            ring.rotation.x = Math.PI / 2;
+            keyGroup.add(ring);
+
+            const bladeGeo = new THREE.BoxGeometry(0.02, 0.18, 0.02);
+            const blade = new THREE.Mesh(bladeGeo, materials.gold);
+            blade.position.y = -0.12;
+            keyGroup.add(blade);
+
+            const toothGeo = new THREE.BoxGeometry(0.04, 0.02, 0.04);
+            const tooth = new THREE.Mesh(toothGeo, materials.gold);
+            tooth.position.set(0.03, -0.18, 0);
+            keyGroup.add(tooth);
+
+            // Light glow for the key
+            const glow = new THREE.PointLight(0xf59e0b, 0.5, 1.5);
+            keyGroup.add(glow);
+
+            return keyGroup;
+        }
+
+        // Throwing/distract Mechanics
+        function throwVase() {
+            if (playerStats.holding !== 'vase') return;
+
+            // Spawn throwing vase physically
+            const camForward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+            const spawnPos = camera.position.clone().addScaledVector(camForward, 0.5);
+
+            const vaseMesh = createVaseMesh(spawnPos.x, spawnPos.y - 0.2, spawnPos.z);
+            scene.add(vaseMesh);
+
+            thrownVaseMesh = vaseMesh;
+            thrownVaseVelocity.copy(camForward).multiplyScalar(8.0); // push speed
+
+            // Deduct holding state
+            playerStats.holding = null;
+            document.getElementById('hud-holding').classList.add('hidden');
+            logHUDMessage("Threw vase to distract Dad!");
+        }
+
+        function updateThrownVase(delta) {
+            if (!thrownVaseMesh) return;
+
+            // Gravity addition
+            thrownVaseVelocity.y -= 9.8 * delta;
+            thrownVaseMesh.position.addScaledVector(thrownVaseVelocity, delta);
+
+            // Boundary limit or floor collision check
+            if (thrownVaseMesh.position.y <= 0.15) {
+                // CRASH! vase breaks
+                const crashPos = thrownVaseMesh.position.clone();
+                scene.remove(thrownVaseMesh);
+                thrownVaseMesh = null;
+
+                // Create nice breaking debris particles
+                createDebrisBreakGlow(crashPos);
+
+                // Alert Dad!
+                triggerNoiseDistract(crashPos);
+            }
+        }
+
+        function createDebrisBreakGlow(pos) {
+            // Flash red alert light at crash site briefly
+            const light = new THREE.PointLight(0xef4444, 2, 4);
+            light.position.copy(pos);
+            scene.add(light);
+            setTimeout(() => {
+                scene.remove(light);
+            }, 500);
+        }
+
+        function triggerNoiseDistract(pos) {
+            // Log visually
+            document.getElementById('noise-level').innerText = "Vase Crash!";
+            document.getElementById('noise-level').className = "text-red-600 font-extrabold animate-bounce uppercase";
+            setTimeout(() => { updateNoiseHUD(); }, 2000);
+
+            // Alert AI State
+            if (dadMesh && dadState !== "chase") {
+                dadState = "investigate";
+                dadInvestigatePoint = pos.clone();
+                dadInvestigateTimer = 5.0; // invest duration
+                logHUDMessage("Dad is heading to investigate the noise!");
+            }
+        }
+
+        // Hiding spots mechanics
+        function enterHidingSpot(spot) {
+            isHiding = true;
+            currentHidingSpotType = spot.type;
+            previousPositionBeforeHiding.copy(camera.position);
+
+            // Fade camera/screen to black, hide player
+            document.getElementById('hiding-overlay').classList.remove('opacity-0');
+            document.getElementById('hiding-overlay').classList.add('opacity-95');
+
+            // Set camera position inside hiding coordinates so Dad can't see
+            camera.position.set(spot.position.x, 0.4, spot.position.z);
+            toggleCrouch(true);
+        }
+
+        function exitHidingSpot() {
+            if (!isHiding) return;
+            isHiding = false;
+
+            document.getElementById('hiding-overlay').classList.add('opacity-0');
+            document.getElementById('hiding-overlay').classList.remove('opacity-95');
+
+            // Restore player position outside closet
+            camera.position.copy(previousPositionBeforeHiding);
+            toggleCrouch(false);
+            logHUDMessage("Left the hiding spot.");
+        }
+
+        // --- Overlay UI, HUD elements, & States Screens logic ---
+        let hudLogTimeout = null;
+
+        function updateObjectivesHUD(objectiveText) {
+            document.getElementById('hud-objective').innerText = objectiveText;
+        }
+
+        function updateInventoryHUD() {
+            const container = document.getElementById('hud-inventory');
+            if (playerInventory.length === 0) {
+                container.innerText = "Empty";
+                container.className = "text-yellow-400 font-bold";
+            } else {
+                container.innerText = playerInventory.map(item => item.toUpperCase()).join(" + ");
+                container.className = "text-emerald-400 font-bold uppercase";
+            }
+        }
+
+        function logHUDMessage(msg) {
+            // Temporary popup logging overlay at the bottom
+            let toast = document.getElementById('hud-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'hud-toast';
+                toast.className = "absolute bottom-24 left-1/2 -translate-x-1/2 z-20 bg-black/90 border border-red-500/50 text-red-400 px-4 py-2 rounded-xl text-xs font-mono font-bold tracking-wide backdrop-blur-md shadow-lg pointer-events-none transition-opacity duration-200 opacity-0";
+                document.body.appendChild(toast);
+            }
+
+            toast.innerText = msg;
+            toast.classList.remove('opacity-0');
+            toast.classList.add('opacity-100');
+
+            if (hudLogTimeout) clearTimeout(hudLogTimeout);
+            hudLogTimeout = setTimeout(() => {
+                toast.classList.add('opacity-0');
+                toast.classList.remove('opacity-100');
+            }, 3000);
+        }
+
+        // Game state modals triggering
+        function triggerGameOver() {
+            gameActive = false;
+            document.getElementById('gameover-modal').classList.remove('hidden');
+
+            // Blood jumpscare screen flash
+            const flash = document.getElementById('flash-overlay');
+            flash.classList.remove('opacity-0');
+            flash.classList.add('opacity-100');
+            setTimeout(() => {
+                flash.classList.add('opacity-0');
+                flash.classList.remove('opacity-100');
+            }, 400);
+
+            // Release pointerlock/mouse
+            document.exitPointerLock();
+        }
+
+        function triggerWin() {
+            gameActive = false;
+            document.getElementById('win-modal').classList.remove('hidden');
+
+            document.exitPointerLock();
+        }
+
+        function startNewSession() {
+            // Reset state variables
+            gameActive = true;
+            isHiding = false;
+            currentObjective = "screwdriver";
+            playerInventory = [];
+            playerStats.suspicion = 0;
+            playerStats.noise = 0;
+            playerStats.holding = null;
+            dadState = "patrol";
+            currentWaypointIndex = 0;
+
+            // Hide overlays & modals
+            document.getElementById('intro-modal').classList.add('hidden');
+            document.getElementById('gameover-modal').classList.add('hidden');
+            document.getElementById('win-modal').classList.add('hidden');
+            document.getElementById('hiding-overlay').classList.add('opacity-0');
+            document.getElementById('hiding-overlay').classList.remove('opacity-95');
+            document.getElementById('hud-holding').classList.add('hidden');
+
+            // Restore items visibility
+            interactables.forEach(item => {
+                item.collected = false;
+                item.completed = false;
+                if (item.mesh.parent !== houseGroup && item.type !== 'key') {
+                    scene.add(item.mesh);
+                }
+            });
+
+            // Re-spawn player in safe bedroom corner
+            camera.position.set(-9.5, PLAYER_HEIGHT_STAND, 3.5);
+            yaw = Math.PI / 1.5; // orient face towards bedroom door
+            pitch = 0;
+
+            // Reset Dad position at living room center
+            if (dadMesh) {
+                dadMesh.position.set(0, 0, 2);
+                dadMesh.rotation.set(0, 0, 0);
+            }
+
+            updateObjectivesHUD("Find a screwdriver to unlock the desk drawer.");
+            updateInventoryHUD();
+            updateNoiseHUD();
+            triggerVignetteFlash(false);
+
+            logHUDMessage("Break house arrest! Don't let Dad catch you.");
+        }
+
+        // --- Core Render Loop ---
+        let clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const delta = clock.getDelta();
+
+            if (gameActive) {
+                // Update Movement & Physics (Keyboard / Touch)
+                updatePlayerMovement(delta);
+
+                // Check Dad patrolling AI and vision checks
+                updateDadAI(delta);
+
+                // Update physical thrown distraction vase
+                updateThrownVase(delta);
+
+                // Interactive Raycasting item markers
+                updateRaycastInteraction();
+            }
+
+            // Render Frame
+            renderer.render(scene, camera);
+        }
+
+        // Initialize game systems
+        window.addEventListener('load', () => {
+            initEngine();
+            setupControllers();
+            spawnDad();
+
+            // Set up restart / start button clicks
+            document.getElementById('btn-start-game').addEventListener('click', startNewSession);
+            document.getElementById('btn-restart-gameover').addEventListener('click', startNewSession);
+            document.getElementById('btn-restart-win').addEventListener('click', startNewSession);
+
+            // Run three.js drawing loop
+            animate();
+        });
+    </script>
+</body>
+</html>
