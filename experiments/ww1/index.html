@@ -278,6 +278,38 @@
       padding: 40px;
     }
 
+    /* Game Over Overlay Screen */
+    #gameover-screen {
+      position: absolute;
+      inset: 0;
+      background: rgba(11, 8, 7, 0.95);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 102;
+      padding: 40px;
+      backdrop-filter: blur(10px);
+    }
+
+    .gameover-title {
+      font-size: 36px;
+      font-weight: 400;
+      letter-spacing: 8px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.6);
+    }
+
+    .gameover-subtitle {
+      font-size: 16px;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      text-align: center;
+      max-width: 500px;
+      line-height: 1.6;
+    }
+
     .loading-container {
       width: 100%;
       max-width: 500px;
@@ -418,14 +450,25 @@
     </div>
   </div>
 
+  <!-- Game Over Screen -->
+  <div id="gameover-screen" style="display: none;">
+    <h2 id="gameover-title" class="gameover-title">Victory</h2>
+    <p id="gameover-subtitle" class="gameover-subtitle">Your forces have successfully breached the enemy defensive lines and secured the field.</p>
+    <button class="start-btn" onclick="returnToLobby()">Return to Headquarters</button>
+  </div>
+
   <!-- Tactical HUD Layer -->
   <div id="ui-layer">
     <div id="top-bar">
       <div class="glass-panel hud-faction">
         <img id="p-flag" class="hud-flag" src="" alt="Player Flag">
-        <div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column;">
           <div class="faction-title">Commander</div>
-          <div id="p-name" class="faction-name">United Kingdom</div>
+          <div id="p-name" class="faction-name" style="margin-bottom: 4px;">United Kingdom</div>
+          <div style="width: 140px; height: 6px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); border-radius: 3px; overflow: hidden;">
+            <div id="p-health-fill" style="width: 100%; height: 100%; background: var(--ally-color); transition: width 0.3s ease;"></div>
+          </div>
+          <div id="p-health-text" style="font-size: 10px; font-family: monospace; color: var(--text-muted); margin-top: 2px;">HP: 100/100</div>
         </div>
       </div>
 
@@ -441,9 +484,13 @@
 
       <div class="glass-panel hud-faction enemy">
         <img id="e-flag" class="hud-flag" src="" alt="Enemy Flag">
-        <div>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: flex-end;">
           <div class="faction-title">Hostile Force</div>
-          <div id="e-name" class="faction-name">German Empire</div>
+          <div id="e-name" class="faction-name" style="margin-bottom: 4px;">German Empire</div>
+          <div style="width: 140px; height: 6px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); border-radius: 3px; overflow: hidden;">
+            <div id="e-health-fill" style="width: 100%; height: 100%; background: var(--central-color); transition: width 0.3s ease;"></div>
+          </div>
+          <div id="e-health-text" style="font-size: 10px; font-family: monospace; color: var(--text-muted); margin-top: 2px;">HP: 100/100</div>
         </div>
       </div>
     </div>
@@ -462,6 +509,8 @@
     let playerAlliance = 'allies';
     let playerNation = 'uk';
     let enemyNation = 'germany';
+    let playerHealth = 100;
+    let enemyHealth = 100;
 
     const nations = {
       uk: { name: "British Empire", flag: "./assets/flag-uk.svg", alliance: "allies" },
@@ -645,6 +694,19 @@
       resize();
       gameRunning = true;
       supplies = 100;
+      playerHealth = 100;
+      enemyHealth = 100;
+
+      // Update HUD displays
+      const pFill = document.getElementById('p-health-fill');
+      const pText = document.getElementById('p-health-text');
+      const eFill = document.getElementById('e-health-fill');
+      const eText = document.getElementById('e-health-text');
+      if (pFill) pFill.style.width = '100%';
+      if (pText) pText.innerText = 'HP: 100/100';
+      if (eFill) eFill.style.width = '100%';
+      if (eText) eText.innerText = 'HP: 100/100';
+
       units = [];
       particles = [];
       shots = [];
@@ -962,6 +1024,7 @@
         this.width = 22;
         this.height = 34;
         this.health = 100;
+        this.maxHealth = 100;
         this.alliance = isPlayer ? playerAlliance : nations[enemyNation].alliance;
 
         if (type === 'tank') {
@@ -970,12 +1033,14 @@
           this.height = 38;
           this.y = canvas.height * 0.67;
           this.health = 450;
+          this.maxHealth = 450;
         } else if (type === 'plane') {
           this.speed *= 2.5;
           this.width = 60;
           this.height = 30;
           this.y = canvas.height * 0.25;
           this.health = 120;
+          this.maxHealth = 120;
         }
       }
 
@@ -1016,6 +1081,21 @@
           if (!this.isPlayer) ctx.scale(-1, 1);
           ctx.drawImage(images.biplane, 0, 0, this.width, this.height);
           ctx.restore();
+        }
+
+        // Draw individual unit health bar if damaged
+        if (this.health < this.maxHealth) {
+          const barWidth = this.width;
+          const barHeight = 4;
+          const barX = this.x;
+          const barY = this.y - 10;
+
+          ctx.fillStyle = 'rgba(0,0,0,0.5)';
+          ctx.fillRect(barX, barY, barWidth, barHeight);
+
+          const healthRatio = Math.max(0, this.health / this.maxHealth);
+          ctx.fillStyle = this.isPlayer ? '#6d8467' : '#a66363';
+          ctx.fillRect(barX, barY, barWidth * healthRatio, barHeight);
         }
       }
     }
@@ -1101,7 +1181,37 @@
       }
     }
 
+    function returnToLobby() {
+      gameRunning = false;
+      document.getElementById('gameover-screen').style.display = 'none';
+      document.getElementById('lobby-screen').style.display = 'flex';
+    }
+
+    function checkGameOver() {
+      if (playerHealth <= 0 || enemyHealth <= 0) {
+        gameRunning = false;
+        const overScreen = document.getElementById('gameover-screen');
+        const title = document.getElementById('gameover-title');
+        const subtitle = document.getElementById('gameover-subtitle');
+
+        if (playerHealth <= 0) {
+          title.innerText = "Defeat";
+          title.style.color = "var(--central-color)";
+          subtitle.innerText = "The front lines have collapsed. Hostile forces have breached our field headquarters.";
+        } else {
+          title.innerText = "Victory";
+          title.style.color = "var(--accent-color)";
+          subtitle.innerText = "Command operational efficacy confirmed. Your forces have successfully broken the enemy ranks.";
+        }
+
+        overScreen.style.display = "flex";
+      }
+    }
+
     function tick() {
+      if (!gameRunning) return;
+
+      checkGameOver();
       if (!gameRunning) return;
 
       supplies += 0.05;
@@ -1180,6 +1290,31 @@
           spawnGroundBlood(u.x + u.width/2, u.y + u.height/2);
           // Spawn extra blood spray
           spawnBloodSplatter(u.x + u.width/2, u.y + u.height/2, 12);
+          units.splice(i, 1);
+          continue;
+        }
+
+        // If units cross opposing edges, deduct global force health
+        if (u.isPlayer && u.x > canvas.width) {
+          // Deduct from enemy force health
+          enemyHealth -= u.type === 'tank' ? 20 : u.type === 'plane' ? 15 : 10;
+          enemyHealth = Math.max(0, enemyHealth);
+          const eFill = document.getElementById('e-health-fill');
+          const eText = document.getElementById('e-health-text');
+          if (eFill) eFill.style.width = enemyHealth + '%';
+          if (eText) eText.innerText = 'HP: ' + Math.ceil(enemyHealth) + '/100';
+
+          units.splice(i, 1);
+          continue;
+        } else if (!u.isPlayer && u.x < 0) {
+          // Deduct from player force health
+          playerHealth -= u.type === 'tank' ? 20 : u.type === 'plane' ? 15 : 10;
+          playerHealth = Math.max(0, playerHealth);
+          const pFill = document.getElementById('p-health-fill');
+          const pText = document.getElementById('p-health-text');
+          if (pFill) pFill.style.width = playerHealth + '%';
+          if (pText) pText.innerText = 'HP: ' + Math.ceil(playerHealth) + '/100';
+
           units.splice(i, 1);
           continue;
         }
