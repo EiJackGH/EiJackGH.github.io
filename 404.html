@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Archive Missing | EiJackGH</title>
+    <style>
+        :root {
+            --bg-color: #121413;
+            --container-bg: #191c1a;
+            --border-color: #2d3330;
+            --text-primary: #f5ede6;
+            --text-secondary: #8a948f;
+            --accent-color: #d38312;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .error-container {
+            max-width: 550px;
+            text-align: center;
+            padding: 40px;
+            background: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin: 20px;
+        }
+
+        .error-code {
+            font-family: 'Impact', 'Arial Black', sans-serif;
+            font-size: 96px;
+            line-height: 1;
+            margin: 0 0 10px 0;
+            color: var(--accent-color);
+            letter-spacing: 2px;
+        }
+
+        h1 {
+            font-family: 'Georgia', serif;
+            font-size: 24px;
+            margin: 0 0 15px 0;
+        }
+
+        p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            margin: 0 0 30px 0;
+        }
+
+        .action-btn {
+            display: inline-block;
+            background: var(--accent-color);
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 12px 24px;
+            border-radius: 4px;
+            transition: background 0.2s ease;
+            letter-spacing: 0.5px;
+        }
+
+        .action-btn:hover {
+            background: #a35400;
+        }
+
+        .diagnostic-footer {
+            margin-top: 40px;
+            font-family: monospace;
+            font-size: 11px;
+            color: #535e58;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="error-container">
+        <!-- Arcade styling mapping your code environment -->
+        <div class="error-code">404</div>
+        <h1>Data Fragment Not Found</h1>
+        <p>The matrix path you requested could not be resolved. The file may have been archived, renamed, or stripped out of the repository tree structure.</p>
+        
+        <!-- Redirects reliably back to the primary landing page node -->
+        <a href="/index.html" class="action-btn">RETURN TO HOME</a>
+        
+        <div class="diagnostic-footer">
+            [System Status: Path Unresolved]
+        </div>
+    </div>
+
+</body>
+</html>
