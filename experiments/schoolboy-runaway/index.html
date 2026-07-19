@@ -232,7 +232,10 @@
     <!-- GAME OVER OVERLAY MODAL -->
     <div id="gameover-modal" class="absolute inset-0 bg-black/95 z-50 flex items-center justify-center p-4 hidden">
         <div class="max-w-md w-full bg-horror-900 border-2 border-red-900/60 p-6 sm:p-8 rounded-2xl text-center flex flex-col gap-6 shadow-[0_0_50px_rgba(220,38,38,0.4)]">
-            <h2 class="font-creepy text-red-600 text-5xl sm:text-6xl tracking-wider animate-pulse">CAUGHT!</h2>
+            <div class="w-full flex justify-center mb-2">
+                <img src="assets/youlose.svg" alt="You Lose" class="w-64 h-auto" />
+            </div>
+            <h2 class="font-creepy text-red-600 text-5xl sm:text-6xl tracking-wider animate-pulse">YOU LOSE</h2>
             <div class="text-slate-300 font-typewriter text-sm bg-red-950/20 border border-red-950 p-4 rounded-xl">
                 "No lessons done, and you tried to run away?! Back to study, scoundrel!"
                 <br><br>
@@ -1341,8 +1344,15 @@
             }
 
             // Update Suspicion visual HUD
-            document.getElementById('suspicion-text').innerText = `${Math.round(playerStats.suspicion)}%`;
-            document.getElementById('suspicion-bar').style.width = `${playerStats.suspicion}%`;
+            const roundedSuspicion = Math.round(playerStats.suspicion);
+            document.getElementById('suspicion-text').innerText = `${roundedSuspicion}%`;
+            document.getElementById('suspicion-bar').style.width = `${roundedSuspicion}%`;
+
+            // Trigger game over immediately when suspicion reaches 100%
+            if (roundedSuspicion >= 100) {
+                dadState = "catch";
+                triggerGameOver();
+            }
 
             // Movement Physics toward target point
             if (dadState !== "investigate" || dadPos.distanceTo(dadInvestigatePoint) >= 0.8) {
