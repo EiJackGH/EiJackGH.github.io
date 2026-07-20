@@ -174,6 +174,16 @@
                                         <option value="assets/japan.svg">Japan</option>
                                     </select>
                                 </div>
+                                <div class="flex items-center justify-between px-1 text-[10px] text-slate-400">
+                                    <span>Ideology:</span>
+                                    <select id="select-spawn-ideology" class="bg-slate-950 text-slate-200 border border-slate-800 rounded px-1.5 py-0.5 text-[10px] focus:outline-none">
+                                        <option value="Random">Random</option>
+                                        <option value="Monarchy">👑 Monarchy</option>
+                                        <option value="Democracy">🗳️ Democracy</option>
+                                        <option value="Communism">🚩 Communism</option>
+                                        <option value="Fascism">🦅 Fascism</option>
+                                    </select>
+                                </div>
                             </div>
                             <button id="tool-paint-land" data-tool="paint-land" class="btn-tool text-left py-1.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 flex items-center justify-between border border-slate-700/50 transition">
                                 <span>🌳 Paint Terrain: Land</span>
@@ -319,6 +329,7 @@
                             <div>Gold: <span id="detail-gold" class="text-amber-400">0</span></div>
                             <div>Kills: <span id="detail-kills" class="text-red-400">0</span></div>
                             <div>Allies: <span id="detail-allies" class="text-emerald-400">None</span></div>
+                            <div class="col-span-2">Ideology: <span id="detail-ideology" class="text-purple-400">Monarchy</span></div>
                         </div>
                         <!-- Rename and Custom Flag Options -->
                         <div class="space-y-2 pt-2 border-t border-slate-800/60 text-xs">
@@ -338,6 +349,15 @@
                                     <option value="assets/germany.svg">Germany</option>
                                     <option value="assets/sweden.svg">Sweden</option>
                                     <option value="assets/japan.svg">Japan</option>
+                                </select>
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <label class="text-[10px] text-slate-400 font-medium">Change Ideology</label>
+                                <select id="select-detail-ideology" class="bg-slate-950 text-slate-200 border border-slate-800 rounded px-2 py-1 text-xs focus:outline-none">
+                                    <option value="Monarchy">👑 Monarchy</option>
+                                    <option value="Democracy">🗳️ Democracy</option>
+                                    <option value="Communism">🚩 Communism</option>
+                                    <option value="Fascism">🦅 Fascism</option>
                                 </select>
                             </div>
                         </div>
@@ -526,17 +546,17 @@
                 paintCircle(29, 29, 1.5, terrain.MOUNTAIN);
 
                 // Spawn Sengoku Period Clans / Factions
-                createNation("Oda Clan", "#ec4899", 41, 26, "assets/japan.svg");
-                createNation("Tokugawa Clan", "#eab308", 45, 25, "assets/japan.svg");
-                createNation("Takeda Clan", "#ef4444", 47, 22, "assets/japan.svg");
-                createNation("Uesugi Clan", "#3b82f6", 50, 19, "assets/japan.svg");
-                createNation("Mori Clan", "#0d9488", 26, 30, "assets/japan.svg");
-                createNation("Shimazu Clan", "#059669", 14, 40, "assets/japan.svg");
-                createNation("Date Clan", "#6366f1", 57, 16, "assets/japan.svg");
-                createNation("Hojo Clan", "#8b5cf6", 48, 24, "assets/japan.svg");
-                createNation("Chosokabe Clan", "#f97316", 28, 34, "assets/japan.svg");
-                createNation("Toyotomi Clan", "#06b6d4", 36, 27, "assets/japan.svg");
-                createNation("Matsumae Clan", "#64748b", 64, 10, "assets/japan.svg");
+                createNation("Oda Clan", "#ec4899", 41, 26, "assets/japan.svg", "Monarchy");
+                createNation("Tokugawa Clan", "#eab308", 45, 25, "assets/japan.svg", "Monarchy");
+                createNation("Takeda Clan", "#ef4444", 47, 22, "assets/japan.svg", "Monarchy");
+                createNation("Uesugi Clan", "#3b82f6", 50, 19, "assets/japan.svg", "Monarchy");
+                createNation("Mori Clan", "#0d9488", 26, 30, "assets/japan.svg", "Monarchy");
+                createNation("Shimazu Clan", "#059669", 14, 40, "assets/japan.svg", "Monarchy");
+                createNation("Date Clan", "#6366f1", 57, 16, "assets/japan.svg", "Monarchy");
+                createNation("Hojo Clan", "#8b5cf6", 48, 24, "assets/japan.svg", "Monarchy");
+                createNation("Chosokabe Clan", "#f97316", 28, 34, "assets/japan.svg", "Monarchy");
+                createNation("Toyotomi Clan", "#06b6d4", 36, 27, "assets/japan.svg", "Monarchy");
+                createNation("Matsumae Clan", "#64748b", 64, 10, "assets/japan.svg", "Monarchy");
 
                 // Recalculate and update leaderboard
                 recalculateNationSizes();
@@ -624,20 +644,20 @@
                 paintCircle(63, 38, 1.5, terrain.MOUNTAIN);
 
                 // Spawn Modern Nations
-                createNation("Ireland", "#10b981", 11, 14);
-                createNation("United Kingdom", "#3b82f6", 18, 15);
-                createNation("France", "#1d4ed8", 24, 25, "assets/france.svg");
-                createNation("Spain", "#f59e0b", 13, 34);
-                createNation("Italy", "#059669", 36, 35);
-                createNation("Germany", "#4b5563", 35, 20, "assets/germany.svg");
-                createNation("Poland", "#ec4899", 44, 19);
-                createNation("Ukraine", "#eab308", 55, 22);
-                createNation("Russia", "#ef4444", 69, 15);
-                createNation("Sweden", "#06b6d4", 35, 9, "assets/sweden.svg");
-                createNation("Norway", "#f43f5e", 32, 9);
-                createNation("Finland", "#6366f1", 45, 7);
-                createNation("Greece", "#0284c7", 49, 36);
-                createNation("Turkey", "#b91c1c", 60, 36);
+                createNation("Ireland", "#10b981", 11, 14, "assets/royal.svg", "Democracy");
+                createNation("United Kingdom", "#3b82f6", 18, 15, "assets/royal.svg", "Monarchy");
+                createNation("France", "#1d4ed8", 24, 25, "assets/france.svg", "Democracy");
+                createNation("Spain", "#f59e0b", 13, 34, "assets/royal.svg", "Monarchy");
+                createNation("Italy", "#059669", 36, 35, "assets/royal.svg", "Democracy");
+                createNation("Germany", "#4b5563", 35, 20, "assets/germany.svg", "Democracy");
+                createNation("Poland", "#ec4899", 44, 19, "assets/royal.svg", "Democracy");
+                createNation("Ukraine", "#eab308", 55, 22, "assets/royal.svg", "Democracy");
+                createNation("Russia", "#ef4444", 69, 15, "assets/royal.svg", "Communism");
+                createNation("Sweden", "#06b6d4", 35, 9, "assets/sweden.svg", "Monarchy");
+                createNation("Norway", "#f43f5e", 32, 9, "assets/royal.svg", "Monarchy");
+                createNation("Finland", "#6366f1", 45, 7, "assets/royal.svg", "Democracy");
+                createNation("Greece", "#0284c7", 49, 36, "assets/royal.svg", "Democracy");
+                createNation("Turkey", "#b91c1c", 60, 36, "assets/royal.svg", "Democracy");
 
                 // Recalculate and update leaderboard
                 recalculateNationSizes();
@@ -907,6 +927,31 @@
                 });
             }
 
+            // Change Ideology listener
+            const selectDetailIdeology = document.getElementById('select-detail-ideology');
+            if (selectDetailIdeology) {
+                selectDetailIdeology.addEventListener('change', (e) => {
+                    if (selectedDetailNationId !== null && nations[selectedDetailNationId]) {
+                        const oldIdeology = nations[selectedDetailNationId].ideology;
+                        const newIdeology = e.target.value;
+                        if (oldIdeology !== newIdeology) {
+                            nations[selectedDetailNationId].ideology = newIdeology;
+
+                            const emojis = {
+                                "Monarchy": "👑 Monarchy",
+                                "Democracy": "🗳️ Democracy",
+                                "Communism": "🚩 Communism",
+                                "Fascism": "🦅 Fascism"
+                            };
+
+                            logMessage(`📣 <span class="font-bold" style="color:${nations[selectedDetailNationId].color}">${nations[selectedDetailNationId].name}</span> transformed its political system from ${emojis[oldIdeology] || oldIdeology} to ${emojis[newIdeology] || newIdeology}!`);
+                            showNationDetails(selectedDetailNationId);
+                            updateLeaderboard();
+                        }
+                    }
+                });
+            }
+
             // Change Flag listener
             const selectDetailFlag = document.getElementById('select-detail-flag');
             if (selectDetailFlag) {
@@ -987,7 +1032,9 @@
                 const color = getRandomVibrantColor();
                 const spawnFlagSelect = document.getElementById('select-spawn-flag');
                 const flagUrl = spawnFlagSelect ? spawnFlagSelect.value : 'assets/royal.svg';
-                const id = createNation(name, color, x, y, flagUrl);
+                const spawnIdeologySelect = document.getElementById('select-spawn-ideology');
+                const selectedIdeology = spawnIdeologySelect ? spawnIdeologySelect.value : 'Random';
+                const id = createNation(name, color, x, y, flagUrl, selectedIdeology);
                 if (id) {
                     logMessage(`👑 Sovereign nation of <span class="font-bold" style="color:${color}">${name}</span> was established by divine intervention!`);
                     recalculateNationSizes();
@@ -1202,6 +1249,7 @@
             const detailGold = document.getElementById('detail-gold');
             const detailKills = document.getElementById('detail-kills');
             const detailAllies = document.getElementById('detail-allies');
+            const detailIdeology = document.getElementById('detail-ideology');
             const detailFlag = document.getElementById('detail-flag');
             const inputRename = document.getElementById('input-rename-nation');
             const selectFlag = document.getElementById('select-detail-flag');
@@ -1212,8 +1260,20 @@
             if (detailGold) detailGold.innerText = nation.gold;
             if (detailKills) detailKills.innerText = nation.kills;
             if (detailFlag) detailFlag.src = nation.flag || 'assets/royal.svg';
+
+            if (detailIdeology) {
+                const emojis = {
+                    "Monarchy": "👑 Monarchy",
+                    "Democracy": "🗳️ Democracy",
+                    "Communism": "🚩 Communism",
+                    "Fascism": "🦅 Fascism"
+                };
+                detailIdeology.innerText = emojis[nation.ideology] || nation.ideology;
+            }
             if (inputRename) inputRename.value = nation.name;
             if (selectFlag) selectFlag.value = nation.flag || 'assets/royal.svg';
+            const selectIdeology = document.getElementById('select-detail-ideology');
+            if (selectIdeology) selectIdeology.value = nation.ideology;
 
             // Compute Allies
             const allyNames = [];
@@ -1283,7 +1343,9 @@
                     if (attacker && defender) {
                         attacker.size++;
                         defender.size--;
-                        attacker.gold += 3; // Looting bonus
+                        let loot = 3;
+                        if (attacker.ideology === 'Fascism') loot = 10;
+                        attacker.gold += loot; // Looting bonus
 
                         // Check if defender completely wiped out
                         if (defender.size <= 0) {
@@ -1303,11 +1365,28 @@
                 const nation = nations[id];
                 if (!nation) return;
 
-                // Gold accumulation
-                nation.gold += Math.ceil(nation.size * 0.08);
+                // Gold accumulation dependent on Ideology
+                let goldMultiplier = 0.08;
+                if (nation.ideology === 'Monarchy') goldMultiplier = 0.12;
+                else if (nation.ideology === 'Democracy') goldMultiplier = 0.09;
+                else if (nation.ideology === 'Communism') goldMultiplier = 0.05;
+                else if (nation.ideology === 'Fascism') goldMultiplier = 0.06;
+                nation.gold += Math.ceil(nation.size * goldMultiplier);
 
-                // Stability and Revolt risks for giant empires
-                if (nation.size > 140 && Math.random() < 0.045) {
+                // Stability and Revolt risks depending on Ideology
+                let sizeThreshold = 140;
+                let revoltChance = 0.045;
+                if (nation.ideology === 'Democracy') {
+                    sizeThreshold = 180;
+                    revoltChance = 0.02;
+                } else if (nation.ideology === 'Communism') {
+                    sizeThreshold = 140;
+                    revoltChance = 0.022;
+                } else if (nation.ideology === 'Fascism') {
+                    sizeThreshold = 110;
+                    revoltChance = 0.06;
+                }
+                if (nation.size > sizeThreshold && Math.random() < revoltChance) {
                     triggerRevolt(id);
                 }
 
@@ -1395,9 +1474,11 @@
             const cy = Math.floor(clusterCenterIdx / COLS);
 
             // Spawn a brand new nation on this territory!
+            // Rebels are usually Communism, Fascism or Monarchy (Royalists), or can be a random change
+            const rebelIdeology = ["Communism", "Fascism", "Monarchy", "Democracy"][Math.floor(Math.random() * 4)];
             const newName = NATION_NAMES[Math.floor(Math.random() * NATION_NAMES.length)] + " Rebel Core";
             const newColor = getRandomVibrantColor();
-            const rebelId = createNation(newName, newColor, cx, cy, "assets/rebel.svg");
+            const rebelId = createNation(newName, newColor, cx, cy, "assets/rebel.svg", rebelIdeology);
 
             if (rebelId) {
                 // Seize surrounding land within radius
@@ -1434,9 +1515,26 @@
             const target = nations[targetId];
             if (!target) return;
 
+            // Compute peace and alliance probability based on ideology
+            let peaceChance = 0.45;
+            if (nation.ideology === target.ideology) {
+                peaceChance += 0.20; // Like-minded bias
+            }
+            if (nation.ideology === 'Democracy') peaceChance += 0.15;
+            if (nation.ideology === 'Fascism') peaceChance -= 0.20;
+
+            // Ideological rivalries
+            if ((nation.ideology === 'Communism' && (target.ideology === 'Monarchy' || target.ideology === 'Fascism')) ||
+                ((nation.ideology === 'Monarchy' || nation.ideology === 'Fascism') && target.ideology === 'Communism')) {
+                peaceChance -= 0.15;
+            }
+
+            // Clamp peaceChance between 0.05 and 0.95
+            peaceChance = Math.max(0.05, Math.min(0.95, peaceChance));
+
             // Roll diplomatic event
             const roll = Math.random();
-            if (roll < 0.45) {
+            if (roll < peaceChance) {
                 // Peace offer or alliance
                 if (areAtWar(nationId, targetId)) {
                     setWarState(nationId, targetId, false);
@@ -1454,9 +1552,15 @@
             }
         }
 
-        function createNation(name, color, cx, cy, flagUrl = 'assets/royal.svg') {
+        function createNation(name, color, cx, cy, flagUrl = 'assets/royal.svg', ideology = 'Random') {
             // Must have Land terrain to spawn capital
             if (mapGrid[cy * COLS + cx] === terrain.OCEAN) return null;
+
+            const ideologies = ["Monarchy", "Democracy", "Communism", "Fascism"];
+            let finalIdeology = ideology;
+            if (!ideology || ideology === 'Random') {
+                finalIdeology = ideologies[Math.floor(Math.random() * ideologies.length)];
+            }
 
             const id = nextNationId++;
             nations[id] = {
@@ -1467,7 +1571,8 @@
                 kills: 0,
                 size: 1,
                 capital: { x: cx, y: cy },
-                flag: flagUrl
+                flag: flagUrl,
+                ideology: finalIdeology
             };
 
             ownerGrid[cy * COLS + cx] = id;
