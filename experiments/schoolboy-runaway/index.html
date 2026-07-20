@@ -89,8 +89,18 @@
             </div>
         </div>
 
-        <!-- Suspicion Meter -->
+        <!-- Suspicion Meter & Action Menu -->
         <div class="flex flex-col items-end gap-1">
+            <!-- Settings and Pause Buttons -->
+            <div class="flex gap-2 mb-1 pointer-events-auto">
+                <button id="btn-settings" class="w-9 h-9 rounded-lg bg-black/85 border border-red-900/60 flex items-center justify-center hover:bg-red-950/30 active:scale-95 transition-all duration-150 shadow-md" title="Settings">
+                    <img src="assets/settings.svg" alt="Settings" class="w-6 h-6" />
+                </button>
+                <button id="btn-pause" class="w-9 h-9 rounded-lg bg-black/85 border border-red-900/60 flex items-center justify-center hover:bg-red-950/30 active:scale-95 transition-all duration-150 shadow-md" title="Pause Game">
+                    <img src="assets/pause.svg" alt="Pause" class="w-6 h-6" />
+                </button>
+            </div>
+
             <div class="bg-black/85 border border-red-900/60 p-3 rounded-xl backdrop-blur-md flex flex-col gap-1 items-end w-48">
                 <div class="flex justify-between w-full text-[10px] text-red-500 font-bold uppercase tracking-wider">
                     <span>Dad Suspicion</span>
@@ -155,6 +165,80 @@
             </div>
 
             <div class="text-[9px] text-gray-500 font-mono select-none">TAP RIGHT AREA TO LOOK / ROTATE</div>
+        </div>
+    </div>
+
+    <!-- PAUSE GAME MODAL -->
+    <div id="pause-modal" class="absolute inset-0 bg-black/85 z-50 flex items-center justify-center p-4 hidden">
+        <div class="max-w-xs w-full bg-horror-900 border-2 border-red-900/60 p-6 rounded-2xl shadow-[0_0_40px_rgba(239,68,68,0.2)] flex flex-col gap-4 text-center backdrop-blur-md">
+            <h2 class="font-creepy text-red-500 text-3xl tracking-widest animate-pulse">GAME PAUSED</h2>
+            <p class="text-xs text-gray-400 uppercase tracking-widest font-mono">Stealth Escape Suspended</p>
+
+            <div class="flex flex-col gap-2.5 mt-2">
+                <button id="btn-resume-pause" class="w-full py-2.5 bg-red-600 hover:bg-red-500 active:scale-95 text-white font-bold text-xs tracking-wider uppercase rounded-xl transition">
+                    RESUME GAME
+                </button>
+                <button id="btn-settings-pause" class="w-full py-2.5 bg-slate-900 hover:bg-red-950/30 border border-red-900 text-red-400 font-bold text-xs tracking-wider uppercase rounded-xl transition">
+                    SETTINGS
+                </button>
+                <button id="btn-restart-pause" class="w-full py-2.5 bg-slate-900 hover:bg-red-950/30 border border-red-950 text-gray-300 font-bold text-xs tracking-wider uppercase rounded-xl transition">
+                    RESTART ESCAPE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settings-modal" class="absolute inset-0 bg-black/90 z-50 flex items-center justify-center p-4 hidden">
+        <div class="max-w-sm w-full bg-horror-900 border-2 border-red-900/60 p-6 rounded-2xl shadow-[0_0_40px_rgba(239,68,68,0.25)] flex flex-col gap-5 backdrop-blur-md">
+            <div class="text-center border-b border-red-950/80 pb-3">
+                <h2 class="font-creepy text-red-500 text-3xl tracking-widest">SETTINGS</h2>
+                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-mono">Customize Your Lab Experience</p>
+            </div>
+
+            <div class="flex flex-col gap-4 font-mono text-xs">
+                <!-- Camera Sensitivity Slider -->
+                <div class="flex flex-col gap-1.5">
+                    <div class="flex justify-between text-[11px] text-gray-300">
+                        <span>Look Sensitivity</span>
+                        <span id="val-sensitivity" class="text-red-500 font-bold">1.0x</span>
+                    </div>
+                    <input type="range" id="slider-sensitivity" min="0.2" max="3.0" step="0.1" value="1.0" class="w-full accent-red-600 bg-gray-800 rounded-lg appearance-none h-1.5 cursor-pointer" />
+                </div>
+
+                <!-- Flashlight Intensity Slider -->
+                <div class="flex flex-col gap-1.5">
+                    <div class="flex justify-between text-[11px] text-gray-300">
+                        <span>Flashlight Intensity</span>
+                        <span id="val-flashlight" class="text-red-500 font-bold">1.2x</span>
+                    </div>
+                    <input type="range" id="slider-flashlight" min="0.5" max="3.0" step="0.1" value="1.2" class="w-full accent-red-600 bg-gray-800 rounded-lg appearance-none h-1.5 cursor-pointer" />
+                </div>
+
+                <!-- Fog Density Slider -->
+                <div class="flex flex-col gap-1.5">
+                    <div class="flex justify-between text-[11px] text-gray-300">
+                        <span>Fog Density (Atmosphere)</span>
+                        <span id="val-fog" class="text-red-500 font-bold">0.08</span>
+                    </div>
+                    <input type="range" id="slider-fog" min="0.01" max="0.20" step="0.01" value="0.08" class="w-full accent-red-600 bg-gray-800 rounded-lg appearance-none h-1.5 cursor-pointer" />
+                </div>
+
+                <!-- Cast Shadows Toggle -->
+                <div class="flex items-center justify-between border-t border-gray-800/40 pt-3">
+                    <span class="text-gray-300 text-[11px]">Dynamic Shadow Casting</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="checkbox-shadows" checked class="sr-only peer" />
+                        <div class="w-9 h-5 bg-gray-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-600 peer-checked:after:bg-white"></div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="flex gap-2 border-t border-red-950/80 pt-3">
+                <button id="btn-settings-close" class="w-full py-2.5 bg-red-600 hover:bg-red-500 active:scale-95 text-white font-bold text-xs tracking-wider uppercase rounded-xl transition">
+                    APPLY & CLOSE
+                </button>
+            </div>
         </div>
     </div>
 
@@ -275,11 +359,16 @@
         // Game state variables
         let gameActive = false;
         let isHiding = false;
+        let isPaused = false;
         let currentHidingSpotType = ''; // 'closet' or 'bed'
         let previousPositionBeforeHiding = new THREE.Vector3();
         let currentObjective = "screwdriver"; // "screwdriver", "key", "escape"
         let playerInventory = []; // "screwdriver", "key"
         let isCrouching = false;
+
+        // Custom setting values
+        let sensitivityMultiplier = 1.0;
+        let dynamicShadowsEnabled = true;
 
         let playerStats = {
             suspicion: 0,
@@ -316,15 +405,15 @@
             scene.add(directionalLight);
 
             // Flashlight on Player's face (Camera direction flashlight)
-            const flashlight = new THREE.SpotLight(0xfff8d0, 1.2, 12, Math.PI / 6, 0.5, 1);
-            flashlight.position.set(0, 0, 0);
-            flashlight.castShadow = true;
-            flashlight.shadow.mapSize.width = 512;
-            flashlight.shadow.mapSize.height = 512;
-            camera.add(flashlight);
-            flashlight.target = new THREE.Object3D();
-            flashlight.target.position.set(0, 0, -1);
-            camera.add(flashlight.target);
+            flashlightSpotlight = new THREE.SpotLight(0xfff8d0, 1.2, 12, Math.PI / 6, 0.5, 1);
+            flashlightSpotlight.position.set(0, 0, 0);
+            flashlightSpotlight.castShadow = true;
+            flashlightSpotlight.shadow.mapSize.width = 512;
+            flashlightSpotlight.shadow.mapSize.height = 512;
+            camera.add(flashlightSpotlight);
+            flashlightSpotlight.target = new THREE.Object3D();
+            flashlightSpotlight.target.position.set(0, 0, -1);
+            camera.add(flashlightSpotlight.target);
             scene.add(camera); // critical so flashlight moves with camera
 
             // Create low-poly house structure
@@ -799,10 +888,140 @@
         let joystickCurY = 0;
         let mobileMoveVector = new THREE.Vector2(0, 0);
 
+        // Pause Game function
+        function setPauseState(paused) {
+            isPaused = paused;
+            const pauseModal = document.getElementById('pause-modal');
+            if (isPaused) {
+                pauseModal.classList.remove('hidden');
+                document.exitPointerLock();
+                // Reset inputs so player doesn't slide
+                moveForward = false;
+                moveBackward = false;
+                moveLeft = false;
+                moveRight = false;
+            } else {
+                pauseModal.classList.add('hidden');
+            }
+        }
+
+        // Settings Modal Toggle function
+        function setSettingsState(open) {
+            const settingsModal = document.getElementById('settings-modal');
+            if (open) {
+                // Pre-fill fields with current settings values
+                document.getElementById('slider-sensitivity').value = sensitivityMultiplier;
+                document.getElementById('val-sensitivity').innerText = `${sensitivityMultiplier.toFixed(1)}x`;
+
+                if (flashlightSpotlight) {
+                    document.getElementById('slider-flashlight').value = flashlightSpotlight.intensity;
+                    document.getElementById('val-flashlight').innerText = `${flashlightSpotlight.intensity.toFixed(1)}x`;
+                }
+
+                if (scene && scene.fog) {
+                    document.getElementById('slider-fog').value = scene.fog.density;
+                    document.getElementById('val-fog').innerText = scene.fog.density.toFixed(2);
+                }
+
+                document.getElementById('checkbox-shadows').checked = dynamicShadowsEnabled;
+
+                settingsModal.classList.remove('hidden');
+            } else {
+                settingsModal.classList.add('hidden');
+            }
+        }
+
         function setupControllers() {
+            // Settings and Pause click listeners
+            document.getElementById('btn-pause').addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!gameActive) return;
+                setPauseState(!isPaused);
+            });
+
+            document.getElementById('btn-settings').addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!gameActive) return;
+                setSettingsState(true);
+                // Pause game while styling settings
+                setPauseState(true);
+            });
+
+            // Pause Modal Buttons
+            document.getElementById('btn-resume-pause').addEventListener('click', () => {
+                setPauseState(false);
+            });
+
+            document.getElementById('btn-settings-pause').addEventListener('click', () => {
+                setPauseState(false); // temporary close pause
+                setSettingsState(true);
+            });
+
+            document.getElementById('btn-restart-pause').addEventListener('click', () => {
+                setPauseState(false);
+                startNewSession();
+            });
+
+            // Settings Modal Buttons & Inputs
+            document.getElementById('slider-sensitivity').addEventListener('input', (e) => {
+                sensitivityMultiplier = parseFloat(e.target.value);
+                document.getElementById('val-sensitivity').innerText = `${sensitivityMultiplier.toFixed(1)}x`;
+            });
+
+            document.getElementById('slider-flashlight').addEventListener('input', (e) => {
+                const intensity = parseFloat(e.target.value);
+                document.getElementById('val-flashlight').innerText = `${intensity.toFixed(1)}x`;
+                if (flashlightSpotlight) {
+                    flashlightSpotlight.intensity = intensity;
+                }
+            });
+
+            document.getElementById('slider-fog').addEventListener('input', (e) => {
+                const fogDensity = parseFloat(e.target.value);
+                document.getElementById('val-fog').innerText = fogDensity.toFixed(2);
+                if (scene && scene.fog) {
+                    scene.fog.density = fogDensity;
+                }
+            });
+
+            document.getElementById('checkbox-shadows').addEventListener('change', (e) => {
+                dynamicShadowsEnabled = e.target.checked;
+                renderer.shadowMap.enabled = dynamicShadowsEnabled;
+                if (flashlightSpotlight) flashlightSpotlight.castShadow = dynamicShadowsEnabled;
+                if (dadSpotlight) dadSpotlight.castShadow = dynamicShadowsEnabled;
+                directionalLight.castShadow = dynamicShadowsEnabled;
+                // Recompile materials to reflect shadows change
+                scene.traverse((obj) => {
+                    if (obj.isMesh && obj.material) {
+                        obj.material.needsUpdate = true;
+                    }
+                });
+            });
+
+            document.getElementById('btn-settings-close').addEventListener('click', () => {
+                setSettingsState(false);
+                // Go back to pause menu if settings opened from pause, otherwise unpause
+                const pauseModal = document.getElementById('pause-modal');
+                // Let's bring back pause menu to let user resume
+                pauseModal.classList.remove('hidden');
+            });
+
             // Keyboard Keydown Events
             document.addEventListener('keydown', (e) => {
-                if (!gameActive || isHiding) return;
+                if (e.code === 'Escape') {
+                    if (gameActive) {
+                        const settingsModal = document.getElementById('settings-modal');
+                        if (!settingsModal.classList.contains('hidden')) {
+                            setSettingsState(false);
+                            setPauseState(true);
+                        } else {
+                            setPauseState(!isPaused);
+                        }
+                    }
+                    return;
+                }
+
+                if (!gameActive || isHiding || isPaused) return;
                 switch (e.code) {
                     case 'KeyW':
                     case 'ArrowUp':
@@ -861,6 +1080,7 @@
             let previousMousePosition = { x: 0, y: 0 };
 
             document.addEventListener('mousedown', (e) => {
+                if (isPaused) return;
                 if (e.target.closest('button') || e.target.closest('#joystick-boundary')) return;
                 isMouseDown = true;
                 previousMousePosition = { x: e.clientX, y: e.clientY };
@@ -872,13 +1092,13 @@
             });
 
             document.addEventListener('mousemove', (e) => {
-                if (!gameActive || isHiding) return;
+                if (!gameActive || isHiding || isPaused) return;
                 if (isMouseDown) {
                     const deltaX = e.clientX - previousMousePosition.x;
                     const deltaY = e.clientY - previousMousePosition.y;
 
-                    yaw -= deltaX * 0.004;
-                    pitch -= deltaY * 0.004;
+                    yaw -= deltaX * 0.004 * sensitivityMultiplier;
+                    pitch -= deltaY * 0.004 * sensitivityMultiplier;
 
                     // Constrain pitch to avoid flipping upside down
                     pitch = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, pitch));
@@ -897,7 +1117,7 @@
             let prevRightTouchY = 0;
 
             document.addEventListener('touchstart', (e) => {
-                if (!gameActive || isHiding) return;
+                if (!gameActive || isHiding || isPaused) return;
 
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     const touch = e.changedTouches[i];
@@ -914,7 +1134,7 @@
             }, { passive: true });
 
             document.addEventListener('touchmove', (e) => {
-                if (!gameActive || isHiding) return;
+                if (!gameActive || isHiding || isPaused) return;
 
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     const touch = e.changedTouches[i];
@@ -922,8 +1142,8 @@
                         const deltaX = touch.clientX - prevRightTouchX;
                         const deltaY = touch.clientY - prevRightTouchY;
 
-                        yaw -= deltaX * 0.006;
-                        pitch -= deltaY * 0.006;
+                        yaw -= deltaX * 0.006 * sensitivityMultiplier;
+                        pitch -= deltaY * 0.006 * sensitivityMultiplier;
                         pitch = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, pitch));
 
                         prevRightTouchX = touch.clientX;
@@ -1013,7 +1233,7 @@
         }
 
         function updatePlayerMovement(delta) {
-            if (!gameActive || isHiding) return;
+            if (!gameActive || isHiding || isPaused) return;
 
             // Interpolate player camera height for crouching smoothness
             camera.position.y += (currentHeight - camera.position.y) * 10 * delta;
@@ -1238,7 +1458,7 @@
         }
 
         function updateDadAI(delta) {
-            if (!gameActive || !dadMesh) return;
+            if (!gameActive || !dadMesh || isPaused) return;
 
             const dadPos = dadMesh.position;
             const playerPos = camera.position;
@@ -1393,7 +1613,7 @@
         let activeInteractableNearby = null;
 
         function updateRaycastInteraction() {
-            if (!gameActive || isHiding) {
+            if (!gameActive || isHiding || isPaused) {
                 hideInteractionTooltip();
                 return;
             }
@@ -1573,7 +1793,7 @@
         }
 
         function updateThrownVase(delta) {
-            if (!thrownVaseMesh) return;
+            if (!thrownVaseMesh || isPaused) return;
 
             // Gravity addition
             thrownVaseVelocity.y -= 9.8 * delta;
@@ -1715,6 +1935,7 @@
             // Reset state variables
             gameActive = true;
             isHiding = false;
+            isPaused = false;
             currentObjective = "screwdriver";
             playerInventory = [];
             playerStats.suspicion = 0;
@@ -1725,6 +1946,8 @@
 
             // Hide overlays & modals
             document.getElementById('intro-modal').classList.add('hidden');
+            document.getElementById('pause-modal').classList.add('hidden');
+            document.getElementById('settings-modal').classList.add('hidden');
             document.getElementById('gameover-modal').classList.add('hidden');
             document.getElementById('win-modal').classList.add('hidden');
             document.getElementById('hiding-overlay').classList.add('opacity-0');
