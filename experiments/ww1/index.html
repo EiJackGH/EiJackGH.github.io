@@ -1443,6 +1443,13 @@
     let muzzleFlashY = 0;
     let shots = []; // Tracer bullets/shells in transit
 
+    // Hostile Gun state variables
+    let hostileGunRecoil = 0;
+    let hostileMuzzleFlashLife = 0;
+    let hostileMuzzleFlashX = 0;
+    let hostileMuzzleFlashY = 0;
+    let hostileFireTimer = 180; // cooldown / timer for hostile auto-firing
+
     canvas.addEventListener('mousemove', (e) => {
       const rect = canvas.getBoundingClientRect();
       mouseX = e.clientX - rect.left;
@@ -1482,9 +1489,10 @@
         }
       }
 
-      const gunBaseX = canvas.width - 80;
-      const gunBaseY = canvas.height - 60;
-      const angle = Math.atan2(clickY - gunBaseY, clickX - gunBaseX);
+      const gunBaseX = 85;
+      const gunBaseY = canvas.height * 0.67 - 10;
+      let angle = Math.atan2(clickY - gunBaseY, clickX - gunBaseX);
+      angle = Math.max(-1.4, Math.min(1.4, angle));
 
       // Determine muzzle location (around 60px from base in direction of angle)
       const muzzleDist = 65;
@@ -1808,7 +1816,7 @@
       }
     }
 
-    function createExplosion(x, y, isBigShell = false) {
+    function createExplosion(x, y, isBigShell = false, isHostile = false) {
       // Spawn fine particles
       const particleCount = isBigShell ? 15 : 6;
       for (let i = 0; i < particleCount; i++) {
@@ -1845,12 +1853,17 @@
           }
         }
 
-        // Damage detection on ALL units (Player & Enemy)
+        // Damage detection on units based on alignment (Friendly fire prevention)
         const explosionRadius = 80;
         const baseDamage = 180;
 
         for (let i = units.length - 1; i >= 0; i--) {
           const u = units[i];
+          // Player shots (isHostile === false) only damage enemy units (u.isPlayer === false).
+          // Hostile shots (isHostile === true) only damage player units (u.isPlayer === true).
+          if (isHostile && !u.isPlayer) continue;
+          if (!isHostile && u.isPlayer) continue;
+
           // Simple distance-to-unit check
           // Consider unit bounding box center
           const uCenterX = u.x + u.width / 2;
@@ -1865,6 +1878,37 @@
 
             // Spawn localized blood splatters/particles
             spawnBloodSplatter(uCenterX, uCenterY, Math.ceil(5 * falloff));
+          }
+        }
+
+        // Base/Trench Damage Logic
+        if (isHostile) {
+          // If hostile shell hits near player trench, deduct a small amount of global player health
+          const pTrenchX = 85;
+          const pTrenchY = canvas.height * 0.67;
+          const distToTrench = Math.hypot(pTrenchX - x, pTrenchY - y);
+          if (distToTrench < explosionRadius) {
+            const falloff = 1 - (distToTrench / explosionRadius);
+            playerHealth -= 10 * falloff;
+            playerHealth = Math.max(0, playerHealth);
+            const pFill = document.getElementById('p-health-fill');
+            const pText = document.getElementById('p-health-text');
+            if (pFill) pFill.style.width = playerHealth + '%';
+            if (pText) pText.innerText = 'HP: ' + Math.ceil(playerHealth) + '/100';
+          }
+        } else {
+          // If player shell hits near enemy trench, deduct a small amount of global enemy health
+          const eTrenchX = canvas.width - 85;
+          const eTrenchY = canvas.height * 0.67;
+          const distToTrench = Math.hypot(eTrenchX - x, eTrenchY - y);
+          if (distToTrench < explosionRadius) {
+            const falloff = 1 - (distToTrench / explosionRadius);
+            enemyHealth -= 10 * falloff;
+            enemyHealth = Math.max(0, enemyHealth);
+            const eFill = document.getElementById('e-health-fill');
+            const eText = document.getElementById('e-health-text');
+            if (eFill) eFill.style.width = enemyHealth + '%';
+            if (eText) eText.innerText = 'HP: ' + Math.ceil(enemyHealth) + '/100';
           }
         }
       }
@@ -2222,7 +2266,7 @@
 
         if (d < s.speed) {
           // Arrived at target! Trigger explosion and remove projectile
-          createExplosion(s.targetX, s.targetY, true);
+          createExplosion(s.targetX, s.targetY, true, s.isHostile);
           shots.splice(i, 1);
         } else {
           const angle = Math.atan2(dy, dx);
@@ -2230,7 +2274,7 @@
           s.y += Math.sin(angle) * s.speed;
 
           // Draw Bullet Tracer line
-          ctx.strokeStyle = 'rgba(255, 230, 150, 0.8)';
+          ctx.strokeStyle = s.isHostile ? 'rgba(255, 100, 100, 0.8)' : 'rgba(255, 230, 150, 0.8)';
           ctx.lineWidth = 3;
           ctx.beginPath();
           ctx.moveTo(s.x - Math.cos(angle) * 20, s.y - Math.sin(angle) * 20);
@@ -2313,10 +2357,11 @@
         if (p.life <= 0) particles.splice(i, 1);
       }
 
-      // 1. Draw Player Gun (Stationed at bottom right of screen, pointing at mouse)
-      const gunBaseX = canvas.width - 80;
-      const gunBaseY = canvas.height - 60;
-      const angle = Math.atan2(mouseY - gunBaseY, mouseX - gunBaseX);
+      // 1. Draw Player Gun (Stationed at Allied trench, pointing at mouse)
+      const gunBaseX = 85;
+      const gunBaseY = canvas.height * 0.67 - 10;
+      let angle = Math.atan2(mouseY - gunBaseY, mouseX - gunBaseX);
+      angle = Math.max(-1.4, Math.min(1.4, angle));
 
       ctx.save();
       ctx.translate(gunBaseX, gunBaseY);
@@ -2347,6 +2392,94 @@
         ctx.save();
         ctx.translate(muzzleFlashX, muzzleFlashY);
         // Random scale/rotation for high velocity explosion vibe
+        ctx.rotate(Math.random() * Math.PI * 2);
+        const flashSize = 30 + Math.random() * 20;
+        ctx.drawImage(images.explosion, -flashSize/2, -flashSize/2, flashSize, flashSize);
+        ctx.restore();
+      }
+
+      // 2. Draw Hostile Gun (Stationed at Central/Enemy trench, pointing left)
+      const hostileGunBaseX = canvas.width - 85;
+      const hostileGunBaseY = canvas.height * 0.67 - 10;
+
+      // Find a target for the Hostile Gun to track and fire at
+      let hostileTargetX = 85;
+      let hostileTargetY = canvas.height * 0.67;
+
+      // Find player units
+      let playerUnits = units.filter(u => u.isPlayer);
+      if (playerUnits.length > 0) {
+        // Target the player unit closest to the hostile gun (highest x)
+        let targetUnit = playerUnits.reduce((closest, current) => {
+          return current.x > closest.x ? current : closest;
+        }, playerUnits[0]);
+        hostileTargetX = targetUnit.x + targetUnit.width / 2;
+        hostileTargetY = targetUnit.y + targetUnit.height / 2;
+      }
+
+      let targetAngle = Math.atan2(hostileTargetY - hostileGunBaseY, hostileTargetX - hostileGunBaseX);
+      let hostileAngle = targetAngle - Math.PI;
+      hostileAngle = Math.max(-1.4, Math.min(1.4, hostileAngle));
+
+      // Hostile Gun Firing Logic
+      hostileFireTimer--;
+      if (hostileFireTimer <= 0) {
+        // Trigger firing!
+        const muzzleDist = 65;
+        hostileMuzzleFlashX = hostileGunBaseX + Math.cos(targetAngle) * muzzleDist;
+        hostileMuzzleFlashY = hostileGunBaseY + Math.sin(targetAngle) * muzzleDist;
+
+        // Trigger recoil and muzzle flash
+        hostileGunRecoil = 25;
+        hostileMuzzleFlashLife = 6;
+
+        // Spawn hostile shot
+        shots.push({
+          startX: hostileMuzzleFlashX,
+          startY: hostileMuzzleFlashY,
+          targetX: hostileTargetX,
+          targetY: hostileTargetY,
+          x: hostileMuzzleFlashX,
+          y: hostileMuzzleFlashY,
+          speed: 35,
+          progress: 0,
+          distance: Math.hypot(hostileTargetX - hostileMuzzleFlashX, hostileTargetY - hostileMuzzleFlashY),
+          isHostile: true
+        });
+
+        // Reset timer to 3-5 seconds (180 to 300 frames)
+        hostileFireTimer = 180 + Math.random() * 120;
+      }
+
+      ctx.save();
+      ctx.translate(hostileGunBaseX, hostileGunBaseY);
+      ctx.rotate(hostileAngle);
+      ctx.scale(-1, 1); // mirror so original gun pointing right now points left
+      // Translate backward if gun is recoiling
+      ctx.translate(-hostileGunRecoil, 0);
+
+      // Draw gun asset centered vertically
+      if (images.gun && images.gun.complete) {
+        ctx.drawImage(images.gun, -35, -30, 100, 60);
+      } else {
+        // Fallback placeholder cannon if not loaded yet
+        ctx.fillStyle = '#4d3e38';
+        ctx.fillRect(-20, -10, 80, 20);
+        ctx.fillStyle = '#1e1816';
+        ctx.beginPath();
+        ctx.arc(-20, 0, 15, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+
+      // Hostile Gun Recoil cooling down
+      if (hostileGunRecoil > 0) hostileGunRecoil *= 0.85;
+
+      // Draw hostile muzzle flash
+      if (hostileMuzzleFlashLife > 0) {
+        hostileMuzzleFlashLife--;
+        ctx.save();
+        ctx.translate(hostileMuzzleFlashX, hostileMuzzleFlashY);
         ctx.rotate(Math.random() * Math.PI * 2);
         const flashSize = 30 + Math.random() * 20;
         ctx.drawImage(images.explosion, -flashSize/2, -flashSize/2, flashSize, flashSize);
