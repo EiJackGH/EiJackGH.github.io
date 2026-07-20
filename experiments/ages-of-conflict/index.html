@@ -232,6 +232,9 @@
                                 Force War
                             </button>
                         </div>
+                        <button id="btn-force-annex" class="w-full py-1.5 bg-purple-950/30 hover:bg-purple-900/40 text-purple-400 border border-purple-500/20 rounded-xl font-bold transition mt-1.5 text-xs">
+                            Force Annex
+                        </button>
                         <p class="text-[9px] text-slate-500 italic text-center">Select instigator tool first, then click on two target nations' territories.</p>
                     </div>
                 </section>
@@ -408,6 +411,7 @@
         // Selected nations for force diplomacy tool
         let instigatorAllianceFirst = null;
         let instigatorWarFirst = null;
+        let instigatorAnnexFirst = null;
 
         // Predefined beautiful nation names
         const NATION_NAMES = [
@@ -448,6 +452,7 @@
             year = 1;
             instigatorAllianceFirst = null;
             instigatorWarFirst = null;
+            instigatorAnnexFirst = null;
             updateStats();
             updateLeaderboard();
             logMessage(`New sandbox scenario generated: [${scenarioType}]`);
@@ -847,6 +852,15 @@
                 });
             }
 
+            const btnForceAnnex = document.getElementById('btn-force-annex');
+            if (btnForceAnnex) {
+                btnForceAnnex.addEventListener('click', () => {
+                    selectedTool = 'force-annex';
+                    instigatorAnnexFirst = null;
+                    logMessage(`Force Annex instigator active. Click on the annexing nation's territory first, then the victim's territory.`);
+                });
+            }
+
             // Brush size slider
             const sliderBrush = document.getElementById('slider-brush-size');
             const lblBrush = document.getElementById('lbl-brush-size');
@@ -1040,6 +1054,48 @@
                     recalculateNationSizes();
                     updateLeaderboard();
                     renderCanvas();
+                }
+                return;
+            }
+
+            if (selectedTool === 'force-annex') {
+                const owner = ownerGrid[idx];
+                if (owner === -1 || !nations[owner]) return;
+                if (!instigatorAnnexFirst) {
+                    instigatorAnnexFirst = owner;
+                    logMessage(`Annexing nation selected: <span style="color:${nations[owner].color}">${nations[owner].name}</span>. Now click on the victim nation's territory to annex them.`);
+                } else {
+                    if (instigatorAnnexFirst === owner) {
+                        logMessage(`⚠️ A nation cannot annex itself.`);
+                        return;
+                    }
+                    const victimId = owner;
+                    const annexerId = instigatorAnnexFirst;
+                    const annexer = nations[annexerId];
+                    const victim = nations[victimId];
+
+                    if (annexer && victim) {
+                        // Change all victim's cell owners to annexer
+                        for (let i = 0; i < ownerGrid.length; i++) {
+                            if (ownerGrid[i] === victimId) {
+                                ownerGrid[i] = annexerId;
+                            }
+                        }
+
+                        logMessage(`👑 SOVEREIGN ANNEXATION! <span class="font-bold" style="color:${annexer.color}">${annexer.name}</span> has fully annexed and integrated the territories of <span class="font-bold" style="color:${victim.color}">${victim.name}</span> by divine decree.`);
+
+                        // Use existing eliminateNation function to clean up connections, alliances, and remove the nation
+                        eliminateNation(victimId, annexerId);
+
+                        // Recalculate sizes, update UI, stats, leaderboard, and canvas
+                        recalculateNationSizes();
+                        updateStats();
+                        updateLeaderboard();
+                        renderCanvas();
+                    }
+
+                    instigatorAnnexFirst = null;
+                    selectedTool = 'spawn-nation'; // reset
                 }
                 return;
             }
