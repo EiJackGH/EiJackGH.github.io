@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 40" width="60" height="40">
+  <rect width="60" height="40" fill="#1b0000"/>
+  <!-- Rebel Star / Cross Emblem in Red/White -->
+  <path d="M15 15 L45 25 M45 15 L15 25" stroke="#ef4444" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="30" cy="20" r="8" fill="#ef4444" stroke="#ffffff" stroke-width="2"/>
+  <polygon points="30,15 32,19 36,19 33,21 34,25 30,23 26,25 27,21 24,19 28,19" fill="#ffffff"/>
+</svg>
