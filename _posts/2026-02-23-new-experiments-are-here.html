@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New experiments are here | EiJackGH Blog</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            950: '#042f2e',
+                        }
+                    },
+                    boxShadow: {
+                        'glow-cyan': '0 0 20px rgba(34, 211, 238, 0.15)',
+                        'glow-emerald': '0 0 20px rgba(16, 185, 129, 0.15)',
+                        'glow-brand': '0 0 20px rgba(20, 184, 166, 0.25)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-[#0b0f19] text-slate-200 min-h-screen flex flex-col selection:bg-cyan-500/30 selection:text-cyan-200">
+    <!-- Decorative background blobs -->
+    <div class="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full pointer-events-none overflow-hidden z-0">
+        <div class="absolute -top-[10%] left-[10%] w-[35rem] h-[35rem] rounded-full bg-cyan-500/10 blur-[120px] animate-pulse" style="animation-duration: 8s;"></div>
+        <div class="absolute top-[30%] -right-[10%] w-[30rem] h-[30rem] rounded-full bg-emerald-500/10 blur-[100px] animate-pulse" style="animation-duration: 12s;"></div>
+    </div>
+
+    <div class="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-grow flex flex-col py-8">
+        <!-- Header / Navigation -->
+        <header class="border-b border-slate-800/80 pb-6 mb-10">
+            <div class="flex items-center justify-between">
+                <a href="../index.html" class="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-cyan-400 transition duration-300">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span>Back to Laboratory</span>
+                </a>
+                <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-semibold bg-emerald-400/10 text-emerald-400 border border-emerald-500/20">
+                    Log Entry
+                </span>
+            </div>
+        </header>
+
+        <!-- Main Blog Post -->
+        <main class="flex-grow">
+            <article class="space-y-8">
+                <!-- Meta -->
+                <div class="space-y-2">
+                    <div class="text-xs font-semibold tracking-wider text-emerald-400 uppercase">Feb 23, 2026</div>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent">
+                        New experiments are here
+                    </h1>
+                </div>
+
+                <!-- Divider -->
+                <div class="h-px bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800"></div>
+
+                <!-- Markdown Content styled nicely -->
+                <div class="prose prose-invert max-w-none text-slate-300 space-y-6 leading-relaxed">
+                    <p class="text-lg text-slate-200">
+                        We are thrilled to announce a massive wave of new interactive experiments now live in the laboratory! From action-packed games to tactical simulations and utility tools, there is something here for every tech enthusiast and gamer.
+                    </p>
+
+                    <h3 class="text-xl font-bold text-slate-100 pt-4 border-b border-slate-800 pb-2">Featured Additions:</h3>
+
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="text-lg font-semibold text-cyan-400 mb-2">1. Games & Simulations</h4>
+                            <ul class="space-y-3 list-disc pl-5">
+                                <li>
+                                    <strong class="text-slate-200">Schoolboy Runaway 3D</strong>: Sneak and escape strict house arrest in this fully procedural, stealth horror simulation built in Three.js and Tailwind. Avoid Dad's patrolling flashlight!
+                                </li>
+                                <li>
+                                    <strong class="text-slate-200">Ages of Conflict (World Map Simulator)</strong>: A robust HTML5 Canvas sandbox simulator. Command borders, manage diplomacy, and shape the globe.
+                                </li>
+                                <li>
+                                    <strong class="text-slate-200">I Wanna Be The Guy</strong>: Face retro-platforming trials with pixel-perfect collisions, deadly traps, and relentless difficulty.
+                                </li>
+                                <li>
+                                    <strong class="text-slate-200">WW1 Game</strong>: A historical tactical strategy simulation. Survive the trenches and deploy strategic formations.
+                                </li>
+                                <li>
+                                    <strong class="text-slate-200">Space Invaders</strong>: Retro arcade action built on a fast canvas engine. Fight back the alien waves!
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4 class="text-lg font-semibold text-cyan-400 mb-2">2. Creative Utility Tools</h4>
+                            <ul class="space-y-3 list-disc pl-5">
+                                <li>
+                                    <strong class="text-slate-200">Vexillology Studio (Flag Maker)</strong>: Create gorgeous vector flags with customizable layouts, templates, and dynamic wind-blown physics simulations.
+                                </li>
+                                <li>
+                                    <strong class="text-slate-200">SVG to PNG Converter</strong>: Scale and customize vector assets offline, preview resolutions, and export pristine PNG files.
+                                </li>
+                                <li>
+                                    <strong class="text-slate-200">Video to GIF Converter</strong>: Convert video captures into loopable, lightweight GIFs directly in your browser.
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <p class="pt-6 text-emerald-400 font-medium">
+                        Explore them all on our homepage!
+                    </p>
+                </div>
+            </article>
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-20 pt-8 border-t border-slate-800/80 text-center text-xs text-slate-500 space-y-2">
+            <p>© 2026 EiJackGH. All rights reserved.</p>
+            <p class="font-mono">Built with Jekyll & Tailwind CSS · Fast, Static, Secure.</p>
+        </footer>
+    </div>
+</body>
+</html>
