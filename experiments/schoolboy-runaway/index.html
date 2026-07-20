@@ -168,6 +168,72 @@
         </div>
     </div>
 
+    <!-- ADMIN MENU FLOATING PANEL -->
+    <div id="admin-menu-panel" class="absolute top-20 right-4 z-40 bg-black/90 border border-red-500/50 p-4 rounded-xl text-xs font-mono w-64 max-h-[80vh] overflow-y-auto hidden flex flex-col gap-3 backdrop-blur-md shadow-[0_0_20px_rgba(220,38,38,0.3)]">
+        <div class="flex justify-between items-center border-b border-red-950/80 pb-2">
+            <span class="font-creepy text-red-500 text-lg tracking-widest">ADMIN MENU</span>
+            <button id="btn-admin-minimize" class="text-[10px] text-gray-400 hover:text-white border border-gray-800 px-1.5 py-0.5 rounded uppercase font-bold bg-slate-900/40">Collapse</button>
+        </div>
+
+        <div id="admin-menu-content" class="flex flex-col gap-3 transition-all duration-200">
+            <!-- Cheats toggles -->
+            <div class="flex flex-col gap-2">
+                <span class="text-red-500 text-[10px] uppercase font-bold tracking-wider">Cheat Toggles</span>
+                <div class="flex items-center justify-between bg-slate-950/60 p-2 rounded border border-gray-900">
+                    <span class="text-gray-300">God Mode</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="checkbox-godmode" class="sr-only peer" />
+                        <div class="w-7 h-4 bg-gray-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-red-600 peer-checked:after:bg-white"></div>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between bg-slate-950/60 p-2 rounded border border-gray-900">
+                    <span class="text-gray-300">Freeze Dad</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="checkbox-freezedad" class="sr-only peer" />
+                        <div class="w-7 h-4 bg-gray-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-red-600 peer-checked:after:bg-white"></div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Spawns/Items -->
+            <div class="flex flex-col gap-1.5">
+                <span class="text-red-500 text-[10px] uppercase font-bold tracking-wider">Inventory Cheats</span>
+                <button id="btn-cheat-screwdriver" class="w-full py-1.5 bg-slate-900 hover:bg-red-950/30 border border-red-900/50 text-gray-300 hover:text-white font-bold rounded transition text-left px-2 flex justify-between">
+                    <span>Give Screwdriver</span> <span class="text-[9px] text-gray-500">Obj 1</span>
+                </button>
+                <button id="btn-cheat-key" class="w-full py-1.5 bg-slate-900 hover:bg-red-950/30 border border-red-900/50 text-gray-300 hover:text-white font-bold rounded transition text-left px-2 flex justify-between">
+                    <span>Give Main Key</span> <span class="text-[9px] text-gray-500">Obj 2</span>
+                </button>
+            </div>
+
+            <!-- Teleport Players -->
+            <div class="flex flex-col gap-1.5">
+                <span class="text-red-500 text-[10px] uppercase font-bold tracking-wider">Teleport Player</span>
+                <div class="grid grid-cols-2 gap-1.5">
+                    <button id="btn-tp-spawn" class="py-1 bg-slate-900 hover:bg-gray-800 border border-gray-800 text-gray-300 rounded transition font-bold text-center">Spawn</button>
+                    <button id="btn-tp-screwdriver" class="py-1 bg-slate-900 hover:bg-gray-800 border border-gray-800 text-gray-300 rounded transition font-bold text-center">Screwdriver</button>
+                    <button id="btn-tp-drawer" class="py-1 bg-slate-900 hover:bg-gray-800 border border-gray-800 text-gray-300 rounded transition font-bold text-center">Drawer</button>
+                    <button id="btn-tp-exit" class="py-1 bg-slate-900 hover:bg-gray-800 border border-gray-800 text-gray-300 rounded transition font-bold text-center">Exit Door</button>
+                </div>
+            </div>
+
+            <!-- AI Teleport -->
+            <div class="flex flex-col gap-1.5">
+                <span class="text-red-500 text-[10px] uppercase font-bold tracking-wider">AI Controls</span>
+                <button id="btn-tp-dad" class="w-full py-1.5 bg-slate-900 hover:bg-red-950/30 border border-red-900/50 text-gray-300 hover:text-white font-bold rounded transition text-left px-2">
+                    Reset Dad to Spawn
+                </button>
+            </div>
+
+            <!-- Win -->
+            <div class="flex flex-col gap-1.5 border-t border-gray-800/40 pt-2">
+                <button id="btn-cheat-win" class="w-full py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded shadow-lg transition">
+                    INSTANT ESCAPE (WIN)
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- PAUSE GAME MODAL -->
     <div id="pause-modal" class="absolute inset-0 bg-black/85 z-50 flex items-center justify-center p-4 hidden">
         <div class="max-w-xs w-full bg-horror-900 border-2 border-red-900/60 p-6 rounded-2xl shadow-[0_0_40px_rgba(239,68,68,0.2)] flex flex-col gap-4 text-center backdrop-blur-md">
@@ -229,6 +295,15 @@
                     <span class="text-gray-300 text-[11px]">Dynamic Shadow Casting</span>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="checkbox-shadows" checked class="sr-only peer" />
+                        <div class="w-9 h-5 bg-gray-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-600 peer-checked:after:bg-white"></div>
+                    </label>
+                </div>
+
+                <!-- Admin Menu Toggle -->
+                <div class="flex items-center justify-between border-t border-gray-800/40 pt-3">
+                    <span class="text-gray-300 text-[11px] font-bold text-red-500">Enable Admin Menu</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="checkbox-admin" class="sr-only peer" />
                         <div class="w-9 h-5 bg-gray-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-600 peer-checked:after:bg-white"></div>
                     </label>
                 </div>
@@ -369,6 +444,10 @@
         // Custom setting values
         let sensitivityMultiplier = 1.0;
         let dynamicShadowsEnabled = true;
+
+        // Admin cheats variables
+        let godModeEnabled = false;
+        let dadFrozen = false;
 
         let playerStats = {
             suspicion: 0,
@@ -924,6 +1003,7 @@
                 }
 
                 document.getElementById('checkbox-shadows').checked = dynamicShadowsEnabled;
+                document.getElementById('checkbox-admin').checked = !document.getElementById('admin-menu-panel').classList.contains('hidden');
 
                 settingsModal.classList.remove('hidden');
             } else {
@@ -1004,6 +1084,144 @@
                 const pauseModal = document.getElementById('pause-modal');
                 // Let's bring back pause menu to let user resume
                 pauseModal.classList.remove('hidden');
+            });
+
+            // Admin Menu Toggle Event
+            document.getElementById('checkbox-admin').addEventListener('change', (e) => {
+                const adminPanel = document.getElementById('admin-menu-panel');
+                if (e.target.checked) {
+                    adminPanel.classList.remove('hidden');
+                } else {
+                    adminPanel.classList.add('hidden');
+                }
+            });
+
+            // Admin Panel Minimization / Collapsing
+            const btnAdminMinimize = document.getElementById('btn-admin-minimize');
+            const adminMenuContent = document.getElementById('admin-menu-content');
+            btnAdminMinimize.addEventListener('click', () => {
+                if (adminMenuContent.classList.contains('hidden')) {
+                    adminMenuContent.classList.remove('hidden');
+                    btnAdminMinimize.innerText = 'Collapse';
+                } else {
+                    adminMenuContent.classList.add('hidden');
+                    btnAdminMinimize.innerText = 'Expand';
+                }
+            });
+
+            // God Mode Checkbox
+            document.getElementById('checkbox-godmode').addEventListener('change', (e) => {
+                godModeEnabled = e.target.checked;
+                if (godModeEnabled) {
+                    playerStats.suspicion = 0;
+                    if (dadState === "chase") {
+                        dadState = "patrol";
+                        triggerVignetteFlash(false);
+                    }
+                    logHUDMessage("God Mode Enabled: Dad cannot detect you!");
+                } else {
+                    logHUDMessage("God Mode Disabled!");
+                }
+            });
+
+            // Freeze Dad Checkbox
+            document.getElementById('checkbox-freezedad').addEventListener('change', (e) => {
+                dadFrozen = e.target.checked;
+                if (dadFrozen) {
+                    logHUDMessage("Dad Frozen in place!");
+                } else {
+                    logHUDMessage("Dad unfrozen!");
+                }
+            });
+
+            // Cheat Screwdriver
+            document.getElementById('btn-cheat-screwdriver').addEventListener('click', () => {
+                if (!playerInventory.includes('screwdriver')) {
+                    const item = interactables.find(i => i.type === 'screwdriver');
+                    if (item) {
+                        item.collected = true;
+                        scene.remove(item.mesh);
+                    }
+                    playerInventory.push('screwdriver');
+                    currentObjective = 'key';
+                    updateObjectivesHUD("Unscrew the locked desk drawer with the screwdriver.");
+                    updateInventoryHUD();
+                    logHUDMessage("Cheated: Received Screwdriver!");
+                } else {
+                    logHUDMessage("Already have a screwdriver!");
+                }
+            });
+
+            // Cheat Key
+            document.getElementById('btn-cheat-key').addEventListener('click', () => {
+                // If drawer is not completed, unlock it first for visual/puzzle flow
+                const drawer = interactables.find(i => i.type === 'desk_drawer');
+                if (drawer && !drawer.completed) {
+                    drawer.completed = true;
+                    drawer.mesh.rotation.y += 0.4;
+                }
+
+                // If key is present in scene, remove it
+                const item = interactables.find(i => i.type === 'key');
+                if (item) {
+                    item.collected = true;
+                    scene.remove(item.mesh);
+                }
+
+                if (!playerInventory.includes('key')) {
+                    playerInventory.push('key');
+                    currentObjective = 'escape';
+                    updateObjectivesHUD("Unlock the front exit door and escape!");
+                    updateInventoryHUD();
+                    logHUDMessage("Cheated: Received Main Door Key!");
+                } else {
+                    logHUDMessage("Already have the Main Door Key!");
+                }
+            });
+
+            // Teleport - Spawn
+            document.getElementById('btn-tp-spawn').addEventListener('click', () => {
+                camera.position.set(-9.5, PLAYER_HEIGHT_STAND, 3.5);
+                logHUDMessage("Teleported to Spawn!");
+            });
+
+            // Teleport - Screwdriver
+            document.getElementById('btn-tp-screwdriver').addEventListener('click', () => {
+                camera.position.set(8.0, PLAYER_HEIGHT_STAND, -1.0);
+                logHUDMessage("Teleported to Screwdriver!");
+            });
+
+            // Teleport - Drawer
+            document.getElementById('btn-tp-drawer').addEventListener('click', () => {
+                camera.position.set(-8.0, PLAYER_HEIGHT_STAND, -4.0);
+                logHUDMessage("Teleported to Drawer!");
+            });
+
+            // Teleport - Exit
+            document.getElementById('btn-tp-exit').addEventListener('click', () => {
+                camera.position.set(0, PLAYER_HEIGHT_STAND, 7.5);
+                logHUDMessage("Teleported to Exit Door!");
+            });
+
+            // Teleport Dad
+            document.getElementById('btn-tp-dad').addEventListener('click', () => {
+                if (dadMesh) {
+                    dadMesh.position.set(0, 0, 2);
+                    dadMesh.rotation.set(0, 0, 0);
+                    dadState = "patrol";
+                    currentWaypointIndex = 0;
+                    triggerVignetteFlash(false);
+                    playerStats.suspicion = 0;
+                    logHUDMessage("Reset Dad to Spawn position!");
+                } else {
+                    logHUDMessage("Dad not spawned yet!");
+                }
+            });
+
+            // Instant Win
+            document.getElementById('btn-cheat-win').addEventListener('click', () => {
+                logHUDMessage("Triggering Instant Win...");
+                triggerWin();
             });
 
             // Keyboard Keydown Events
@@ -1459,6 +1677,7 @@
 
         function updateDadAI(delta) {
             if (!gameActive || !dadMesh || isPaused) return;
+            if (dadFrozen) return;
 
             const dadPos = dadMesh.position;
             const playerPos = camera.position;
@@ -1472,7 +1691,13 @@
             // Vision Cone Check
             let playerVisible = false;
 
-            if (!isHiding && playerDistance < 9) {
+            if (godModeEnabled) {
+                playerStats.suspicion = 0;
+                if (dadState === "chase") {
+                    dadState = "patrol";
+                    triggerVignetteFlash(false);
+                }
+            } else if (!isHiding && playerDistance < 9) {
                 // Calculate direction vector from dad to player
                 const dirToPlayer = new THREE.Vector3().subVectors(playerPos, dadPos).normalize();
 
@@ -1496,7 +1721,7 @@
 
             // Hearing Noise check
             let noiseHeard = false;
-            if (!isHiding && playerStats.noise > 0) {
+            if (!godModeEnabled && !isHiding && playerStats.noise > 0) {
                 const audibilityRadius = playerStats.noise === 5 ? 1.5 : 8.5; // Crouch walks are extremely quiet
                 if (playerDistance <= audibilityRadius) {
                     noiseHeard = true;
