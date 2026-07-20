@@ -556,6 +556,139 @@
       border-top: 1px solid var(--border-color);
       padding-top: 16px;
     }
+
+    /* Multiplayer Chat Style Rules */
+    #chat-panel {
+      position: absolute;
+      left: 24px;
+      bottom: 100px;
+      width: 320px;
+      height: 250px;
+      display: none; /* Only visible in multiplayer mode */
+      flex-direction: column;
+      z-index: 99;
+      pointer-events: auto;
+      transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #chat-panel.collapsed {
+      height: 40px;
+    }
+
+    .chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(30, 24, 21, 0.95);
+      border-bottom: 1px solid var(--border-color);
+      padding: 8px 12px;
+      border-top-left-radius: 5px;
+      border-top-right-radius: 5px;
+      font-weight: bold;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent-color);
+    }
+
+    .chat-collapse-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: monospace;
+      font-size: 14px;
+      padding: 0 4px;
+    }
+
+    .chat-collapse-btn:hover {
+      color: var(--accent-color);
+    }
+
+    #chat-history {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-family: monospace;
+      font-size: 11px;
+      background: rgba(15, 11, 9, 0.7);
+    }
+
+    #chat-panel.collapsed #chat-history,
+    #chat-panel.collapsed .chat-footer {
+      display: none !important;
+    }
+
+    .chat-msg {
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+
+    .chat-msg.player {
+      color: #eae3d2;
+    }
+
+    .chat-msg.opponent {
+      color: var(--central-color);
+    }
+
+    .chat-msg.hq {
+      color: var(--cosphere-color);
+    }
+
+    .chat-msg.system {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .chat-sender {
+      font-weight: bold;
+      margin-right: 4px;
+    }
+
+    .chat-footer {
+      display: flex;
+      border-top: 1px solid var(--border-color);
+      background: rgba(22, 17, 14, 0.9);
+      border-bottom-left-radius: 5px;
+      border-bottom-right-radius: 5px;
+      overflow: hidden;
+    }
+
+    #chat-input {
+      flex-grow: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      padding: 10px 12px;
+      font-size: 12px;
+      font-family: monospace;
+      outline: none;
+    }
+
+    #chat-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .chat-send-btn {
+      background: transparent;
+      border: none;
+      border-left: 1px solid var(--border-color);
+      color: var(--accent-color);
+      padding: 0 16px;
+      cursor: pointer;
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+
+    .chat-send-btn:hover {
+      background: rgba(197, 160, 89, 0.1);
+    }
   </style>
 </head>
 <body>
@@ -632,7 +765,7 @@
     <div style="display: flex; gap: 16px; justify-content: center; width: 100%; max-width: 900px;">
       <a class="start-btn-secondary" href="../../">Back to Lab</a>
       <button class="start-btn-secondary" onclick="openMultiplayer()">Multiplayer</button>
-      <button class="start-btn" onclick="initGame()">Launch Operation</button>
+      <button class="start-btn" onclick="initGame(false)">Launch Operation</button>
     </div>
   </div>
 
@@ -648,7 +781,7 @@
       </div>
 
       <div style="display: flex; gap: 16px; justify-content: center;">
-        <button id="mp-action-btn" class="start-btn" style="display: none;" onclick="initGame()">Join Operation</button>
+        <button id="mp-action-btn" class="start-btn" style="display: none;" onclick="initGame(true)">Join Operation</button>
         <button class="start-btn-secondary" onclick="closeMultiplayer()">Cancel Connection</button>
       </div>
     </div>
@@ -749,6 +882,21 @@
       </div>
     </div>
 
+    <!-- Telegram Chat UI inside tactical HUD layer -->
+    <div id="chat-panel" class="glass-panel">
+      <div class="chat-header">
+        <span>Telegraph Communications</span>
+        <button class="chat-collapse-btn" onclick="toggleChatCollapse()">_</button>
+      </div>
+      <div id="chat-history">
+        <!-- Messages will be dynamically appended here -->
+      </div>
+      <div class="chat-footer">
+        <input type="text" id="chat-input" placeholder="Type transmission..." maxlength="100" onkeydown="handleChatInputKeyDown(event)">
+        <button class="chat-send-btn" onclick="sendChatMessageFromUI()">Send</button>
+      </div>
+    </div>
+
     <div id="bottom-bar">
       <button class="action-btn" onclick="spawnUnit('infantry')">Infantry (25)</button>
       <button class="action-btn" onclick="spawnUnit('tank')">Landship (65)</button>
@@ -765,6 +913,25 @@
     let enemyNation = 'germany';
     let playerHealth = 100;
     let enemyHealth = 100;
+
+    // Multiplayer and Chat States
+    let isMultiplayer = false;
+    let currentOpponentCommander = "German High Command";
+    let isChatCollapsed = false;
+
+    // Map of historical commanders per nation for telegraph transmissions
+    const nationCommanders = {
+      uk: "Field Marshal Douglas Haig",
+      france: "General Philippe Pétain",
+      russia: "Grand Duke Nicholas",
+      usa: "General John J. Pershing",
+      germany: "Kaiser Wilhelm II",
+      austria: "Field Marshal Conrad von Hötzendorf",
+      ottoman: "Enver Pasha",
+      bulgaria: "General Nikola Zhekov",
+      japan: "General Kamio Mitsuomi",
+      china: "General Duan Qirui"
+    };
 
     // News Ticker Data and Functions
     let newsTimer = 0;
@@ -861,12 +1028,9 @@
       }, 4500));
 
       mpTimeouts.push(setTimeout(() => {
-        const opposingCommanders = [
-          'Kaiser_Wilhelm_II', 'General_Ludendorff', 'Crown_Prince_Wilhelm',
-          'Field_Marshal_Hindenburg', 'Archduke_Franz_Ferdinand', 'Enver_Pasha'
-        ];
-        const opponent = opposingCommanders[Math.floor(Math.random() * opposingCommanders.length)];
-        logToTerminal(`Hostile adversary established: ${opponent}`, 'success');
+        // Set multiplayer opponent based on randomly assigned or current enemyNation commander
+        currentOpponentCommander = nationCommanders[enemyNation] || "German High Command";
+        logToTerminal(`Hostile adversary established: ${currentOpponentCommander}`, 'success');
       }, 6000));
 
       mpTimeouts.push(setTimeout(() => {
@@ -882,6 +1046,7 @@
     function closeMultiplayer() {
       mpTimeouts.forEach(clearTimeout);
       mpTimeouts = [];
+      isMultiplayer = false;
       document.getElementById('multiplayer-screen').style.display = 'none';
     }
 
@@ -923,6 +1088,128 @@
     let gameRunning = false;
     let isPaused = false;
     let supplies = 100;
+
+    // Chat management utility functions
+    function toggleChatCollapse() {
+      const panel = document.getElementById('chat-panel');
+      const btn = document.querySelector('.chat-collapse-btn');
+      if (panel) {
+        panel.classList.toggle('collapsed');
+        isChatCollapsed = panel.classList.contains('collapsed');
+        if (btn) {
+          btn.innerText = isChatCollapsed ? "▢" : "_";
+        }
+      }
+    }
+
+    function appendSystemMessage(text) {
+      const history = document.getElementById('chat-history');
+      if (!history) return;
+      const msgEl = document.createElement('div');
+      msgEl.className = 'chat-msg system';
+      msgEl.innerText = text;
+      history.appendChild(msgEl);
+      history.scrollTop = history.scrollHeight;
+    }
+
+    function appendChatMessage(sender, text, type) {
+      const history = document.getElementById('chat-history');
+      if (!history) return;
+      const msgEl = document.createElement('div');
+      msgEl.className = `chat-msg ${type}`;
+
+      const senderEl = document.createElement('span');
+      senderEl.className = 'chat-sender';
+      senderEl.innerText = `${sender}:`;
+
+      const textEl = document.createElement('span');
+      textEl.innerText = text;
+
+      msgEl.appendChild(senderEl);
+      msgEl.appendChild(textEl);
+      history.appendChild(msgEl);
+      history.scrollTop = history.scrollHeight;
+    }
+
+    function handleChatInputKeyDown(event) {
+      if (event.key === 'Enter') {
+        sendChatMessageFromUI();
+        event.preventDefault();
+      }
+    }
+
+    function sendChatMessageFromUI() {
+      const input = document.getElementById('chat-input');
+      if (!input) return;
+      const text = input.value.trim();
+      if (!text) return;
+
+      // Clear input
+      input.value = '';
+
+      // Send player message
+      const pName = nations[playerNation].name;
+      appendChatMessage(pName, text, 'player');
+
+      // Handle simulated response
+      simulateTelegraphResponse(text);
+    }
+
+    function simulateTelegraphResponse(msgText) {
+      const lower = msgText.toLowerCase();
+      let opponentReply = "";
+      let hqReply = "";
+
+      const oppCommander = nationCommanders[enemyNation] || "Enemy Commander";
+      const allyCommander = nationCommanders[playerNation] || "Allied Commander";
+
+      if (lower.includes('hello') || lower.includes('hi ') || lower.includes('greetings')) {
+        opponentReply = `This is ${oppCommander}. Save your pleasantries for the peace talks. The front lines shall settle this.`;
+      } else if (lower.includes('attack') || lower.includes('charge') || lower.includes('push')) {
+        opponentReply = `Your futile advances will be met with maximum defensive resistance! We are entrenched!`;
+        hqReply = `Allied Headquarters: Intelligence reports show enemy defensive line reinforcement. Watch their machine guns.`;
+      } else if (lower.includes('help') || lower.includes('support') || lower.includes('reinforce')) {
+        hqReply = `Allied Headquarters: Additional logistics are being marshalled. Hold the line, Commander!`;
+      } else if (lower.includes('surrender') || lower.includes('give up')) {
+        opponentReply = `Lay down your arms and raise the white flag, and your men shall be spared.`;
+      } else if (lower.includes('retreat') || lower.includes('fall back')) {
+        opponentReply = `Ah, pulling back already? The field belongs to us!`;
+        hqReply = `Allied Headquarters: Orderly retreat is better than total annihilation. Reorganize defensive lines.`;
+      } else if (lower.includes('artillery') || lower.includes('barrage') || lower.includes('shell')) {
+        opponentReply = `We are ducking inside our concrete bunkers! Your shells will not break our resolve!`;
+        hqReply = `Allied Headquarters: Artillery support coordinates synchronized. Stay clear of the impact zone!`;
+      } else if (lower.includes('tank') || lower.includes('landship')) {
+        opponentReply = `We see your lumbering landship! Steel plates won't protect you from our high explosive shells!`;
+      } else if (lower.includes('plane') || lower.includes('biplane') || lower.includes('air')) {
+        opponentReply = `Aviation support spotted overhead. Bring up the anti-aircraft machine guns!`;
+      } else {
+        // Generic response
+        const generalOpponentReplies = [
+          `Your wireless messages are being intercepted. Our forces will hold!`,
+          `This field of battle belongs to the central powers. Yield now!`,
+          `We have observed your coordinates. Standby for counter-battery fire!`,
+          `Your operational capabilities are crumbling under our pressure.`
+        ];
+        opponentReply = generalOpponentReplies[Math.floor(Math.random() * generalOpponentReplies.length)];
+      }
+
+      // Delay responses slightly to feel like real telegraph typing
+      if (opponentReply) {
+        setTimeout(() => {
+          if (isMultiplayer && gameRunning) {
+            appendChatMessage(oppCommander, opponentReply, 'opponent');
+          }
+        }, 1200 + Math.random() * 800);
+      }
+
+      if (hqReply) {
+        setTimeout(() => {
+          if (isMultiplayer && gameRunning) {
+            appendChatMessage("HQ COMMAND", hqReply, 'hq');
+          }
+        }, 2200 + Math.random() * 1000);
+      }
+    }
     let continueCountdown = 10;
     let continueInterval = null;
     let units = [];
@@ -1018,7 +1305,9 @@
       }, 100);
     }
 
-    function initGame() {
+    function initGame(isMp = false) {
+      isMultiplayer = isMp;
+
       document.getElementById('lobby-screen').style.display = 'none';
       document.getElementById('multiplayer-screen').style.display = 'none';
       document.getElementById('loading-screen').style.display = 'flex';
@@ -1027,6 +1316,20 @@
       document.getElementById('p-name').innerText = nations[playerNation].name;
       document.getElementById('e-flag').src = nations[enemyNation].flag;
       document.getElementById('e-name').innerText = nations[enemyNation].name;
+
+      // Handle chat element visibility depending on multiplayer mode
+      const chatPanel = document.getElementById('chat-panel');
+      if (chatPanel) {
+        chatPanel.style.display = isMultiplayer ? 'flex' : 'none';
+        if (isMultiplayer) {
+          // Clear previous chat messages and push introductory system message
+          const history = document.getElementById('chat-history');
+          if (history) {
+            history.innerHTML = '';
+            appendSystemMessage(`Telegraph connection secure with ${nationCommanders[enemyNation] || "Enemy Commander"}. Send transmissions.`);
+          }
+        }
+      }
 
       startLoading();
     }
@@ -1117,6 +1420,10 @@
     // Escape and P keys to pause/resume the game
     window.addEventListener('keydown', (e) => {
       if (!gameRunning) return;
+      // If user is focused on the chat input, don't trigger game pause/resume shortcuts
+      if (document.activeElement && document.activeElement.id === 'chat-input') {
+        return;
+      }
       if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
         if (isPaused) {
           resumeGame();
@@ -1575,8 +1882,18 @@
         const eName = nations[enemyNation].name;
         if (type === 'tank') {
           updateNewsTicker(`TACTICAL UPDATE: ${pName} deployed an armored Landship to breach the frontline!`);
+          if (isMultiplayer) {
+            setTimeout(() => {
+              appendChatMessage(nationCommanders[enemyNation] || "Enemy Commander", "A Landship! Deploying heavy infantry countermeasures!", "opponent");
+            }, 1500);
+          }
         } else if (type === 'plane') {
           updateNewsTicker(`TACTICAL UPDATE: ${pName} authorized biplane tactical recon air support overhead!`);
+          if (isMultiplayer) {
+            setTimeout(() => {
+              appendChatMessage(nationCommanders[enemyNation] || "Enemy Commander", "A hostile biplane! Watch the skies, men!", "opponent");
+            }, 1500);
+          }
         } else {
           updateNewsTicker(`TACTICAL UPDATE: ${pName} mobilized additional infantry forces into active service!`);
         }
@@ -1596,8 +1913,18 @@
         const eName = nations[enemyNation].name;
         if (randomUnit === 'tank') {
           updateNewsTicker(`SITUATION REPORT: Watch out! ${eName} deployed heavy armored support into the combat zone!`);
+          if (isMultiplayer) {
+            setTimeout(() => {
+              appendChatMessage("HQ COMMAND", "Warning! Heavy hostile landship detected. Aim your guns at it!", "hq");
+            }, 1500);
+          }
         } else if (randomUnit === 'plane') {
           updateNewsTicker(`SITUATION REPORT: Warning! Hostile ${eName} aviation spotted on reconnaissance course!`);
+          if (isMultiplayer) {
+            setTimeout(() => {
+              appendChatMessage("HQ COMMAND", "Enemy biplane overhead! Take defensive cover!", "hq");
+            }, 1500);
+          }
         } else {
           updateNewsTicker(`SITUATION REPORT: Active reports indicate ${eName} infantry advancing in standard formation!`);
         }
@@ -1750,6 +2077,14 @@
         const pName = nations[playerNation].name;
         updateNewsTicker(`CRITICAL STATUS: Commander, our frontline defense points are under severe hostile pressure!`);
         newsTimer = 300; // delay next random rotation
+        if (isMultiplayer) {
+          setTimeout(() => {
+            appendChatMessage("HQ COMMAND", "Command attention: Frontline integrity critical! Mobilize reserve units!", "hq");
+          }, 1500);
+          setTimeout(() => {
+            appendChatMessage(nationCommanders[enemyNation] || "Enemy Commander", "Your defense lines are shattering! Victory is within our grasp!", "opponent");
+          }, 3000);
+        }
       } else if (playerHealth > 35) {
         lowHealthAlarmActive = false;
       }
@@ -1759,6 +2094,14 @@
         const eName = nations[enemyNation].name;
         updateNewsTicker(`INTELLIGENCE REPORT: Enemy defenses cracking! ${eName} command is experiencing severe logistical distress!`);
         newsTimer = 300; // delay next random rotation
+        if (isMultiplayer) {
+          setTimeout(() => {
+            appendChatMessage(nationCommanders[enemyNation] || "Enemy Commander", "Hold the line! No retreat! Bring up all reserve support!", "opponent");
+          }, 1500);
+          setTimeout(() => {
+            appendChatMessage("HQ COMMAND", "Enemy lines are fracturing. Keep pushing to secure victory!", "hq");
+          }, 3000);
+        }
       } else if (enemyHealth > 35) {
         lowEnemyHealthAlarmActive = false;
       }
