@@ -133,6 +133,7 @@
                                 <option value="continents">Pangaea Continents</option>
                                 <option value="islands">Archipelago Islands</option>
                                 <option value="europe">Europe (Modern Nations)</option>
+                                <option value="japan">Japan Civil War</option>
                                 <option value="classic">Classic World Map Sketch</option>
                                 <option value="ring">The Ring World</option>
                                 <option value="empty">Empty Sandbox Ocean</option>
@@ -485,6 +486,61 @@
                 paintCircle(52, 34, 10, terrain.LAND);
                 // Australia
                 paintCircle(68, 36, 6, terrain.LAND);
+            } else if (scenarioType === 'japan') {
+                // Paint Japanese Archipelago Landmasses
+
+                // Hokkaido (North Island)
+                paintCircle(66, 8, 5, terrain.LAND);
+
+                // Honshu (Main Island - Curved Path)
+                paintCircle(58, 15, 3.5, terrain.LAND);
+                paintCircle(54, 18, 3.5, terrain.LAND);
+                paintCircle(46, 23, 4, terrain.LAND);
+                paintCircle(40, 26, 4, terrain.LAND);
+                paintCircle(32, 28, 3.5, terrain.LAND);
+                paintCircle(25, 30, 3, terrain.LAND);
+
+                // Shikoku (South-East Island)
+                paintCircle(28, 34, 2.5, terrain.LAND);
+
+                // Kyushu (South-West Island)
+                paintCircle(16, 36, 3.5, terrain.LAND);
+                paintCircle(14, 40, 3, terrain.LAND);
+
+                // Islands / Stepping stones (Bridges) to allow expansion across water
+                // Tsugaru Strait (Hokkaido to Honshu)
+                paintCircle(62, 11, 1, terrain.LAND);
+                // Seto Inland Sea / Kanmon Strait (Honshu, Shikoku, Kyushu connections)
+                paintCircle(30, 31, 1, terrain.LAND);
+                paintCircle(20, 33, 1, terrain.LAND);
+                paintCircle(22, 35, 1, terrain.LAND);
+
+                // --- Paint Major Japanese Mountain Ranges ---
+                // Hokkaido Range
+                paintCircle(66, 8, 1.5, terrain.MOUNTAIN);
+                // Northern Honshu (Tohoku) Mountains
+                paintCircle(56, 17, 1.5, terrain.MOUNTAIN);
+                // Central Alps (Chubu region)
+                paintCircle(43, 24, 2, terrain.MOUNTAIN);
+                // Western Chugoku Mountains
+                paintCircle(29, 29, 1.5, terrain.MOUNTAIN);
+
+                // Spawn Sengoku Period Clans / Factions
+                createNation("Oda Clan", "#ec4899", 41, 26, "assets/japan.svg");
+                createNation("Tokugawa Clan", "#eab308", 45, 25, "assets/japan.svg");
+                createNation("Takeda Clan", "#ef4444", 47, 22, "assets/japan.svg");
+                createNation("Uesugi Clan", "#3b82f6", 50, 19, "assets/japan.svg");
+                createNation("Mori Clan", "#0d9488", 26, 30, "assets/japan.svg");
+                createNation("Shimazu Clan", "#059669", 14, 40, "assets/japan.svg");
+                createNation("Date Clan", "#6366f1", 57, 16, "assets/japan.svg");
+                createNation("Hojo Clan", "#8b5cf6", 48, 24, "assets/japan.svg");
+                createNation("Chosokabe Clan", "#f97316", 28, 34, "assets/japan.svg");
+                createNation("Toyotomi Clan", "#06b6d4", 36, 27, "assets/japan.svg");
+                createNation("Matsumae Clan", "#64748b", 64, 10, "assets/japan.svg");
+
+                // Recalculate and update leaderboard
+                recalculateNationSizes();
+                updateLeaderboard();
             } else if (scenarioType === 'europe') {
                 // Paint Europe Landmasses
 
