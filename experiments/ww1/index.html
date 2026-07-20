@@ -854,6 +854,9 @@
             <div class="glass-panel" id="powerup-status" style="display: none; padding: 6px 16px; text-align: center; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #d4af37; border-color: #d4af37;">
               SPREAD SHOT: <span id="powerup-timer">15.0</span>s
             </div>
+            <div class="glass-panel" id="missile-panel" style="display: none; padding: 6px 16px; text-align: center; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #ff5722; border-color: #ff5722;">
+              MISSILES: <span id="missile-count">0</span>
+            </div>
           </div>
           <div class="glass-panel" id="pause-btn" onclick="pauseGame()">
             <img src="./assets/pause.svg" alt="Pause">
@@ -1220,8 +1223,22 @@
     let powerUps = [];
     let powerUpSpawnTimer = 300;
     let multishotTimer = 0;
+    let missileCount = 0;
     let floatingTexts = [];
     let artilleryShells = [];
+
+    function updateMissileUI() {
+      const panel = document.getElementById('missile-panel');
+      const count = document.getElementById('missile-count');
+      if (panel && count) {
+        count.innerText = missileCount;
+        if (missileCount > 0) {
+          panel.style.display = 'block';
+        } else {
+          panel.style.display = 'none';
+        }
+      }
+    }
 
     const loadingTips = [
       "Trench Warfare: Infantry units can establish fortified positions to hold territory against hostile incursions.",
@@ -1398,6 +1415,8 @@
       powerUps = [];
       powerUpSpawnTimer = 180 + Math.random() * 240; // ~3 to 7 seconds first spawn
       multishotTimer = 0;
+      missileCount = 0;
+      updateMissileUI();
       floatingTexts = [];
       artilleryShells = [];
 
@@ -1505,6 +1524,29 @@
 
       const dist = Math.hypot(clickX - gunBaseX, clickY - gunBaseY);
 
+      if (missileCount > 0) {
+        // Fire high-impact missile!
+        missileCount--;
+        updateMissileUI();
+
+        gunRecoil = 35;
+        muzzleFlashLife = 12;
+
+        shots.push({
+          startX: muzzleFlashX,
+          startY: muzzleFlashY,
+          targetX: clickX,
+          targetY: clickY,
+          x: muzzleFlashX,
+          y: muzzleFlashY,
+          speed: 15, // A bit slower and heavier than bullet tracers
+          progress: 0,
+          distance: dist,
+          type: 'missile'
+        });
+        return;
+      }
+
       if (multishotTimer > 0) {
         // Spread shot: 3 tracers
         const spreadAngles = [-0.12, 0, 0.12]; // spread angle offsets in radians
@@ -1604,8 +1646,13 @@
         }
 
         // 2. Draw Wooden Crate
-        ctx.fillStyle = '#7a5230'; // wood base
-        ctx.strokeStyle = '#3d2613'; // wood dark frame
+        if (this.type === 'missile') {
+          ctx.fillStyle = '#4e5d6c'; // steel grey base
+          ctx.strokeStyle = '#2b3e50'; // dark steel frame
+        } else {
+          ctx.fillStyle = '#7a5230'; // wood base
+          ctx.strokeStyle = '#3d2613'; // wood dark frame
+        }
         ctx.lineWidth = 2;
         ctx.fillRect(this.x, this.y, this.width, this.height);
         ctx.strokeRect(this.x, this.y, this.width, this.height);
@@ -1619,7 +1666,11 @@
         ctx.stroke();
 
         // Inner panel border for retro feel
-        ctx.strokeStyle = 'rgba(61, 38, 19, 0.4)';
+        if (this.type === 'missile') {
+          ctx.strokeStyle = 'rgba(43, 62, 80, 0.4)';
+        } else {
+          ctx.strokeStyle = 'rgba(61, 38, 19, 0.4)';
+        }
         ctx.strokeRect(this.x + 3, this.y + 3, this.width - 6, this.height - 6);
 
         // 3. Draw Type Indicator text/icon above the crate with glowing pulses
@@ -1638,6 +1689,10 @@
           color = '#d4af37'; // Gold
           symbol = 'S';
           labelText = 'SPREAD';
+        } else if (this.type === 'missile') {
+          color = '#ff5722'; // Orange-Red
+          symbol = 'M';
+          labelText = 'MISSILE';
         }
 
         // Pulsing hover glow
@@ -1727,6 +1782,22 @@
           vy: -1,
           life: 120
         });
+      } else if (p.type === 'missile') {
+        missileCount++;
+        updateMissileUI();
+        floatingTexts.push({
+          x: p.x + p.width / 2,
+          y: p.y,
+          text: "+1 MISSILE STRIKE!",
+          color: '#ff5722',
+          alpha: 1,
+          vy: -1,
+          life: 120
+        });
+
+        const pName = nations[playerNation].name;
+        updateNewsTicker(`FRONT LINE TELEGRAM: ${pName} command authorized high-impact Missile strike!`);
+        newsTimer = 600; // delay next random headline
       }
     }
 
@@ -1816,29 +1887,34 @@
       }
     }
 
-    function createExplosion(x, y, isBigShell = false, isHostile = false) {
+    function createExplosion(x, y, isBigShell = false, isHostile = false, isMissile = false) {
       // Spawn fine particles
-      const particleCount = isBigShell ? 15 : 6;
+      const particleCount = isMissile ? 45 : (isBigShell ? 15 : 6);
       for (let i = 0; i < particleCount; i++) {
+        const speedMultiplier = isMissile ? 14 : (isBigShell ? 8 : 4);
         particles.push({
           x: x,
           y: y,
-          vx: (Math.random() - 0.5) * (isBigShell ? 8 : 4),
-          vy: (Math.random() - 0.5) * (isBigShell ? 8 : 4) - (isBigShell ? 2 : 0),
-          color: Math.random() > 0.4 ? '#c5a059' : '#8d4f38',
-          life: isBigShell ? 30 : 20
+          vx: (Math.random() - 0.5) * speedMultiplier,
+          vy: (Math.random() - 0.5) * speedMultiplier - (isBigShell ? 2 : 0),
+          color: isMissile ? (Math.random() > 0.3 ? '#ff5722' : '#ff9800') : (Math.random() > 0.4 ? '#c5a059' : '#8d4f38'),
+          life: isMissile ? (30 + Math.random() * 20) : (isBigShell ? 30 : 20)
         });
       }
 
       if (isBigShell) {
+        const rad = isMissile ? 180 : 80;
+        const damageVal = isMissile ? 450 : 180;
+        const trenchDamageVal = isMissile ? 25 : 10;
+
         // Spawn actual visual explosion using the SVG graphic
         explosions.push({
           x: x,
           y: y,
-          maxRadius: 80,
+          maxRadius: rad,
           currentRadius: 10,
-          life: 25,
-          maxLife: 25
+          life: isMissile ? 40 : 25,
+          maxLife: isMissile ? 40 : 25
         });
 
         // Detonate power-ups within explosion radius
@@ -1847,15 +1923,15 @@
           const pCenterX = p.x + p.width / 2;
           const pCenterY = p.y + p.height / 2;
           const dist = Math.hypot(pCenterX - x, pCenterY - y);
-          if (dist < 80) {
+          if (dist < rad) {
             activatePowerUp(p);
             powerUps.splice(i, 1);
           }
         }
 
         // Damage detection on units based on alignment (Friendly fire prevention)
-        const explosionRadius = 80;
-        const baseDamage = 180;
+        const explosionRadius = rad;
+        const baseDamage = damageVal;
 
         for (let i = units.length - 1; i >= 0; i--) {
           const u = units[i];
@@ -1877,7 +1953,7 @@
             u.health -= finalDamage;
 
             // Spawn localized blood splatters/particles
-            spawnBloodSplatter(uCenterX, uCenterY, Math.ceil(5 * falloff));
+            spawnBloodSplatter(uCenterX, uCenterY, Math.ceil((isMissile ? 12 : 5) * falloff));
           }
         }
 
@@ -1889,7 +1965,7 @@
           const distToTrench = Math.hypot(pTrenchX - x, pTrenchY - y);
           if (distToTrench < explosionRadius) {
             const falloff = 1 - (distToTrench / explosionRadius);
-            playerHealth -= 10 * falloff;
+            playerHealth -= trenchDamageVal * falloff;
             playerHealth = Math.max(0, playerHealth);
             const pFill = document.getElementById('p-health-fill');
             const pText = document.getElementById('p-health-text');
@@ -1903,7 +1979,7 @@
           const distToTrench = Math.hypot(eTrenchX - x, eTrenchY - y);
           if (distToTrench < explosionRadius) {
             const falloff = 1 - (distToTrench / explosionRadius);
-            enemyHealth -= 10 * falloff;
+            enemyHealth -= trenchDamageVal * falloff;
             enemyHealth = Math.max(0, enemyHealth);
             const eFill = document.getElementById('e-health-fill');
             const eText = document.getElementById('e-health-text');
@@ -2043,6 +2119,8 @@
       if (pFill) pFill.style.width = '100%';
       if (pText) pText.innerText = 'HP: 100/100';
 
+      updateMissileUI();
+
       const pName = nations[playerNation].name;
       updateNewsTicker(`REINFORCEMENTS ARRIVED: Commander, secondary forces have deployed! The battle for the line resumes.`);
 
@@ -2162,7 +2240,7 @@
       // Spawning logic for Powerups
       powerUpSpawnTimer--;
       if (powerUpSpawnTimer <= 0) {
-        const types = ['supply', 'artillery', 'multishot'];
+        const types = ['supply', 'artillery', 'multishot', 'missile'];
         const type = types[Math.floor(Math.random() * types.length)];
         const spawnX = canvas.width * 0.2 + Math.random() * (canvas.width * 0.6);
         powerUps.push(new PowerUp(type, spawnX));
@@ -2266,20 +2344,96 @@
 
         if (d < s.speed) {
           // Arrived at target! Trigger explosion and remove projectile
-          createExplosion(s.targetX, s.targetY, true, s.isHostile);
+          createExplosion(s.targetX, s.targetY, true, s.isHostile, s.type === 'missile');
           shots.splice(i, 1);
         } else {
           const angle = Math.atan2(dy, dx);
           s.x += Math.cos(angle) * s.speed;
           s.y += Math.sin(angle) * s.speed;
 
-          // Draw Bullet Tracer line
-          ctx.strokeStyle = s.isHostile ? 'rgba(255, 100, 100, 0.8)' : 'rgba(255, 230, 150, 0.8)';
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.moveTo(s.x - Math.cos(angle) * 20, s.y - Math.sin(angle) * 20);
-          ctx.lineTo(s.x, s.y);
-          ctx.stroke();
+          if (s.type === 'missile') {
+            // Missile smoke and fire trail particle generation
+            if (Math.random() < 0.6) {
+              const trailX = s.x - Math.cos(angle) * 15;
+              const trailY = s.y - Math.sin(angle) * 15;
+              particles.push({
+                x: trailX,
+                y: trailY,
+                vx: -Math.cos(angle) * 2 + (Math.random() - 0.5) * 2,
+                vy: -Math.sin(angle) * 2 + (Math.random() - 0.5) * 2,
+                color: Math.random() > 0.4 ? '#ff5722' : '#ff9800', // orange / yellow flame
+                life: 15 + Math.random() * 10
+              });
+            }
+            if (Math.random() < 0.4) {
+              const trailX = s.x - Math.cos(angle) * 15;
+              const trailY = s.y - Math.sin(angle) * 15;
+              particles.push({
+                x: trailX,
+                y: trailY,
+                vx: -Math.cos(angle) * 1 + (Math.random() - 0.5) * 1,
+                vy: -Math.sin(angle) * 1 + (Math.random() - 0.5) * 1,
+                color: '#555555', // dark grey smoke
+                life: 25 + Math.random() * 15
+              });
+            }
+
+            // Draw Missile: a custom drawn rocket shape
+            ctx.save();
+            ctx.translate(s.x, s.y);
+            ctx.rotate(angle);
+
+            // Draw missile body: sleek metal capsule/fin shape
+            ctx.fillStyle = '#90a4ae'; // metallic blue grey body
+            ctx.strokeStyle = '#37474f';
+            ctx.lineWidth = 1.5;
+
+            // Main body cylinder
+            ctx.beginPath();
+            ctx.moveTo(-15, -4);
+            ctx.lineTo(8, -4);
+            ctx.lineTo(15, 0); // pointed nose cone
+            ctx.lineTo(8, 4);
+            ctx.lineTo(-15, 4);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Orange/red warhead tip
+            ctx.fillStyle = '#ff5722';
+            ctx.beginPath();
+            ctx.moveTo(8, -4);
+            ctx.lineTo(15, 0);
+            ctx.lineTo(8, 4);
+            ctx.closePath();
+            ctx.fill();
+
+            // Fin stabilizers at back
+            ctx.fillStyle = '#37474f';
+            ctx.beginPath();
+            ctx.moveTo(-15, -4);
+            ctx.lineTo(-20, -10);
+            ctx.lineTo(-12, -4);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(-15, 4);
+            ctx.lineTo(-20, 10);
+            ctx.lineTo(-12, 4);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.restore();
+          } else {
+            // Draw Bullet Tracer line
+            ctx.strokeStyle = s.isHostile ? 'rgba(255, 100, 100, 0.8)' : 'rgba(255, 230, 150, 0.8)';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(s.x - Math.cos(angle) * 20, s.y - Math.sin(angle) * 20);
+            ctx.lineTo(s.x, s.y);
+            ctx.stroke();
+          }
         }
       }
 
