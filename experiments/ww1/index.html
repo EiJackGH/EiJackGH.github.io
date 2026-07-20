@@ -18,6 +18,106 @@
       --cosphere-color: #5c8ca6;
     }
 
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internet Explorer Unsupported | WW1 Simulator</title>
+    <style>
+        :root {
+            --bg-color: #121413;
+            --container-bg: #191c1a;
+            --border-color: #2d3330;
+            --text-primary: #f5ede6;
+            --text-secondary: #8a948f;
+            --accent-gold: #f1c40f;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .error-card {
+            background-color: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-top: 4px solid var(--accent-gold);
+            padding: 40px;
+            border-radius: 8px;
+            max-width: 520px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        h1 {
+            font-family: 'Georgia', serif;
+            font-size: 1.8rem;
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .browser-list {
+            margin: 20px 0;
+            padding: 0;
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .browser-item {
+            background: #222724;
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="error-card">
+        <div style="font-size: 3rem; margin-bottom: 15px;">🌐</div>
+        <h1>Legacy Browser Detected</h1>
+        <p>
+            The WW1 Tactical Simulator relies on modern vector matrices, native SVG canvas elements, and advanced CSS Grid structures that are completely incompatible with Internet Explorer.
+        </p>
+        <p>
+            To deploy your armored divisions and view the Co-Sphere Factions correctly, please launch this archive engine using a modern web browser:
+        </p>
+        <div class="browser-list">
+            <span class="browser-item">Safari 9+</span>
+            <span class="browser-item">Firefox</span>
+            <span class="browser-item">Chrome</span>
+            <span class="browser-item">Edge</span>
+        </div>
+        <p style="font-size: 11px; margin-top: 20px;">
+            <small>EiJackGH WW1 Game - 2026</small>
+        </p>
+    </div>
+
+</body>
+</html>
+
     * {
       box-sizing: border-box;
       margin: 0;
