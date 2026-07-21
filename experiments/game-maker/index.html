@@ -1139,9 +1139,9 @@
 
     function handleTileCollisions(direction) {
       const leftCol = Math.floor(player.x / TILE_SIZE);
-      const rightCol = Math.floor((player.x + player.width) / TILE_SIZE);
+      const rightCol = Math.floor((player.x + player.width - 0.1) / TILE_SIZE);
       const topRow = Math.floor(player.y / TILE_SIZE);
-      const bottomRow = Math.floor((player.y + player.height) / TILE_SIZE);
+      const bottomRow = Math.floor((player.y + player.height - 0.1) / TILE_SIZE);
 
       // Bound check
       for (let row = topRow; row <= bottomRow; row++) {

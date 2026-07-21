@@ -1,4 +1,3 @@
-127.0.0.1 - - [20/Jul/2026 16:25:03] "GET /experiments/game-maker/index.html HTTP/1.1" 200 -
-127.0.0.1 - - [20/Jul/2026 16:25:03] "GET /experiments/game-maker/noscript.js HTTP/1.1" 200 -
-127.0.0.1 - - [20/Jul/2026 16:26:15] "GET /experiments/game-maker/index.html HTTP/1.1" 200 -
-127.0.0.1 - - [20/Jul/2026 16:26:15] "GET /experiments/game-maker/noscript.js HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2026 01:52:23] "HEAD /experiments/game-maker/index.html HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2026 01:53:18] "GET /experiments/game-maker/index.html HTTP/1.1" 200 -
+127.0.0.1 - - [21/Jul/2026 01:53:19] "GET /experiments/game-maker/noscript.js HTTP/1.1" 200 -
