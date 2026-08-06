@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WWI Field Intelligence & Archive | WW1 Wiki</title>
+  <style>
+    :root {
+      --bg-dark: #0f0b09;
+      --panel-bg: rgba(22, 17, 14, 0.95);
+      --border-color: #3d312b;
+      --text-main: #d7ccc8;
+      --text-muted: #8d7b73;
+      --accent-color: #c5a059;
+      --accent-hover: #e5c17b;
+      --ally-color: #6d8467;
+      --central-color: #a66363;
+      --cosphere-color: #5c8ca6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      line-height: 1.6;
+      background-image: radial-gradient(circle at center, #1b1411 0%, #0f0b09 100%);
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    /* Glass Panel Styling */
+    .glass-panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      padding: 40px;
+      margin-bottom: 30px;
+    }
+
+    /* Header & Navigation */
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 30px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 400;
+      letter-spacing: 6px;
+      color: var(--text-main);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    header p {
+      font-size: 14px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .wiki-nav {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .nav-btn {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+      padding: 8px 16px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .nav-btn:hover {
+      border-color: var(--accent-color);
+      color: var(--accent-color);
+    }
+
+    /* Section Typography */
+    h2 {
+      font-size: 20px;
+      font-weight: 500;
+      letter-spacing: 3px;
+      color: var(--accent-color);
+      text-transform: uppercase;
+      margin-top: 40px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+    }
+
+    h3 {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: 25px;
+      margin-bottom: 12px;
+      color: var(--text-main);
+    }
+
+    p {
+      font-size: 14px;
+      color: var(--text-main);
+      opacity: 0.9;
+      margin-bottom: 16px;
+    }
+
+    /* Faction Cards Grid */
+    .factions-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin-top: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .factions-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .faction-card {
+      background: rgba(15, 11, 9, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 20px;
+    }
+
+    .faction-card-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 15px;
+      border-bottom: 1px dashed var(--border-color);
+      padding-bottom: 10px;
+    }
+
+    .faction-flag {
+      width: 48px;
+      height: 32px;
+      border-radius: 3px;
+      object-fit: cover;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .faction-name {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .alliance-badge {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-weight: bold;
+      margin-left: auto;
+    }
+
+    .alliance-badge.allies {
+      background: rgba(109, 132, 103, 0.2);
+      color: var(--ally-color);
+      border: 1px solid var(--ally-color);
+    }
+
+    .alliance-badge.central {
+      background: rgba(166, 99, 99, 0.2);
+      color: var(--central-color);
+      border: 1px solid var(--central-color);
+    }
+
+    .alliance-badge.cosphere {
+      background: rgba(92, 140, 166, 0.2);
+      color: var(--cosphere-color);
+      border: 1px solid var(--cosphere-color);
+    }
+
+    .commander-info {
+      font-size: 11px;
+      font-family: monospace;
+      color: var(--text-muted);
+      margin-top: -8px;
+      margin-bottom: 12px;
+    }
+
+    /* Unit List & Grid */
+    .unit-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .unit-list {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .unit-card {
+      background: rgba(15, 11, 9, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .unit-icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .unit-title {
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent-color);
+      margin-bottom: 4px;
+    }
+
+    .unit-cost {
+      font-size: 11px;
+      font-family: monospace;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    /* Footer Buttons */
+    .footer-actions {
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    .action-btn {
+      background: var(--accent-color);
+      color: #000;
+      border: none;
+      padding: 16px 48px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 50px;
+      box-sizing: border-box;
+      text-decoration: none;
+    }
+
+    .action-btn:hover {
+      background: var(--accent-hover);
+    }
+
+    .accent-text {
+      color: var(--accent-color);
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="glass-panel">
+      <header>
+        <h1>Field Intel & Archive</h1>
+        <p>Tactical Guide to The Great War | Command Simulator</p>
+
+        <nav class="wiki-nav">
+          <a class="nav-btn" href="#overview">Overview</a>
+          <a class="nav-btn" href="#factions">Factions</a>
+          <a class="nav-btn" href="#arsenal">Arsenal</a>
+          <a class="nav-btn" href="#mechanics">Mechanics</a>
+        </nav>
+      </header>
+
+      <!-- Overview Section -->
+      <section id="overview">
+        <h2>Overview</h2>
+        <p>
+          World War I (1914–1918), also known as <span class="accent-text">The Great War</span>, was a global conflict that redefined modern warfare. Characterized by brutal stalemate, industrial scale mobilization, and the debut of heavily armored vehicles and military aviation, the war shifted from rapid maneuvers to entrenched warfare along thousands of miles of fortified lines.
+        </p>
+        <p>
+          In <strong>The Great War | Command Simulator</strong>, you assume operational command over the front lines. Your objective is to manage raw logistics materiel, coordinate infantry breakthroughs, support advances with landships, and control tactical artillery to destroy hostile fortifications and claim complete battlefield victory.
+        </p>
+      </section>
+
+      <!-- Factions Section -->
+      <section id="factions">
+        <h2>Global Empires & Commanders</h2>
+        <p>
+          Ten global powers are simulated in the operations grid. Each empire operates under a designated field commander who guides telegraph-mediated tactics.
+        </p>
+
+        <div class="factions-grid">
+          <!-- Allied Powers -->
+          <div class="faction-card">
+            <div class="faction-card-header">
+              <img class="faction-flag" src="./assets/flag-uk.svg" alt="UK Flag">
+              <span class="faction-name">British Empire</span>
+              <span class="alliance-badge allies">Allies</span>
+            </div>
+            <div class="commander-info">CO: Field Marshal Douglas Haig</div>
+            <p>Commanded the British Expeditionary Force on the Western Front. Renowned for launching the massive Somme and Passchendaele offensives.</p>
+          </div>
+
+          <div class="faction-card">
+            <div class="faction-card-header">
+              <img class="faction-flag" src="./assets/flag-france.svg" alt="France Flag">
+              <span class="faction-name">France</span>
+              <span class="alliance-badge allies">Allies</span>
+            </div>
+            <div class="commander-info">CO: General Philippe Pétain</div>
+            <p>Known as the "Lion of Verdun" for orchestrating the tenacious French defense during the long, grinding Battle of Verdun.</p>
+          </div>
+
+          <div class="faction-card">
+            <div class="faction-card-header">
+              <img class="faction-flag" src="./assets/flag-russia.svg" alt="Russia Flag">
+              <span class="faction-name">Russian Empire</span>
+              <span class="alliance-badge allies">Allies</span>
+            </div>
+            <div class="commander-info">CO: Grand Duke Nicholas</div>
+            <p>Served as commander-in-chief of Russian Imperial forces during the first year of the war on the brutal Eastern Front.</p>
+          </div>
+
+          <div class="faction-card">
+            <div class="faction-card-header">
+              <img class="faction-flag" src="./assets/flag-usa.svg" alt="USA Flag">
+              <span class="faction-name">United States</span>
+              <span class="alliance-badge allies">Allies</span>
+            </div>
+            <div class="commander-info">CO: General John J. Pershing</div>
+            <p>Led the American Expeditionary Forces to France, preserving their independence as a separate, major fighting unit.</p>
+          </div>
+
+          <!-- Central Powers -->
+          <div class="faction-card">
+            <div class="faction-card-header">
+              <img class="faction-flag" src="./assets/flag-germany.svg" alt="Germany Flag">
+              <span class="faction-name">German Empire</span>
+              <span class="alliance-badge central">Central</span>
+            </div>
+            <div class="commander-info">CO: Kaiser Wilhelm II</div>
+            <p>The last German Emperor, whose ambitious imperialist policies and militaristic alliances helped trigger the conflict.</p>
+          </div>
+
+          <div class="faction-card">
+            <div class="faction-card-header">
+              <img class="faction-flag" src="./assets/flag-austria.svg" alt="Austria Flag">
+              <span class="faction-name">Austria-Hungary</span>
+              <span class="alliance-badge central">Central</span>
+            </div>
+            <div class="commander-info">CO: Field Marshal Conrad von Hötzendorf</div>
+            <p>Chief of the General Staff, who aggressively advocated for preemptive war against Serbia in 1914.</p>
+          </div>
+
+          <div class="faction-card">
+            <div class="faction-card-header">
+              <img class="faction-flag" src="./assets/flag-ottoman.svg" alt="Ottoman Flag">
+              <span class="faction-name">Ottoman Empire</span>
+              <span class="alliance-badge central">Central</span>
+            </div>
+            <div class="commander-info">CO: Enver Pasha</div>
+            <p>A leading military officer of the Young Turks and minister of war, directing Ottoman actions in the Middle Eastern theatres.</p>
+          </div>
+
+          <div class="faction-card">
+            <div class="faction-card-header">
+              <img class="faction-flag" src="./assets/flag-bulgaria.svg" alt="Bulgaria Flag">
+              <span class="faction-name">Kingdom of Bulgaria</span>
+              <span class="alliance-badge central">Central</span>
+            </div>
+            <div class="commander-info">CO: General Nikola Zhekov</div>
+            <p>Commander-in-chief of the Bulgarian Army, overseeing successful campaigns in the Balkans during the conflict.</p>
+          </div>
+
+          <!-- Co Sphere -->
+          <div class="faction-card">
+            <div class="faction-card-header">
+              <img class="faction-flag" src="./assets/flag-japan.svg" alt="Japan Flag">
+              <span class="faction-name">Empire of Japan</span>
+              <span class="alliance-badge cosphere">Co Sphere</span>
+            </div>
+            <div class="commander-info">CO: General Kamio Mitsuomi</div>
+            <p>Successfully directed the Allied Siege of Tsingtao, capturing the German-controlled port on the Shandong peninsula.</p>
+          </div>
+
+          <div class="faction-card">
+            <div class="faction-card-header">
+              <img class="faction-flag" src="./assets/flag-china.svg" alt="China Flag">
+              <span class="faction-name">Republic of China</span>
+              <span class="alliance-badge cosphere">Co Sphere</span>
+            </div>
+            <div class="commander-info">CO: General Duan Qirui</div>
+            <p>Chinese warlord and premier who pushed China to enter the war on the Allied side to regain influence in Shandong.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Arsenal Section -->
+      <section id="arsenal">
+        <h2>Frontline Arsenal & Units</h2>
+        <p>
+          Deploying units effectively requires allocating the appropriate logistics supplies. Coordinate infantry advances with heavy armor and air support.
+        </p>
+
+        <div class="unit-list">
+          <div class="unit-card">
+            <div class="unit-icon">🪖</div>
+            <div class="unit-title">Infantry</div>
+            <div class="unit-cost">Cost: 25 Supply</div>
+            <p>The backbone of any advance. Highly versatile, capable of establishing trench defenses and occupying disputed territory.</p>
+          </div>
+
+          <div class="unit-card">
+            <div class="unit-icon">🚜</div>
+            <div class="unit-title">Landship</div>
+            <div class="unit-cost">Cost: 65 Supply</div>
+            <p>Heavily armored behemoth. Extremely durable, built to crush barbed wire, withstand enemy gunfire, and breach enemy trench points.</p>
+          </div>
+
+          <div class="unit-card">
+            <div class="unit-icon">🛩️</div>
+            <div class="unit-title">Air Support</div>
+            <div class="unit-cost">Cost: 90 Supply</div>
+            <p>Agile biplanes performing critical reconnaissance. Fly at high speeds above the ground, bypassing ground-based infantry obstacles.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Mechanics Section -->
+      <section id="mechanics">
+        <h2>Tactical Mechanics</h2>
+
+        <h3>Logistics Supplies</h3>
+        <p>
+          Supply is the ultimate arbiter of victory. Your command supplies generate continuously over time. Spending supplies wisely between cheap infantry screen lines and expensive armored landships is crucial.
+        </p>
+
+        <h3>Encrypted Telegraph (Multiplayer Mode)</h3>
+        <p>
+          By establishing telegraph connection with opposing commanders, you can intercept wireless signals and coordinate front-line transmissions in real-time. Typing key terms like <span class="accent-text">"attack"</span>, <span class="accent-text">"help"</span>, <span class="accent-text">"retreat"</span>, or <span class="accent-text">"artillery"</span> will trigger custom diplomatic field reports and coordinated field responses.
+        </p>
+
+        <h3>Airdropped Supplies & Power-ups</h3>
+        <p>
+          Keep a keen eye on parachute drops over the battlefield! Click or shoot a dropped supply crate to intercept critical wartime equipment:
+        </p>
+        <ul>
+          <li><strong style="color: #87a96b;">Logistics Crate (L)</strong>: Immediately adds +100 Logistics supply.</li>
+          <li><strong style="color: #c25959;">Barrage Crate (A)</strong>: Authorizes a devastating 8-shell heavy artillery strike across the map.</li>
+          <li><strong style="color: #d4af37;">Spread Crate (S)</strong>: Equips your stationary defensive cannon with a 3-way spread shot.</li>
+          <li><strong style="color: #ff5722;">Missile Crate (M)</strong>: Grants a high-impact, guided heavy missile strike with massive damage.</li>
+        </ul>
+      </section>
+
+      <!-- Navigation Footer -->
+      <div class="footer-actions">
+        <a class="action-btn" href="index.html">Return to Command</a>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
