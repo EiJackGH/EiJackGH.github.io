@@ -531,6 +531,91 @@
       background: var(--accent-color);
       color: #000;
     }
+
+    /* Mobile responsiveness styles */
+    @media (max-width: 600px) {
+      body {
+        padding: 15px 10px;
+      }
+
+      .glass-panel {
+        padding: 15px;
+        margin-bottom: 15px;
+      }
+
+      h1 {
+        font-size: 22px;
+        letter-spacing: 3px;
+      }
+
+      .game-tabs {
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+
+      .tab-btn {
+        padding: 8px 16px;
+        font-size: 10px;
+        flex: 1 1 auto;
+        text-align: center;
+      }
+
+      .game-title {
+        font-size: 18px;
+      }
+
+      .game-instructions {
+        font-size: 11px;
+        margin-bottom: 15px;
+      }
+
+      .canvas-overlay {
+        padding: 10px;
+      }
+
+      .canvas-overlay p {
+        display: none !important;
+      }
+
+      .overlay-title {
+        font-size: 16px;
+        margin-bottom: 8px;
+        letter-spacing: 2px;
+      }
+
+      .overlay-score {
+        font-size: 14px;
+        margin-bottom: 12px;
+      }
+
+      .overlay-btn {
+        padding: 8px 20px;
+        font-size: 11px;
+        letter-spacing: 1px;
+      }
+
+      .stats-row {
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        padding-top: 8px;
+      }
+
+      .chess-square {
+        font-size: 20px;
+      }
+
+      .chess-piece {
+        font-size: 20px;
+      }
+
+      .chess-sidebar {
+        min-width: 100%;
+        max-height: none;
+      }
+    }
   </style>
 </head>
 <body>
