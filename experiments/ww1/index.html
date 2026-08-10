@@ -700,6 +700,11 @@
     <div class="menu-header">
       <h1>The Great War</h1>
       <p>Select an Empire to deploy field forces, allocate raw logistical materiel supplies, and establish operational command over the front lines.</p>
+      <!-- Personal Best Score display and Reset button -->
+      <div id="lobby-pb-container" style="margin-top: 16px; display: inline-flex; align-items: center; gap: 12px; background: rgba(30, 24, 21, 0.6); border: 1px solid var(--border-color); padding: 6px 16px; border-radius: 4px;">
+        <span style="font-size: 13px; font-weight: 600; letter-spacing: 1px; color: var(--accent-color);">PERSONAL BEST: <span id="lobby-pb-val">0</span></span>
+        <button onclick="resetPersonalBest()" style="background: rgba(139, 38, 38, 0.2); border: 1px solid #8b2626; color: #ff4d4d; font-size: 10px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; padding: 2px 8px; border-radius: 3px; cursor: pointer; transition: all 0.2s;">Reset PB</button>
+      </div>
     </div>
     
     <div class="grid-container">
@@ -806,6 +811,12 @@
     <h2 id="gameover-title" class="gameover-title">Victory</h2>
     <p id="gameover-subtitle" class="gameover-subtitle">Your forces have successfully breached the enemy defensive lines and secured the field.</p>
 
+    <!-- Game Over Score and PB Display -->
+    <div style="margin: 10px 0 20px 0; text-align: center; font-family: monospace; display: flex; flex-direction: column; gap: 8px;">
+      <div style="font-size: 20px; color: var(--text-main);">Final Score: <span id="gameover-score-val" style="color: var(--accent-color); font-weight: bold;">0</span></div>
+      <div id="gameover-new-pb-badge" style="display: none; background: #87a96b; color: #000; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; padding: 4px 12px; border-radius: 3px; max-width: fit-content; margin: 0 auto; animation: newsPulse 1.5s infinite; box-shadow: 0 0 8px rgba(135, 169, 107, 0.6);">New Personal Best!</div>
+    </div>
+
     <!-- Defeat Illustration (Commander Force President Scene Killed) -->
     <div id="defeat-scene-container" style="display: none; margin: 15px 0 20px 0; text-align: center;">
       <img src="./assets/commander-force-president-scene-killed.svg" alt="Commander-in-Chief Killed in Action" style="width: 320px; max-width: 100%; height: auto; border: 2px solid var(--central-color); border-radius: 8px; box-shadow: 0 0 20px rgba(183, 28, 28, 0.4); background: rgba(0, 0, 0, 0.6); display: block;">
@@ -849,9 +860,15 @@
 
         <div style="display: flex; align-items: center; gap: 16px;">
           <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-            <div class="glass-panel" id="supply-panel">
-              <div class="faction-title" style="font-size: 9px; margin-bottom: 0;">Logistics</div>
-              <div id="supply-count">100</div>
+            <div style="display: flex; gap: 8px;">
+              <div class="glass-panel" id="supply-panel">
+                <div class="faction-title" style="font-size: 9px; margin-bottom: 0;">Logistics</div>
+                <div id="supply-count">100</div>
+              </div>
+              <div class="glass-panel" id="score-panel" style="text-align: center; padding: 10px 32px;">
+                <div class="faction-title" style="font-size: 9px; margin-bottom: 0;">Score</div>
+                <div id="score-count" style="font-family: monospace; font-size: 28px; font-weight: bold; color: var(--accent-color);">0</div>
+              </div>
             </div>
             <div class="glass-panel" id="powerup-status" style="display: none; padding: 6px 16px; text-align: center; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: #d4af37; border-color: #d4af37;">
               SPREAD SHOT: <span id="powerup-timer">15.0</span>s
@@ -918,6 +935,28 @@
     let enemyNation = 'germany';
     let playerHealth = 100;
     let enemyHealth = 100;
+    let currentScore = 0;
+    let personalBest = parseInt(localStorage.getItem('ww1_personal_best') || '0');
+
+    // On Load, update Lobby Personal Best display
+    window.addEventListener('DOMContentLoaded', () => {
+      updateLobbyPBDisplay();
+    });
+
+    function updateLobbyPBDisplay() {
+      const pbValEl = document.getElementById('lobby-pb-val');
+      if (pbValEl) {
+        pbValEl.innerText = personalBest;
+      }
+    }
+
+    function resetPersonalBest() {
+      if (confirm('Are you sure you want to reset your Personal Best score?')) {
+        personalBest = 0;
+        localStorage.setItem('ww1_personal_best', '0');
+        updateLobbyPBDisplay();
+      }
+    }
 
     // Multiplayer and Chat States
     let isMultiplayer = false;
@@ -1395,6 +1434,7 @@
       supplies = 100;
       playerHealth = 100;
       enemyHealth = 100;
+      currentScore = 0;
 
       // Update HUD displays
       const pFill = document.getElementById('p-health-fill');
@@ -1405,6 +1445,9 @@
       if (pText) pText.innerText = 'HP: 100/100';
       if (eFill) eFill.style.width = '100%';
       if (eText) eText.innerText = 'HP: 100/100';
+
+      const scoreCountEl = document.getElementById('score-count');
+      if (scoreCountEl) scoreCountEl.innerText = currentScore;
 
       units = [];
       particles = [];
@@ -1981,12 +2024,18 @@
           const distToTrench = Math.hypot(eTrenchX - x, eTrenchY - y);
           if (distToTrench < explosionRadius) {
             const falloff = 1 - (distToTrench / explosionRadius);
-            enemyHealth -= trenchDamageVal * falloff;
+            const dmg = trenchDamageVal * falloff;
+            enemyHealth -= dmg;
             enemyHealth = Math.max(0, enemyHealth);
             const eFill = document.getElementById('e-health-fill');
             const eText = document.getElementById('e-health-text');
             if (eFill) eFill.style.width = enemyHealth + '%';
             if (eText) eText.innerText = 'HP: ' + Math.ceil(enemyHealth) + '/100';
+
+            // Enemy health decrease due to shell/missile impact: +2 per HP lost
+            currentScore += Math.ceil(dmg * 2);
+            const scoreCountEl = document.getElementById('score-count');
+            if (scoreCountEl) scoreCountEl.innerText = currentScore;
           }
         }
       }
@@ -2161,6 +2210,24 @@
           document.getElementById('gameover-btn').innerText = "Return to Headquarters";
         }
 
+        // Update score and Personal Best on GameOver screen
+        const finalScoreValEl = document.getElementById('gameover-score-val');
+        if (finalScoreValEl) {
+          finalScoreValEl.innerText = currentScore;
+        }
+
+        const newPbBadgeEl = document.getElementById('gameover-new-pb-badge');
+        if (newPbBadgeEl) {
+          if (currentScore > personalBest) {
+            personalBest = currentScore;
+            localStorage.setItem('ww1_personal_best', personalBest.toString());
+            newPbBadgeEl.style.display = 'block';
+            updateLobbyPBDisplay();
+          } else {
+            newPbBadgeEl.style.display = 'none';
+          }
+        }
+
         overScreen.style.display = "flex";
       }
     }
@@ -2301,6 +2368,15 @@
           spawnGroundBlood(u.x + u.width/2, u.y + u.height/2);
           // Spawn extra blood spray
           spawnBloodSplatter(u.x + u.width/2, u.y + u.height/2, 12);
+
+          // Increment score if an enemy unit dies
+          if (!u.isPlayer) {
+            let pts = u.type === 'tank' ? 50 : u.type === 'plane' ? 30 : 10;
+            currentScore += pts;
+            const scoreCountEl = document.getElementById('score-count');
+            if (scoreCountEl) scoreCountEl.innerText = currentScore;
+          }
+
           units.splice(i, 1);
           continue;
         }
@@ -2308,12 +2384,18 @@
         // If units cross opposing edges, deduct global force health
         if (u.isPlayer && u.x > canvas.width) {
           // Deduct from enemy force health
-          enemyHealth -= u.type === 'tank' ? 20 : u.type === 'plane' ? 15 : 10;
+          let damage = u.type === 'tank' ? 20 : u.type === 'plane' ? 15 : 10;
+          enemyHealth -= damage;
           enemyHealth = Math.max(0, enemyHealth);
           const eFill = document.getElementById('e-health-fill');
           const eText = document.getElementById('e-health-text');
           if (eFill) eFill.style.width = enemyHealth + '%';
           if (eText) eText.innerText = 'HP: ' + Math.ceil(enemyHealth) + '/100';
+
+          // Player unit successfully crosses screen: award points
+          currentScore += 50;
+          const scoreCountEl = document.getElementById('score-count');
+          if (scoreCountEl) scoreCountEl.innerText = currentScore;
 
           units.splice(i, 1);
           continue;
