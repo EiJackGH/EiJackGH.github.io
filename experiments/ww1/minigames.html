@@ -273,6 +273,264 @@
       color: var(--accent-color);
       font-weight: bold;
     }
+
+    /* Chess Game Styles */
+    .chess-layout-wrapper {
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+      width: 100%;
+      max-width: 850px;
+      margin-top: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .chess-layout-wrapper {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+
+    .chess-board-panel {
+      flex: 1.2;
+      background: #000;
+      border: 2px solid var(--border-color);
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+      aspect-ratio: 1 / 1;
+      max-width: 440px;
+      width: 100%;
+    }
+
+    .chess-board {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(8, 1fr);
+      width: 100%;
+      height: 100%;
+      border: 1px solid #1a1412;
+    }
+
+    .chess-square {
+      aspect-ratio: 1 / 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 30px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+
+    /* Square colors */
+    .chess-square.light {
+      background-color: #463832; /* Muddy light wood */
+    }
+
+    .chess-square.dark {
+      background-color: #271e1a; /* Deep charcoal mud */
+    }
+
+    /* Selected state */
+    .chess-square.selected {
+      background-color: rgba(197, 160, 89, 0.45) !important;
+      box-shadow: inset 0 0 8px var(--accent-color);
+    }
+
+    /* Move hint */
+    .chess-square.hint::after {
+      content: '';
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background-color: rgba(109, 132, 103, 0.7);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .chess-square.hint-capture::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: 3px solid rgba(166, 99, 99, 0.75);
+      box-sizing: border-box;
+      pointer-events: none;
+    }
+
+    /* Last move highlight */
+    .chess-square.last-move {
+      background-color: rgba(197, 160, 89, 0.2) !important;
+    }
+
+    /* Piece styles */
+    .chess-piece {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      font-size: 30px;
+      line-height: 1;
+      transition: transform 0.1s ease;
+    }
+
+    .chess-piece:hover {
+      transform: scale(1.1);
+    }
+
+    .chess-piece.white {
+      color: var(--accent-color);
+      text-shadow: 0 0 5px rgba(197, 160, 89, 0.6), 0 0 10px rgba(197, 160, 89, 0.3);
+    }
+
+    .chess-piece.black {
+      color: var(--central-color);
+      text-shadow: 0 0 5px rgba(166, 99, 99, 0.6), 0 0 10px rgba(166, 99, 99, 0.3);
+    }
+
+    /* Sidebar Panel */
+    .chess-sidebar {
+      flex: 0.8;
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      max-height: 440px;
+      min-width: 250px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .sidebar-header {
+      font-size: 14px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .intel-turn-status {
+      font-size: 16px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent-color);
+      text-align: center;
+      margin-bottom: 15px;
+      padding: 6px;
+      background: rgba(197, 160, 89, 0.1);
+      border: 1px dashed rgba(197, 160, 89, 0.3);
+      border-radius: 4px;
+    }
+
+    .intel-turn-status.black-turn {
+      color: var(--central-color);
+      background: rgba(166, 99, 99, 0.1);
+      border-color: rgba(166, 99, 99, 0.3);
+    }
+
+    .intel-captures {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 15px;
+      font-size: 13px;
+    }
+
+    .captured-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .captured-label {
+      color: var(--text-muted);
+      width: 110px;
+      font-weight: bold;
+    }
+
+    .captured-pieces {
+      font-size: 18px;
+      letter-spacing: 2px;
+    }
+
+    .battle-log-title {
+      font-size: 11px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+    }
+
+    .battle-log {
+      flex-grow: 1;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 8px;
+      font-family: monospace;
+      font-size: 11px;
+      overflow-y: auto;
+      height: 150px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .log-entry {
+      line-height: 1.4;
+      border-left: 2px solid var(--border-color);
+      padding-left: 6px;
+    }
+
+    .log-entry.allied-entry {
+      border-color: var(--accent-color);
+      color: var(--text-main);
+    }
+
+    .log-entry.central-entry {
+      border-color: var(--central-color);
+      color: #df9f9f;
+    }
+
+    .log-entry.system-entry {
+      border-color: var(--text-muted);
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .restart-chess-btn {
+      margin-top: 15px;
+      background: transparent;
+      border: 1px solid var(--accent-color);
+      color: var(--accent-color);
+      padding: 8px;
+      font-size: 11px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .restart-chess-btn:hover {
+      background: var(--accent-color);
+      color: #000;
+    }
   </style>
 </head>
 <body>
@@ -291,6 +549,7 @@
       <div class="game-tabs">
         <button class="tab-btn active" onclick="switchGame('trench-runner')">Trench Runner</button>
         <button class="tab-btn" onclick="switchGame('aa-gunner')">AA Gunner</button>
+        <button class="tab-btn" onclick="switchGame('trench-chess')">Trench Chess</button>
       </div>
 
       <!-- Game 1: Trench Runner -->
@@ -352,6 +611,44 @@
           <div style="display: inline-flex; align-items: center; gap: 6px;">Planes Shot Down: <span id="aa-current-score-val" class="stat-val">0</span></div>
           <div style="display: inline-flex; align-items: center; gap: 6px;">Battery Integrity: <span id="aa-integrity-val" class="stat-val" style="color: var(--ally-color);">100%</span></div>
           <div style="display: inline-flex; align-items: center; gap: 6px;">High Score: <span id="aa-high-score-val" class="stat-val">0</span> <button onclick="resetAAHighScore()" style="background: rgba(139, 38, 38, 0.2); border: 1px solid #8b2626; color: #ff4d4d; font-size: 10px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; padding: 2px 8px; border-radius: 3px; cursor: pointer; transition: all 0.2s;">Reset</button></div>
+        </div>
+      </div>
+
+      <!-- Game 3: Trench Chess -->
+      <div id="trench-chess-container" class="game-container">
+        <h2 class="game-title">Trench Chess</h2>
+        <div class="game-instructions">
+          Simulate military strategies on the tactical grid. Allied Forces (Gold) face off against the Central Powers Command (Red). Plan your advances carefully to capture the enemy Kaiser and claim strategic victory.
+          <br><strong>Controls: Click any piece to select, then click a highlighted destination square to move/capture.</strong>
+        </div>
+
+        <div class="chess-layout-wrapper">
+          <!-- Chess Board Panel -->
+          <div class="chess-board-panel">
+            <div id="chessBoard" class="chess-board"></div>
+          </div>
+
+          <!-- Sidebar Intel Panel -->
+          <div class="chess-sidebar">
+            <div class="sidebar-header">Tactical Intel</div>
+            <div id="chessTurnStatus" class="intel-turn-status">Allied Turn</div>
+
+            <div class="intel-captures">
+              <div class="captured-group">
+                <span class="captured-label">Allied Captures:</span>
+                <span id="alliedCaptures" class="captured-pieces" style="color: var(--accent-color);"></span>
+              </div>
+              <div class="captured-group">
+                <span class="captured-label">Central Captures:</span>
+                <span id="centralCaptures" class="captured-pieces" style="color: var(--central-color);"></span>
+              </div>
+            </div>
+
+            <div class="battle-log-title">Military Despatches</div>
+            <div id="battleLog" class="battle-log"></div>
+
+            <button class="restart-chess-btn" onclick="initChessGame()">Reset Battlefield</button>
+          </div>
         </div>
       </div>
 
@@ -524,10 +821,16 @@
         document.getElementById('trench-runner-container').classList.add('active');
         document.querySelector('.tab-btn[onclick*="trench-runner"]').classList.add('active');
         stopAAGunnerLoop();
-      } else {
+      } else if (gameId === 'aa-gunner') {
         document.getElementById('aa-gunner-container').classList.add('active');
         document.querySelector('.tab-btn[onclick*="aa-gunner"]').classList.add('active');
         stopTrenchRunnerLoop();
+      } else if (gameId === 'trench-chess') {
+        document.getElementById('trench-chess-container').classList.add('active');
+        document.querySelector('.tab-btn[onclick*="trench-chess"]').classList.add('active');
+        stopTrenchRunnerLoop();
+        stopAAGunnerLoop();
+        initChessGame();
       }
       initAudio();
     }
@@ -1574,6 +1877,646 @@
       aaCtx.moveTo(aaMouseX, aaMouseY - 20);
       aaCtx.lineTo(aaMouseX, aaMouseY + 20);
       aaCtx.stroke();
+    }
+    /* ==========================================================
+       GAME 3: TRENCH CHESS
+       ========================================================== */
+    let chessBoardState = [];
+    let chessTurn = 'white'; // 'white' = Allied, 'black' = Central
+    let chessSelectedSquare = null;
+    let chessValidMoves = [];
+    let chessCapturedWhite = [];
+    let chessCapturedBlack = [];
+    let chessGameEnded = false;
+
+    // Piece definitions
+    // White / Allied pieces (Gold / Capital letters)
+    // Black / Central pieces (Red / Lowercase letters)
+    const PIECE_UNICODE = {
+      'R': '♜', 'N': '♞', 'B': '♝', 'Q': '♛', 'K': '♚', 'P': '♟',
+      'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟'
+    };
+
+    const PIECE_NAMES = {
+      'p': 'Infantry', 'r': 'Artillery', 'n': 'Cavalry', 'b': 'Sniper', 'q': 'General Staff', 'k': 'Kaiser',
+      'P': 'Infantry', 'R': 'Artillery', 'N': 'Cavalry', 'B': 'Sniper', 'Q': 'General Staff', 'K': 'Field Marshal'
+    };
+
+    function initChessGame() {
+      // Setup Initial Board Layout
+      // rows 0-7, cols 0-7
+      // 0 is black/Central side, 7 is white/Allied side
+      chessBoardState = [
+        ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
+        ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '', ''],
+        ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+        ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']
+      ];
+
+      chessTurn = 'white';
+      chessSelectedSquare = null;
+      chessValidMoves = [];
+      chessCapturedWhite = [];
+      chessCapturedBlack = [];
+      chessGameEnded = false;
+
+      // Reset logs and UI
+      document.getElementById('battleLog').innerHTML = '';
+      addBattleLog("system", "Tactical grid initialized. Allied forces deployed at southern sector.");
+      updateChessUI();
+    }
+
+    function addBattleLog(type, message) {
+      const log = document.getElementById('battleLog');
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}-entry`;
+      entry.innerText = `[${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}] ${message}`;
+      log.appendChild(entry);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function updateChessUI() {
+      const boardEl = document.getElementById('chessBoard');
+      boardEl.innerHTML = '';
+
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const square = document.createElement('div');
+          const isDark = (r + c) % 2 === 1;
+          square.className = `chess-square ${isDark ? 'dark' : 'light'}`;
+          square.dataset.row = r;
+          square.dataset.col = c;
+
+          const piece = chessBoardState[r][c];
+          if (piece) {
+            const pieceEl = document.createElement('div');
+            const isWhitePiece = piece === piece.toUpperCase();
+            pieceEl.className = `chess-piece ${isWhitePiece ? 'white' : 'black'}`;
+            pieceEl.innerText = PIECE_UNICODE[piece] || '';
+            square.appendChild(pieceEl);
+          }
+
+          // Highlight selection
+          if (chessSelectedSquare && chessSelectedSquare.row === r && chessSelectedSquare.col === c) {
+            square.classList.add('selected');
+          }
+
+          // Highlight valid moves
+          const isHint = chessValidMoves.some(m => m.r === r && m.c === c);
+          if (isHint) {
+            if (piece) {
+              square.classList.add('hint-capture');
+            } else {
+              square.classList.add('hint');
+            }
+          }
+
+          square.addEventListener('click', () => handleSquareClick(r, c));
+          boardEl.appendChild(square);
+        }
+      }
+
+      // Update Turn Label
+      const statusEl = document.getElementById('chessTurnStatus');
+      if (chessGameEnded) {
+        statusEl.innerText = "Battle Concluded";
+        statusEl.className = "intel-turn-status system-turn";
+      } else if (chessTurn === 'white') {
+        statusEl.innerText = "Allied Turn";
+        statusEl.className = "intel-turn-status";
+      } else {
+        statusEl.innerText = "Central Turn";
+        statusEl.className = "intel-turn-status black-turn";
+      }
+
+      // Update captures
+      document.getElementById('alliedCaptures').innerText = chessCapturedBlack.map(p => PIECE_UNICODE[p]).join(' ');
+      document.getElementById('centralCaptures').innerText = chessCapturedWhite.map(p => PIECE_UNICODE[p]).join(' ');
+    }
+
+    function handleSquareClick(r, c) {
+      if (chessGameEnded) return;
+      if (chessTurn !== 'white') return; // Player is White (Allied)
+
+      const clickedPiece = chessBoardState[r][c];
+      const isClickedWhite = clickedPiece && clickedPiece === clickedPiece.toUpperCase();
+
+      // Check if clicking a hint square to make a move
+      const move = chessValidMoves.find(m => m.r === r && m.c === c);
+      if (move) {
+        executeMove(chessSelectedSquare.row, chessSelectedSquare.col, r, c);
+        return;
+      }
+
+      // Select Allied piece
+      if (clickedPiece && isClickedWhite) {
+        chessSelectedSquare = { row: r, col: c };
+        chessValidMoves = getValidMovesForPiece(r, c, chessBoardState);
+        updateChessUI();
+      } else {
+        // Deselect or click empty
+        chessSelectedSquare = null;
+        chessValidMoves = [];
+        updateChessUI();
+      }
+    }
+
+    // Move validation and piece rules
+    function getValidMovesForPiece(r, c, board) {
+      const piece = board[r][c];
+      if (!piece) return [];
+
+      const moves = [];
+      const isWhite = piece === piece.toUpperCase();
+      const type = piece.toLowerCase();
+
+      if (type === 'p') {
+        // Pawn movement
+        const dir = isWhite ? -1 : 1;
+        const startRow = isWhite ? 6 : 1;
+
+        // Move 1 square forward
+        if (r + dir >= 0 && r + dir < 8 && !board[r + dir][c]) {
+          moves.push({ r: r + dir, c: c });
+          // Move 2 squares forward
+          if (r === startRow && !board[r + 2 * dir][c]) {
+            moves.push({ r: r + 2 * dir, c: c });
+          }
+        }
+
+        // Standard captures (diagonal)
+        const targets = [c - 1, c + 1];
+        targets.forEach(tc => {
+          if (tc >= 0 && tc < 8 && r + dir >= 0 && r + dir < 8) {
+            const targetPiece = board[r + dir][tc];
+            if (targetPiece && (isWhite ? targetPiece === targetPiece.toLowerCase() : targetPiece === targetPiece.toUpperCase())) {
+              moves.push({ r: r + dir, c: tc });
+            }
+          }
+        });
+      }
+      else if (type === 'r') {
+        // Rook directions
+        const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+        dirs.forEach(([dr, dc]) => {
+          let currR = r + dr;
+          let currC = c + dc;
+          while (currR >= 0 && currR < 8 && currC >= 0 && currC < 8) {
+            const dest = board[currR][currC];
+            if (!dest) {
+              moves.push({ r: currR, c: currC });
+            } else {
+              const destIsWhite = dest === dest.toUpperCase();
+              if (destIsWhite !== isWhite) {
+                moves.push({ r: currR, c: currC });
+              }
+              break;
+            }
+            currR += dr;
+            currC += dc;
+          }
+        });
+      }
+      else if (type === 'n') {
+        // Knight jumps
+        const jumps = [
+          [-2, -1], [-2, 1], [-1, -2], [-1, 2],
+          [1, -2], [1, 2], [2, -1], [2, 1]
+        ];
+        jumps.forEach(([dr, dc]) => {
+          const currR = r + dr;
+          const currC = c + dc;
+          if (currR >= 0 && currR < 8 && currC >= 0 && currC < 8) {
+            const dest = board[currR][currC];
+            if (!dest) {
+              moves.push({ r: currR, c: currC });
+            } else {
+              const destIsWhite = dest === dest.toUpperCase();
+              if (destIsWhite !== isWhite) {
+                moves.push({ r: currR, c: currC });
+              }
+            }
+          }
+        });
+      }
+      else if (type === 'b') {
+        // Bishop diagonals
+        const dirs = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+        dirs.forEach(([dr, dc]) => {
+          let currR = r + dr;
+          let currC = c + dc;
+          while (currR >= 0 && currR < 8 && currC >= 0 && currC < 8) {
+            const dest = board[currR][currC];
+            if (!dest) {
+              moves.push({ r: currR, c: currC });
+            } else {
+              const destIsWhite = dest === dest.toUpperCase();
+              if (destIsWhite !== isWhite) {
+                moves.push({ r: currR, c: currC });
+              }
+              break;
+            }
+            currR += dr;
+            currC += dc;
+          }
+        });
+      }
+      else if (type === 'q') {
+        // Queen moves (Rook + Bishop combination)
+        const dirs = [
+          [-1, 0], [1, 0], [0, -1], [0, 1],
+          [-1, -1], [-1, 1], [1, -1], [1, 1]
+        ];
+        dirs.forEach(([dr, dc]) => {
+          let currR = r + dr;
+          let currC = c + dc;
+          while (currR >= 0 && currR < 8 && currC >= 0 && currC < 8) {
+            const dest = board[currR][currC];
+            if (!dest) {
+              moves.push({ r: currR, c: currC });
+            } else {
+              const destIsWhite = dest === dest.toUpperCase();
+              if (destIsWhite !== isWhite) {
+                moves.push({ r: currR, c: currC });
+              }
+              break;
+            }
+            currR += dr;
+            currC += dc;
+          }
+        });
+      }
+      else if (type === 'k') {
+        // King standard 1 step moves
+        const dirs = [
+          [-1, 0], [1, 0], [0, -1], [0, 1],
+          [-1, -1], [-1, 1], [1, -1], [1, 1]
+        ];
+        dirs.forEach(([dr, dc]) => {
+          const currR = r + dr;
+          const currC = c + dc;
+          if (currR >= 0 && currR < 8 && currC >= 0 && currC < 8) {
+            const dest = board[currR][currC];
+            if (!dest) {
+              moves.push({ r: currR, c: currC });
+            } else {
+              const destIsWhite = dest === dest.toUpperCase();
+              if (destIsWhite !== isWhite) {
+                moves.push({ r: currR, c: currC });
+              }
+            }
+          }
+        });
+      }
+
+      // Standard move check filter (do not put King in active direct danger / check)
+      // For simple trench-chess, we can allow moves, but strictly disallow moves that leave/put the king in check if we can.
+      // Let's implement a clean and robust check detector.
+      return moves.filter(m => {
+        // Simulate the move
+        const oldDest = board[m.r][m.c];
+        board[m.r][m.c] = piece;
+        board[r][c] = '';
+
+        const inCheck = isKingInCheck(isWhite, board);
+
+        // Undo move
+        board[r][c] = piece;
+        board[m.r][m.c] = oldDest;
+
+        return !inCheck;
+      });
+    }
+
+    function isKingInCheck(isWhite, board) {
+      // Find the king
+      let kingR = -1;
+      let kingC = -1;
+      const targetKing = isWhite ? 'K' : 'k';
+
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          if (board[r][c] === targetKing) {
+            kingR = r;
+            kingC = c;
+            break;
+          }
+        }
+        if (kingR !== -1) break;
+      }
+
+      if (kingR === -1) return false; // King captured (shouldn't happen with strict check-prevention, but is safety backup)
+
+      // Look at all enemy pieces and check if they can reach king
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const piece = board[r][c];
+          if (piece) {
+            const pieceIsWhite = piece === piece.toUpperCase();
+            if (pieceIsWhite !== isWhite) {
+              // Enemy piece. Let's see if its pseudo-legal moves hit the king.
+              // Note: to prevent infinite loops, we can evaluate pseudo-legal moves without check filtering
+              const moves = getPseudoLegalMoves(r, c, board);
+              if (moves.some(m => m.r === kingR && m.c === kingC)) {
+                return true;
+              }
+            }
+          }
+        }
+      }
+      return false;
+    }
+
+    // Simple legal moves generator without recursively checking "check" state
+    function getPseudoLegalMoves(r, c, board) {
+      const piece = board[r][c];
+      if (!piece) return [];
+
+      const moves = [];
+      const isWhite = piece === piece.toUpperCase();
+      const type = piece.toLowerCase();
+
+      if (type === 'p') {
+        const dir = isWhite ? -1 : 1;
+        // Diagonal captures
+        const targets = [c - 1, c + 1];
+        targets.forEach(tc => {
+          if (tc >= 0 && tc < 8 && r + dir >= 0 && r + dir < 8) {
+            const targetPiece = board[r + dir][tc];
+            if (targetPiece && (isWhite ? targetPiece === targetPiece.toLowerCase() : targetPiece === targetPiece.toUpperCase())) {
+              moves.push({ r: r + dir, c: tc });
+            }
+          }
+        });
+      }
+      else if (type === 'r') {
+        const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+        dirs.forEach(([dr, dc]) => {
+          let currR = r + dr;
+          let currC = c + dc;
+          while (currR >= 0 && currR < 8 && currC >= 0 && currC < 8) {
+            const dest = board[currR][currC];
+            if (!dest) {
+              moves.push({ r: currR, c: currC });
+            } else {
+              const destIsWhite = dest === dest.toUpperCase();
+              if (destIsWhite !== isWhite) {
+                moves.push({ r: currR, c: currC });
+              }
+              break;
+            }
+            currR += dr;
+            currC += dc;
+          }
+        });
+      }
+      else if (type === 'n') {
+        const jumps = [
+          [-2, -1], [-2, 1], [-1, -2], [-1, 2],
+          [1, -2], [1, 2], [2, -1], [2, 1]
+        ];
+        jumps.forEach(([dr, dc]) => {
+          const currR = r + dr;
+          const currC = c + dc;
+          if (currR >= 0 && currR < 8 && currC >= 0 && currC < 8) {
+            const dest = board[currR][currC];
+            if (!dest) {
+              moves.push({ r: currR, c: currC });
+            } else {
+              const destIsWhite = dest === dest.toUpperCase();
+              if (destIsWhite !== isWhite) {
+                moves.push({ r: currR, c: currC });
+              }
+            }
+          }
+        });
+      }
+      else if (type === 'b') {
+        const dirs = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+        dirs.forEach(([dr, dc]) => {
+          let currR = r + dr;
+          let currC = c + dc;
+          while (currR >= 0 && currR < 8 && currC >= 0 && currC < 8) {
+            const dest = board[currR][currC];
+            if (!dest) {
+              moves.push({ r: currR, c: currC });
+            } else {
+              const destIsWhite = dest === dest.toUpperCase();
+              if (destIsWhite !== isWhite) {
+                moves.push({ r: currR, c: currC });
+              }
+              break;
+            }
+            currR += dr;
+            currC += dc;
+          }
+        });
+      }
+      else if (type === 'q') {
+        const dirs = [
+          [-1, 0], [1, 0], [0, -1], [0, 1],
+          [-1, -1], [-1, 1], [1, -1], [1, 1]
+        ];
+        dirs.forEach(([dr, dc]) => {
+          let currR = r + dr;
+          let currC = c + dc;
+          while (currR >= 0 && currR < 8 && currC >= 0 && currC < 8) {
+            const dest = board[currR][currC];
+            if (!dest) {
+              moves.push({ r: currR, c: currC });
+            } else {
+              const destIsWhite = dest === dest.toUpperCase();
+              if (destIsWhite !== isWhite) {
+                moves.push({ r: currR, c: currC });
+              }
+              break;
+            }
+            currR += dr;
+            currC += dc;
+          }
+        });
+      }
+      else if (type === 'k') {
+        const dirs = [
+          [-1, 0], [1, 0], [0, -1], [0, 1],
+          [-1, -1], [-1, 1], [1, -1], [1, 1]
+        ];
+        dirs.forEach(([dr, dc]) => {
+          const currR = r + dr;
+          const currC = c + dc;
+          if (currR >= 0 && currR < 8 && currC >= 0 && currC < 8) {
+            const dest = board[currR][currC];
+            if (!dest) {
+              moves.push({ r: currR, c: currC });
+            } else {
+              const destIsWhite = dest === dest.toUpperCase();
+              if (destIsWhite !== isWhite) {
+                moves.push({ r: currR, c: currC });
+              }
+            }
+          }
+        });
+      }
+
+      return moves;
+    }
+
+    function executeMove(fromR, fromC, toR, toC) {
+      const piece = chessBoardState[fromR][fromC];
+      const target = chessBoardState[toR][toC];
+      const isWhite = piece === piece.toUpperCase();
+
+      // Check if target is king to end game
+      if (target && target.toLowerCase() === 'k') {
+        chessGameEnded = true;
+      }
+
+      // Move piece
+      chessBoardState[toR][toC] = piece;
+      chessBoardState[fromR][fromC] = '';
+
+      // Pawn promotion (auto-promote to Queen for simplicity)
+      if (piece === 'P' && toR === 0) {
+        chessBoardState[toR][toC] = 'Q';
+        addBattleLog("system", "Tactical Update: Allied Infantry promoted to General Staff at the frontline!");
+      } else if (piece === 'p' && toR === 7) {
+        chessBoardState[toR][toC] = 'q';
+        addBattleLog("system", "Tactical Update: Central Infantry promoted to General Staff at the frontline!");
+      }
+
+      // Capture logic
+      if (target) {
+        if (isWhite) {
+          chessCapturedBlack.push(target);
+          addBattleLog("allied", `Allied ${PIECE_NAMES[piece]} captures Central ${PIECE_NAMES[target]} at ${getAlgebraicCoords(toR, toC)}.`);
+          playExplosionSound();
+        } else {
+          chessCapturedWhite.push(target);
+          addBattleLog("central", `Central ${PIECE_NAMES[piece]} captures Allied ${PIECE_NAMES[target]} at ${getAlgebraicCoords(toR, toC)}.`);
+          playExplosionSound();
+        }
+      } else {
+        // Normal move
+        if (isWhite) {
+          addBattleLog("allied", `Allied ${PIECE_NAMES[piece]} advances to ${getAlgebraicCoords(toR, toC)}.`);
+          playTone(440, "sine", 0.08, 0.06);
+        } else {
+          addBattleLog("central", `Central ${PIECE_NAMES[piece]} advances to ${getAlgebraicCoords(toR, toC)}.`);
+          playTone(330, "sawtooth", 0.08, 0.04);
+        }
+      }
+
+      // Check for check state
+      const nextColorIsWhite = !isWhite;
+      if (isKingInCheck(nextColorIsWhite, chessBoardState)) {
+        if (nextColorIsWhite) {
+          addBattleLog("system", "WARNING: Allied Command is in direct line of fire!");
+          playTone(200, "sawtooth", 0.3, 0.15);
+        } else {
+          addBattleLog("system", "INTEL: Central Powers Kaiser is targeted for annihilation!");
+          playTone(550, "sine", 0.25, 0.12);
+        }
+      }
+
+      // Check for checkmate or draw
+      if (chessGameEnded) {
+        const winner = isWhite ? "Allied Forces" : "Central Powers";
+        addBattleLog("system", `DECISIVE VICTORY! The enemy HQ has been successfully neutralized. ${winner} win!`);
+        playTone(600, "sine", 0.2, 0.1);
+        setTimeout(() => playTone(800, "sine", 0.3, 0.1), 150);
+      }
+
+      // Clean up selection
+      chessSelectedSquare = null;
+      chessValidMoves = [];
+      chessTurn = isWhite ? 'black' : 'white';
+      updateChessUI();
+
+      if (!chessGameEnded && chessTurn === 'black') {
+        // Trigger Central Powers AI opponent
+        setTimeout(triggerCentralAI, 750);
+      }
+    }
+
+    function getAlgebraicCoords(r, c) {
+      const files = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+      const ranks = ['8', '7', '6', '5', '4', '3', '2', '1'];
+      return files[c] + ranks[r];
+    }
+
+    // Central Powers AI Decision Engine
+    function triggerCentralAI() {
+      if (chessGameEnded) return;
+
+      // Find all available moves for Central Powers
+      let allMoves = [];
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const piece = chessBoardState[r][c];
+          if (piece && piece === piece.toLowerCase()) {
+            const moves = getValidMovesForPiece(r, c, chessBoardState);
+            moves.forEach(m => {
+              allMoves.push({
+                fromR: r,
+                fromC: c,
+                toR: m.r,
+                toC: m.c,
+                piece: piece,
+                target: chessBoardState[m.r][m.c]
+              });
+            });
+          }
+        }
+      }
+
+      if (allMoves.length === 0) {
+        chessGameEnded = true;
+        addBattleLog("system", "Central Powers forces have retreated. Decisive Allied Victory!");
+        updateChessUI();
+        return;
+      }
+
+      // Simple Heuristic AI:
+      // 1. Prefer capturing high value pieces (King > Queen > Rook > Bishop/Knight > Pawn)
+      // 2. Escape capture if under attack
+      // 3. Otherwise make a smart forward advancement or random valid move
+      const pieceValues = { 'k': 10000, 'q': 900, 'r': 500, 'b': 300, 'n': 300, 'p': 100 };
+
+      // Sort moves based on value of target
+      allMoves.sort((a, b) => {
+        const valA = a.target ? (pieceValues[a.target.toLowerCase()] || 0) : 0;
+        const valB = b.target ? (pieceValues[b.target.toLowerCase()] || 0) : 0;
+        return valB - valA;
+      });
+
+      let chosenMove = allMoves[0];
+
+      // If the top move has no capture (value is 0), let's add a bit of variety to avoid deterministic behavior
+      if (!chosenMove.target) {
+        // Filter moves that advance pawns or develop pieces over stationary backline moves, or pick a random one
+        const movesWithForwardBias = allMoves.map(m => {
+          let score = 0;
+          // Central pieces want to move down (increasing row number)
+          if (m.piece === 'p') {
+            score += (m.toR - m.fromR) * 10;
+          } else {
+            score += (m.toR - m.fromR) * 2;
+          }
+          return { move: m, score: score };
+        });
+
+        movesWithForwardBias.sort((a, b) => b.score - a.score);
+        // Take from top 4 highest scoring/advancing moves randomly
+        const topMoves = movesWithForwardBias.slice(0, 4);
+        const randIdx = Math.floor(Math.random() * topMoves.length);
+        chosenMove = topMoves[randIdx].move;
+      }
+
+      executeMove(chosenMove.fromR, chosenMove.fromC, chosenMove.toR, chosenMove.toC);
     }
   </script>
 
