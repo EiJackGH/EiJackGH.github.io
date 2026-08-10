@@ -318,8 +318,8 @@
         </div>
 
         <div class="stats-row">
-          <div>Current Score: <span id="runner-current-score-val" class="stat-val">0</span></div>
-          <div>Personal Best: <span id="runner-high-score-val" class="stat-val">0</span></div>
+          <div style="display: inline-flex; align-items: center; gap: 6px;">Current Score: <span id="runner-current-score-val" class="stat-val">0</span></div>
+          <div style="display: inline-flex; align-items: center; gap: 6px;">Personal Best: <span id="runner-high-score-val" class="stat-val">0</span> <button onclick="resetRunnerHighScore()" style="background: rgba(139, 38, 38, 0.2); border: 1px solid #8b2626; color: #ff4d4d; font-size: 10px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; padding: 2px 8px; border-radius: 3px; cursor: pointer; transition: all 0.2s;">Reset</button></div>
         </div>
       </div>
 
@@ -349,9 +349,9 @@
         </div>
 
         <div class="stats-row">
-          <div>Planes Shot Down: <span id="aa-current-score-val" class="stat-val">0</span></div>
-          <div>Battery Integrity: <span id="aa-integrity-val" class="stat-val" style="color: var(--ally-color);">100%</span></div>
-          <div>High Score: <span id="aa-high-score-val" class="stat-val">0</span></div>
+          <div style="display: inline-flex; align-items: center; gap: 6px;">Planes Shot Down: <span id="aa-current-score-val" class="stat-val">0</span></div>
+          <div style="display: inline-flex; align-items: center; gap: 6px;">Battery Integrity: <span id="aa-integrity-val" class="stat-val" style="color: var(--ally-color);">100%</span></div>
+          <div style="display: inline-flex; align-items: center; gap: 6px;">High Score: <span id="aa-high-score-val" class="stat-val">0</span> <button onclick="resetAAHighScore()" style="background: rgba(139, 38, 38, 0.2); border: 1px solid #8b2626; color: #ff4d4d; font-size: 10px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; padding: 2px 8px; border-radius: 3px; cursor: pointer; transition: all 0.2s;">Reset</button></div>
         </div>
       </div>
 
@@ -494,6 +494,23 @@
       osc.stop(audioCtx.currentTime + 0.12);
     }
 
+
+    // Reset high score functions
+    function resetRunnerHighScore() {
+      if (confirm('Are you sure you want to reset your Trench Runner Personal Best?')) {
+        runnerHighScore = 0;
+        localStorage.setItem('ww1_runner_highscore', '0');
+        document.getElementById('runner-high-score-val').innerText = '0';
+      }
+    }
+
+    function resetAAHighScore() {
+      if (confirm('Are you sure you want to reset your AA Gunner High Score?')) {
+        aaHighScore = 0;
+        localStorage.setItem('ww1_aa_highscore', '0');
+        document.getElementById('aa-high-score-val').innerText = '0';
+      }
+    }
 
     // Global state
     let activeGame = 'trench-runner';
