@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WW1 Tactical Mini-Games | Great War Arcade</title>
+  <style>
+    :root {
+      --bg-dark: #0f0b09;
+      --panel-bg: rgba(22, 17, 14, 0.95);
+      --border-color: #3d312b;
+      --text-main: #d7ccc8;
+      --text-muted: #8d7b73;
+      --accent-color: #c5a059;
+      --accent-hover: #e5c17b;
+      --ally-color: #6d8467;
+      --central-color: #a66363;
+      --cosphere-color: #5c8ca6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      line-height: 1.6;
+      background-image: radial-gradient(circle at center, #1b1411 0%, #0f0b09 100%);
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .glass-panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 400;
+      letter-spacing: 6px;
+      color: var(--text-main);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    header p {
+      font-size: 14px;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* Tab navigation */
+    .game-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+      padding: 12px 24px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      border-color: var(--accent-color);
+      color: var(--accent-color);
+    }
+
+    .tab-btn.active {
+      background: var(--accent-color);
+      color: #000;
+      border-color: var(--accent-color);
+    }
+
+    /* Sound/Audio Control */
+    .audio-control {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .audio-btn {
+      background: rgba(197, 160, 89, 0.1);
+      border: 1px solid var(--accent-color);
+      color: var(--accent-color);
+      padding: 6px 12px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .audio-btn:hover {
+      background: var(--accent-color);
+      color: #000;
+    }
+
+    /* Game screens */
+    .game-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .game-container.active {
+      display: flex;
+    }
+
+    .game-title {
+      font-size: 22px;
+      font-weight: 400;
+      letter-spacing: 3px;
+      color: var(--accent-color);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .game-instructions {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+      max-width: 600px;
+      margin-bottom: 20px;
+    }
+
+    /* Game Canvas Wrap */
+    .canvas-wrapper {
+      position: relative;
+      background: #000;
+      border: 2px solid var(--border-color);
+      border-radius: 6px;
+      overflow: hidden;
+      width: 100%;
+      max-width: 800px;
+      aspect-ratio: 16 / 9;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* UI overlay on canvas */
+    .canvas-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(11, 8, 7, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .overlay-title {
+      font-size: 28px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--accent-color);
+      margin-bottom: 15px;
+    }
+
+    .overlay-score {
+      font-size: 18px;
+      font-family: monospace;
+      color: var(--text-main);
+      margin-bottom: 25px;
+    }
+
+    .overlay-btn {
+      background: var(--accent-color);
+      color: #000;
+      border: none;
+      padding: 14px 36px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.2s ease;
+    }
+
+    .overlay-btn:hover {
+      background: var(--accent-hover);
+    }
+
+    /* Footer Back Button */
+    .footer-actions {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .back-btn {
+      background: transparent;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 16px 48px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 50px;
+      box-sizing: border-box;
+    }
+
+    .back-btn:hover {
+      border-color: var(--accent-color);
+      color: var(--accent-color);
+      box-shadow: 0 0 12px rgba(197, 160, 89, 0.15);
+    }
+
+    .stats-row {
+      display: flex;
+      justify-content: space-around;
+      width: 100%;
+      max-width: 800px;
+      margin-top: 15px;
+      font-family: monospace;
+      font-size: 14px;
+      color: var(--text-muted);
+      border-top: 1px dashed var(--border-color);
+      padding-top: 12px;
+    }
+
+    .stat-val {
+      color: var(--accent-color);
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="glass-panel">
+      <header>
+        <h1>WW1 Arcade</h1>
+        <p>Tactical Field Exercises & Frontline Drills</p>
+      </header>
+
+      <div class="audio-control">
+        <button id="audio-toggle-btn" class="audio-btn" onclick="toggleAudioInit()">Initialize Retro Audio</button>
+      </div>
+
+      <div class="game-tabs">
+        <button class="tab-btn active" onclick="switchGame('trench-runner')">Trench Runner</button>
+        <button class="tab-btn" onclick="switchGame('aa-gunner')">AA Gunner</button>
+      </div>
+
+      <!-- Game 1: Trench Runner -->
+      <div id="trench-runner-container" class="game-container active">
+        <h2 class="game-title">Trench Runner</h2>
+        <div class="game-instructions">
+          Avoid the razor-sharp barbed wire obstacles and incoming mortar shell explosions! Jump over obstacles to survive. Speed increases over time.
+          <br><strong>Controls: Spacebar, Up Arrow, or Click Canvas to Jump.</strong>
+        </div>
+
+        <div class="canvas-wrapper">
+          <canvas id="runnerCanvas" width="800" height="450"></canvas>
+
+          <div id="runner-start-overlay" class="canvas-overlay">
+            <h3 class="overlay-title">Trench Dash Exercise</h3>
+            <p style="margin-bottom: 20px; max-width: 450px;">A field messenger must run across the shell-torn trenches to deliver critical battle orders. Keep him alive!</p>
+            <button class="overlay-btn" onclick="startTrenchRunner()">Begin Run</button>
+          </div>
+
+          <div id="runner-over-overlay" class="canvas-overlay" style="display: none;">
+            <h3 class="overlay-title" style="color: var(--central-color);">KIA (Killed In Action)</h3>
+            <div id="runner-final-score" class="overlay-score">Score: 0</div>
+            <button class="overlay-btn" onclick="startTrenchRunner()">Try Again</button>
+          </div>
+        </div>
+
+        <div class="stats-row">
+          <div>Current Score: <span id="runner-current-score-val" class="stat-val">0</span></div>
+          <div>Personal Best: <span id="runner-high-score-val" class="stat-val">0</span></div>
+        </div>
+      </div>
+
+      <!-- Game 2: AA Gunner -->
+      <div id="aa-gunner-container" class="game-container">
+        <h2 class="game-title">AA Gunner</h2>
+        <div class="game-instructions">
+          Man the heavy anti-aircraft gun! Defend the Allied airspace against waves of German biplanes. Fire flak shells that detonate on mouse click to destroy biplanes.
+          Don't let them drop bombs on your cannon or escape!
+          <br><strong>Controls: Move Mouse to Aim. Click to Fire Flak Shell. (Detonates at cursor point)</strong>
+        </div>
+
+        <div class="canvas-wrapper">
+          <canvas id="aaCanvas" width="800" height="450"></canvas>
+
+          <div id="aa-start-overlay" class="canvas-overlay">
+            <h3 class="overlay-title">AA Defense Drill</h3>
+            <p style="margin-bottom: 20px; max-width: 450px;">Incoming enemy biplane squadrons are planning tactical bombing runs. Intercept them all!</p>
+            <button class="overlay-btn" onclick="startAAGunner()">Man the Gun</button>
+          </div>
+
+          <div id="aa-over-overlay" class="canvas-overlay" style="display: none;">
+            <h3 class="overlay-title" style="color: var(--central-color);">Battery Overrun</h3>
+            <div id="aa-final-score" class="overlay-score">Planes Shot Down: 0</div>
+            <button class="overlay-btn" onclick="startAAGunner()">Re-engage Enemy</button>
+          </div>
+        </div>
+
+        <div class="stats-row">
+          <div>Planes Shot Down: <span id="aa-current-score-val" class="stat-val">0</span></div>
+          <div>Battery Integrity: <span id="aa-integrity-val" class="stat-val" style="color: var(--ally-color);">100%</span></div>
+          <div>High Score: <span id="aa-high-score-val" class="stat-val">0</span></div>
+        </div>
+      </div>
+
+      <!-- Navigation Footer -->
+      <div class="footer-actions">
+        <a class="back-btn" href="index.html">Return to Command</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Audio synthesis using Web Audio API
+    let audioCtx = null;
+    let audioInitialized = false;
+
+    function initAudio() {
+      if (audioInitialized) return;
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+        audioInitialized = true;
+        document.getElementById('audio-toggle-btn').innerText = "Retro Audio Active";
+        document.getElementById('audio-toggle-btn').style.background = "rgba(109, 132, 103, 0.2)";
+        document.getElementById('audio-toggle-btn').style.borderColor = "var(--ally-color)";
+        document.getElementById('audio-toggle-btn').style.color = "var(--ally-color)";
+      } catch (e) {
+        console.error("Web Audio API not supported", e);
+      }
+    }
+
+    function toggleAudioInit() {
+      initAudio();
+      // Play a small success tone
+      playTone(600, "sine", 0.1, 0.08);
+      setTimeout(() => playTone(800, "sine", 0.15, 0.08), 100);
+    }
+
+    function playTone(freq, type, duration, volume) {
+      if (!audioCtx) return;
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = type || "sine";
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+      gain.gain.setValueAtTime(volume || 0.1, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function playJumpSound() {
+      if (!audioCtx) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(450, audioCtx.currentTime + 0.15);
+
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.18);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.18);
+    }
+
+    function playExplosionSound() {
+      if (!audioCtx) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      // Noise buffer for explosion rumble
+      const bufferSize = audioCtx.sampleRate * 0.4; // 0.4 seconds
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(400, audioCtx.currentTime);
+      filter.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.4);
+
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      noise.start();
+      noise.stop(audioCtx.currentTime + 0.4);
+
+      // Low frequency thump osc
+      const osc = audioCtx.createOscillator();
+      const oscGain = audioCtx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.35);
+      oscGain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+      oscGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+      osc.connect(oscGain);
+      oscGain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.35);
+    }
+
+    function playGunshotSound() {
+      if (!audioCtx) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime + 0.12);
+
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.12);
+    }
+
+
+    // Global state
+    let activeGame = 'trench-runner';
+
+    function switchGame(gameId) {
+      activeGame = gameId;
+      document.querySelectorAll('.game-container').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+      if (gameId === 'trench-runner') {
+        document.getElementById('trench-runner-container').classList.add('active');
+        document.querySelector('.tab-btn[onclick*="trench-runner"]').classList.add('active');
+        stopAAGunnerLoop();
+      } else {
+        document.getElementById('aa-gunner-container').classList.add('active');
+        document.querySelector('.tab-btn[onclick*="aa-gunner"]').classList.add('active');
+        stopTrenchRunnerLoop();
+      }
+      initAudio();
+    }
+
+
+    /* ==========================================================
+       GAME 1: TRENCH RUNNER
+       ========================================================== */
+    const runnerCanvas = document.getElementById('runnerCanvas');
+    const rCtx = runnerCanvas.getContext('2d');
+
+    let runnerAnimFrame = null;
+    let runnerHighScore = parseInt(localStorage.getItem('ww1_runner_highscore') || '0');
+    document.getElementById('runner-high-score-val').innerText = runnerHighScore;
+
+    let runnerGameRunning = false;
+    let runnerScore = 0;
+    let runnerSpeed = 4.5;
+
+    // Player object
+    const player = {
+      x: 80,
+      y: 0,
+      width: 20,
+      height: 38,
+      groundY: 340,
+      vy: 0,
+      gravity: 0.6,
+      jumpForce: -11.5,
+      isGrounded: false,
+      runFrame: 0,
+      angle: 0
+    };
+
+    let obstacles = [];
+    let runnerParticles = [];
+    let backgroundScrollX = 0;
+    let runnerSpawnTimer = 0;
+
+    function startTrenchRunner() {
+      initAudio();
+      document.getElementById('runner-start-overlay').style.display = 'none';
+      document.getElementById('runner-over-overlay').style.display = 'none';
+
+      runnerGameRunning = true;
+      runnerScore = 0;
+      runnerSpeed = 4.5;
+      obstacles = [];
+      runnerParticles = [];
+      runnerSpawnTimer = 60;
+
+      player.y = player.groundY;
+      player.vy = 0;
+      player.isGrounded = true;
+
+      document.getElementById('runner-current-score-val').innerText = 0;
+
+      if (runnerAnimFrame) cancelAnimationFrame(runnerAnimFrame);
+      runnerTick();
+    }
+
+    function stopTrenchRunnerLoop() {
+      runnerGameRunning = false;
+      if (runnerAnimFrame) {
+        cancelAnimationFrame(runnerAnimFrame);
+        runnerAnimFrame = null;
+      }
+    }
+
+    function triggerJump() {
+      if (!runnerGameRunning) return;
+      if (player.isGrounded) {
+        player.vy = player.jumpForce;
+        player.isGrounded = false;
+        playJumpSound();
+
+        // Spawn jump particles
+        for (let i = 0; i < 8; i++) {
+          runnerParticles.push({
+            x: player.x + 10,
+            y: player.groundY + 38,
+            vx: (Math.random() - 0.5) * 3,
+            vy: -Math.random() * 2,
+            size: 2 + Math.random() * 3,
+            color: '#3d312b',
+            alpha: 1,
+            life: 25 + Math.random() * 15
+          });
+        }
+      }
+    }
+
+    // Input listeners for jump
+    window.addEventListener('keydown', (e) => {
+      if (activeGame === 'trench-runner') {
+        if (e.key === ' ' || e.key === 'ArrowUp') {
+          triggerJump();
+          e.preventDefault();
+        }
+      }
+    });
+
+    runnerCanvas.addEventListener('mousedown', () => {
+      if (activeGame === 'trench-runner') {
+        triggerJump();
+      }
+    });
+
+    // Touch events for mobile support
+    runnerCanvas.addEventListener('touchstart', (e) => {
+      if (activeGame === 'trench-runner') {
+        triggerJump();
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+
+    function runnerTick() {
+      if (!runnerGameRunning) return;
+      updateRunner();
+      drawRunner();
+      runnerAnimFrame = requestAnimationFrame(runnerTick);
+    }
+
+    function updateRunner() {
+      // Increment score
+      runnerScore += 0.1;
+      const displayScore = Math.floor(runnerScore);
+      document.getElementById('runner-current-score-val').innerText = displayScore;
+
+      // Increase speed gradually
+      runnerSpeed = 4.5 + (displayScore / 150);
+
+      // Scroll background
+      backgroundScrollX -= runnerSpeed * 0.5;
+      if (backgroundScrollX <= -800) backgroundScrollX = 0;
+
+      // Player physics
+      player.vy += player.gravity;
+      player.y += player.vy;
+
+      if (player.y >= player.groundY) {
+        player.y = player.groundY;
+        player.vy = 0;
+        player.isGrounded = true;
+      }
+
+      // Animate run cycle
+      if (player.isGrounded) {
+        player.runFrame += runnerSpeed * 0.08;
+      } else {
+        player.runFrame = 0;
+      }
+
+      // Manage particles
+      for (let i = runnerParticles.length - 1; i >= 0; i--) {
+        const p = runnerParticles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+        p.alpha = p.life / 40;
+        if (p.life <= 0) {
+          runnerParticles.splice(i, 1);
+        }
+      }
+
+      // Spawn obstacles
+      runnerSpawnTimer--;
+      if (runnerSpawnTimer <= 0) {
+        const r = Math.random();
+        let type = 'barbed_wire';
+        if (r < 0.35) {
+          type = 'shell_crater';
+        } else if (r < 0.6) {
+          type = 'mortar_bomb';
+        }
+
+        obstacles.push({
+          x: 820,
+          y: type === 'mortar_bomb' ? 120 : 340,
+          width: type === 'shell_crater' ? 45 : 24,
+          height: type === 'mortar_bomb' ? 20 : 38,
+          type: type,
+          vy: type === 'mortar_bomb' ? 4 : 0,
+          angle: 0,
+          detonated: false
+        });
+
+        // Set next spawn interval based on current speed
+        runnerSpawnTimer = 80 + Math.random() * 90 - (runnerSpeed * 4);
+        if (runnerSpawnTimer < 45) runnerSpawnTimer = 45;
+      }
+
+      // Update obstacles
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const o = obstacles[i];
+        o.x -= runnerSpeed;
+
+        if (o.type === 'mortar_bomb' && !o.detonated) {
+          o.y += o.vy;
+          o.angle += 0.1;
+          // When mortar bomb hits ground level
+          if (o.y >= player.groundY + 15) {
+            o.y = player.groundY + 15;
+            o.detonated = true;
+            playExplosionSound();
+            // Spawn explosion particles
+            for (let j = 0; j < 12; j++) {
+              runnerParticles.push({
+                x: o.x,
+                y: o.y,
+                vx: (Math.random() - 0.5) * 6,
+                vy: -Math.random() * 5 - 2,
+                size: 3 + Math.random() * 5,
+                color: Math.random() > 0.4 ? '#ff5722' : '#8d4f38',
+                alpha: 1,
+                life: 30 + Math.random() * 20
+              });
+            }
+          }
+        }
+
+        // Collision detection
+        const px = player.x;
+        const py = player.y;
+        const pw = player.width;
+        const ph = player.height;
+
+        let ox = o.x;
+        let oy = o.y;
+        let ow = o.width;
+        let oh = o.height;
+
+        if (o.type === 'shell_crater') {
+          oy = player.groundY + 20; // low crater collider
+          oh = 18;
+        }
+
+        // Check AABB collision
+        if (px < ox + ow && px + pw > ox && py < oy + oh && py + ph > oy) {
+          // Collision! Messenger is KIA
+          runnerGameRunning = false;
+          playExplosionSound();
+
+          // Spawn blood splatter particles
+          for (let k = 0; k < 20; k++) {
+            runnerParticles.push({
+              x: player.x + 10,
+              y: player.y + 19,
+              vx: (Math.random() - 0.5) * 8,
+              vy: (Math.random() - 0.8) * 8,
+              size: 4 + Math.random() * 6,
+              color: '#800c0c',
+              alpha: 1,
+              life: 40 + Math.random() * 25
+            });
+          }
+
+          // Check and set high score
+          const finalScore = Math.floor(runnerScore);
+          if (finalScore > runnerHighScore) {
+            runnerHighScore = finalScore;
+            localStorage.setItem('ww1_runner_highscore', runnerHighScore);
+            document.getElementById('runner-high-score-val').innerText = runnerHighScore;
+          }
+
+          document.getElementById('runner-final-score').innerText = `Score: ${finalScore}`;
+          document.getElementById('runner-over-overlay').style.display = 'flex';
+          break;
+        }
+
+        // Remove out-of-bounds obstacles
+        if (o.x < -100) {
+          obstacles.splice(i, 1);
+        }
+      }
+    }
+
+    function drawRunner() {
+      rCtx.clearRect(0, 0, runnerCanvas.width, runnerCanvas.height);
+
+      // Sky gradient (gloomy, desaturated WW1 dusk)
+      const skyGrad = rCtx.createLinearGradient(0, 0, 0, runnerCanvas.height);
+      skyGrad.addColorStop(0, '#1c1411');
+      skyGrad.addColorStop(0.6, '#2d221c');
+      skyGrad.addColorStop(1, '#15100e');
+      rCtx.fillStyle = skyGrad;
+      rCtx.fillRect(0, 0, runnerCanvas.width, runnerCanvas.height);
+
+      // Draw distant hills / trenches silhouette (Scrolling)
+      rCtx.fillStyle = '#1e1613';
+      rCtx.beginPath();
+      for (let i = 0; i <= 800; i += 40) {
+        const x = i;
+        const sX = (x - backgroundScrollX * 0.3) % 800;
+        const heightVal = 200 + Math.sin(i * 0.03) * 15 + Math.cos(i * 0.01) * 8;
+        if (i === 0) rCtx.moveTo(sX, heightVal);
+        else rCtx.lineTo(sX, heightVal);
+      }
+      rCtx.lineTo(800, runnerCanvas.height);
+      rCtx.lineTo(0, runnerCanvas.height);
+      rCtx.fill();
+
+      // Draw ground background mud
+      rCtx.fillStyle = '#2d211b';
+      rCtx.fillRect(0, player.groundY + player.height, runnerCanvas.width, runnerCanvas.height - (player.groundY + player.height));
+
+      // Draw trench board lines / floor board walk (Scrolling)
+      rCtx.strokeStyle = '#201612';
+      rCtx.lineWidth = 4;
+      const boardwalkY = player.groundY + player.height - 2;
+      rCtx.beginPath();
+      rCtx.moveTo(0, boardwalkY);
+      rCtx.lineTo(runnerCanvas.width, boardwalkY);
+      rCtx.stroke();
+
+      // Vertical boards
+      rCtx.strokeStyle = '#1b120f';
+      rCtx.lineWidth = 3;
+      rCtx.beginPath();
+      const spacing = 60;
+      const offset = backgroundScrollX % spacing;
+      for (let x = offset; x < runnerCanvas.width; x += spacing) {
+        rCtx.moveTo(x, boardwalkY);
+        rCtx.lineTo(x, runnerCanvas.height);
+      }
+      rCtx.stroke();
+
+      // Draw Mud Splatters and craters along ground
+      rCtx.fillStyle = '#17100c';
+      rCtx.beginPath();
+      const mudSpacing = 120;
+      const mudOffset = backgroundScrollX % mudSpacing;
+      for (let x = mudOffset; x < runnerCanvas.width; x += mudSpacing) {
+        rCtx.ellipse(x + 20, boardwalkY + 15, 20, 5, 0, 0, Math.PI * 2);
+        rCtx.ellipse(x + 75, boardwalkY + 35, 35, 7, 0, 0, Math.PI * 2);
+      }
+      rCtx.fill();
+
+      // Draw Obstacles
+      obstacles.forEach(o => {
+        if (o.type === 'barbed_wire') {
+          // Barbed wire obstacle
+          rCtx.strokeStyle = '#6d5a50';
+          rCtx.lineWidth = 2.5;
+          rCtx.beginPath();
+          // Draw rusty framing wooden X poles
+          rCtx.moveTo(o.x, o.y + o.height);
+          rCtx.lineTo(o.x + o.width, o.y);
+          rCtx.moveTo(o.x + o.width, o.y + o.height);
+          rCtx.lineTo(o.x, o.y);
+          rCtx.stroke();
+
+          // Barbed coils
+          rCtx.strokeStyle = '#8d7b73';
+          rCtx.lineWidth = 1.5;
+          rCtx.beginPath();
+          rCtx.arc(o.x + o.width/2, o.y + o.height/2, 16, 0, Math.PI * 2);
+          rCtx.stroke();
+
+          // Little sharp wire spikes
+          rCtx.fillStyle = '#a69085';
+          for (let j = 0; j < 6; j++) {
+            const angle = j * (Math.PI / 3);
+            const sx = o.x + o.width/2 + Math.cos(angle) * 16;
+            const sy = o.y + o.height/2 + Math.sin(angle) * 16;
+            rCtx.fillRect(sx - 2, sy - 2, 4, 4);
+          }
+        } else if (o.type === 'shell_crater') {
+          // Dark impact shell hole in the trench line
+          rCtx.fillStyle = '#110b09';
+          rCtx.strokeStyle = '#3d251d';
+          rCtx.lineWidth = 3;
+          rCtx.beginPath();
+          rCtx.ellipse(o.x + o.width/2, player.groundY + 36, o.width/2, 10, 0, 0, Math.PI * 2);
+          rCtx.fill();
+          rCtx.stroke();
+
+          // Barbed wire warning sign pole
+          rCtx.strokeStyle = '#5a463c';
+          rCtx.lineWidth = 3;
+          rCtx.beginPath();
+          rCtx.moveTo(o.x + 8, player.groundY + 36);
+          rCtx.lineTo(o.x + 8, player.groundY);
+          rCtx.stroke();
+
+          // Red flag alert warning marker
+          rCtx.fillStyle = '#8b2626';
+          rCtx.beginPath();
+          rCtx.moveTo(o.x + 8, player.groundY);
+          rCtx.lineTo(o.x + 22, player.groundY + 5);
+          rCtx.lineTo(o.x + 8, player.groundY + 10);
+          rCtx.fill();
+        } else if (o.type === 'mortar_bomb' && !o.detonated) {
+          // Falling mortar bomb with rotational tail fins
+          rCtx.save();
+          rCtx.translate(o.x, o.y);
+          rCtx.rotate(o.angle);
+
+          rCtx.fillStyle = '#4c525a';
+          rCtx.strokeStyle = '#2a2d33';
+          rCtx.lineWidth = 1.5;
+
+          // Bomb capsule
+          rCtx.beginPath();
+          rCtx.ellipse(0, 0, 10, 6, 0, 0, Math.PI * 2);
+          rCtx.fill();
+          rCtx.stroke();
+
+          // Tail fins
+          rCtx.fillStyle = '#2a2d33';
+          rCtx.fillRect(-14, -4, 5, 8);
+          rCtx.beginPath();
+          rCtx.moveTo(-14, 0);
+          rCtx.lineTo(-8, 0);
+          rCtx.stroke();
+
+          rCtx.restore();
+        }
+      });
+
+      // Draw particles
+      runnerParticles.forEach(p => {
+        rCtx.save();
+        rCtx.globalAlpha = p.alpha;
+        rCtx.fillStyle = p.color;
+        rCtx.beginPath();
+        rCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        rCtx.fill();
+        rCtx.restore();
+      });
+
+      // Draw Player: Allied field messenger running
+      if (runnerGameRunning) {
+        rCtx.save();
+        rCtx.translate(player.x, player.y);
+
+        // Body / Uniform
+        rCtx.fillStyle = '#51614e'; // Khaki / Olive uniform
+        rCtx.fillRect(0, 10, player.width, 22);
+
+        // Legs run-cycle animation calculations
+        const animSpeed = player.runFrame;
+        const leftLegOffset = Math.sin(animSpeed) * 12;
+        const rightLegOffset = -Math.sin(animSpeed) * 12;
+
+        // Left Leg
+        rCtx.fillStyle = '#394637';
+        rCtx.fillRect(2, 32, 6, 6 + Math.max(0, leftLegOffset));
+        // Right Leg
+        rCtx.fillStyle = '#2d382b';
+        rCtx.fillRect(12, 32, 6, 6 + Math.max(0, rightLegOffset));
+
+        // Satchel bag on shoulder
+        rCtx.fillStyle = '#836c53';
+        rCtx.fillRect(-2, 14, 7, 9);
+        rCtx.strokeStyle = '#4e3f30';
+        rCtx.lineWidth = 1;
+        rCtx.beginPath();
+        rCtx.moveTo(-2, 10);
+        rCtx.lineTo(16, 23);
+        rCtx.stroke();
+
+        // Arms swing
+        const armOffset = Math.cos(animSpeed) * 8;
+        rCtx.fillStyle = '#51614e';
+        rCtx.fillRect(16, 12, 5, 10 + armOffset); // front arm
+
+        // Face / Head
+        rCtx.fillStyle = '#d7ccc8';
+        rCtx.fillRect(4, 2, 12, 8);
+
+        // Brodie Helmet (Classic WW1 British style bowl helmet)
+        rCtx.fillStyle = '#72806e';
+        rCtx.beginPath();
+        rCtx.ellipse(10, 2, 10, 4, 0, 0, Math.PI * 2);
+        rCtx.fill();
+        // Helmet brim
+        rCtx.strokeStyle = '#515e4f';
+        rCtx.lineWidth = 1.5;
+        rCtx.beginPath();
+        rCtx.moveTo(-1, 3);
+        rCtx.lineTo(21, 3);
+        rCtx.stroke();
+
+        rCtx.restore();
+      }
+    }
+
+
+    /* ==========================================================
+       GAME 2: AA GUNNER
+       ========================================================== */
+    const aaCanvas = document.getElementById('aaCanvas');
+    const aaCtx = aaCanvas.getContext('2d');
+
+    let aaAnimFrame = null;
+    let aaHighScore = parseInt(localStorage.getItem('ww1_aa_highscore') || '0');
+    document.getElementById('aa-high-score-val').innerText = aaHighScore;
+
+    let aaGameRunning = false;
+    let aaScore = 0;
+    let aaBaseIntegrity = 100;
+
+    let aaPlanes = [];
+    let aaParticles = [];
+    let aaShots = [];
+    let flakExplosions = [];
+    let aaSpawnTimer = 0;
+
+    const baseGunX = 400;
+    const baseGunY = 430;
+    let aaMouseX = 400;
+    let aaMouseY = 200;
+
+    function startAAGunner() {
+      initAudio();
+      document.getElementById('aa-start-overlay').style.display = 'none';
+      document.getElementById('aa-over-overlay').style.display = 'none';
+
+      aaGameRunning = true;
+      aaScore = 0;
+      aaBaseIntegrity = 100;
+      aaPlanes = [];
+      aaParticles = [];
+      aaShots = [];
+      flakExplosions = [];
+      aaSpawnTimer = 40;
+
+      document.getElementById('aa-current-score-val').innerText = 0;
+      document.getElementById('aa-integrity-val').innerText = '100%';
+      document.getElementById('aa-integrity-val').style.color = 'var(--ally-color)';
+
+      if (aaAnimFrame) cancelAnimationFrame(aaAnimFrame);
+      aaTick();
+    }
+
+    function stopAAGunnerLoop() {
+      aaGameRunning = false;
+      if (aaAnimFrame) {
+        cancelAnimationFrame(aaAnimFrame);
+        aaAnimFrame = null;
+      }
+    }
+
+    aaCanvas.addEventListener('mousemove', (e) => {
+      if (!aaGameRunning) return;
+      const rect = aaCanvas.getBoundingClientRect();
+      aaMouseX = (e.clientX - rect.left) * (aaCanvas.width / rect.width);
+      aaMouseY = (e.clientY - rect.top) * (aaCanvas.height / rect.height);
+    });
+
+    aaCanvas.addEventListener('mousedown', (e) => {
+      if (!aaGameRunning) return;
+
+      const rect = aaCanvas.getBoundingClientRect();
+      const clickX = (e.clientX - rect.left) * (aaCanvas.width / rect.width);
+      const clickY = (e.clientY - rect.top) * (aaCanvas.height / rect.height);
+
+      // Prevent shooting right at the bottom gun barrel base
+      if (clickY > 400) return;
+
+      // Launch flak shell
+      playGunshotSound();
+
+      // Calculate angle from base to target
+      const dx = clickX - baseGunX;
+      const dy = clickY - baseGunY;
+      const dist = Math.hypot(dx, dy);
+
+      // Create muzzle smoke puff
+      const angle = Math.atan2(dy, dx);
+      const muzzleX = baseGunX + Math.cos(angle) * 55;
+      const muzzleY = baseGunY + Math.sin(angle) * 55;
+
+      for (let i = 0; i < 6; i++) {
+        aaParticles.push({
+          x: muzzleX,
+          y: muzzleY,
+          vx: Math.cos(angle + (Math.random() - 0.5) * 0.4) * (2 + Math.random() * 3),
+          vy: Math.sin(angle + (Math.random() - 0.5) * 0.4) * (2 + Math.random() * 3),
+          size: 4 + Math.random() * 6,
+          color: 'rgba(230, 220, 210, 0.7)',
+          alpha: 1,
+          life: 20 + Math.random() * 15
+        });
+      }
+
+      aaShots.push({
+        x: muzzleX,
+        y: muzzleY,
+        targetX: clickX,
+        targetY: clickY,
+        startX: muzzleX,
+        startY: muzzleY,
+        speed: 12,
+        progress: 0,
+        distance: dist - 55
+      });
+    });
+
+
+    function aaTick() {
+      if (!aaGameRunning) return;
+      updateAA();
+      drawAA();
+      aaAnimFrame = requestAnimationFrame(aaTick);
+    }
+
+    function updateAA() {
+      // Spawn Planes
+      aaSpawnTimer--;
+      if (aaSpawnTimer <= 0) {
+        const fromLeft = Math.random() > 0.5;
+        const spawnX = fromLeft ? -80 : 880;
+        const spawnY = 60 + Math.random() * 200; // Sky altitudes
+        const speedMultiplier = 1.6 + (aaScore / 18);
+        const speed = (fromLeft ? 1 : -1) * (speedMultiplier + Math.random() * 1.5);
+
+        aaPlanes.push({
+          x: spawnX,
+          y: spawnY,
+          vx: speed,
+          width: 52,
+          height: 24,
+          health: 1,
+          bombTimer: 80 + Math.random() * 180,
+          bombed: false
+        });
+
+        // Set next spawn speed
+        aaSpawnTimer = Math.max(35, 75 - aaScore * 1.5);
+      }
+
+      // Update Flak shots
+      for (let i = aaShots.length - 1; i >= 0; i--) {
+        const s = aaShots[i];
+        const dx = s.targetX - s.x;
+        const dy = s.targetY - s.y;
+        const d = Math.hypot(dx, dy);
+
+        if (d < s.speed) {
+          // Trigger Flak burst at target
+          triggerFlakBurst(s.targetX, s.targetY);
+          aaShots.splice(i, 1);
+        } else {
+          const angle = Math.atan2(dy, dx);
+          s.x += Math.cos(angle) * s.speed;
+          s.y += Math.sin(angle) * s.speed;
+        }
+      }
+
+      // Update Flak Explosions
+      for (let i = flakExplosions.length - 1; i >= 0; i--) {
+        const fe = flakExplosions[i];
+        fe.life--;
+        fe.radius = fe.maxRadius * (1 - fe.life / fe.maxLife);
+        if (fe.life <= 0) {
+          flakExplosions.splice(i, 1);
+        }
+      }
+
+      // Update Planes and check flak collision
+      for (let i = aaPlanes.length - 1; i >= 0; i--) {
+        const p = aaPlanes[i];
+        p.x += p.vx;
+
+        // Plane bombing logic
+        if (!p.bombed) {
+          p.bombTimer--;
+          if (p.bombTimer <= 0) {
+            p.bombed = true;
+            // Spawn falling bomb directly targeting the base
+            aaParticles.push({
+              x: p.x + 20,
+              y: p.y + 10,
+              vx: p.vx * 0.5,
+              vy: 3,
+              size: 5,
+              color: '#34383c',
+              alpha: 1,
+              life: 150,
+              isBomb: true
+            });
+          }
+        }
+
+        // Check flak shell impact
+        flakExplosions.forEach(fe => {
+          const px = p.x + p.width/2;
+          const py = p.y + p.height/2;
+          const dist = Math.hypot(px - fe.x, py - fe.y);
+          if (dist < fe.radius + 15) {
+            p.health = 0;
+          }
+        });
+
+        // Plane destroyed logic
+        if (p.health <= 0) {
+          playExplosionSound();
+          aaScore++;
+          document.getElementById('aa-current-score-val').innerText = aaScore;
+
+          // Spawn plane wreckage particles
+          for (let j = 0; j < 15; j++) {
+            aaParticles.push({
+              x: p.x + 25,
+              y: p.y + 12,
+              vx: (Math.random() - 0.5) * 5,
+              vy: (Math.random() - 0.5) * 5,
+              size: 2 + Math.random() * 4,
+              color: Math.random() > 0.4 ? '#ff7700' : '#4d525a',
+              alpha: 1,
+              life: 30 + Math.random() * 20
+            });
+          }
+
+          aaPlanes.splice(i, 1);
+          continue;
+        }
+
+        // Remove escaped planes
+        if (p.vx > 0 && p.x > 880) {
+          aaPlanes.splice(i, 1);
+        } else if (p.vx < 0 && p.x < -80) {
+          aaPlanes.splice(i, 1);
+        }
+      }
+
+      // Update particles
+      for (let i = aaParticles.length - 1; i >= 0; i--) {
+        const pt = aaParticles[i];
+        pt.x += pt.vx;
+        pt.y += pt.vy;
+        pt.life--;
+
+        if (pt.isBomb) {
+          // Falling bomb animation
+          pt.vy += 0.05; // slight bomb gravity
+          // Check collision with ground/AA battery
+          if (pt.y >= 415) {
+            // Bomb detonate on AA battery!
+            playExplosionSound();
+            aaBaseIntegrity -= 15;
+            if (aaBaseIntegrity < 0) aaBaseIntegrity = 0;
+            document.getElementById('aa-integrity-val').innerText = `${aaBaseIntegrity}%`;
+
+            if (aaBaseIntegrity <= 40) {
+              document.getElementById('aa-integrity-val').style.color = 'var(--central-color)';
+            } else if (aaBaseIntegrity <= 75) {
+              document.getElementById('aa-integrity-val').style.color = 'var(--accent-color)';
+            }
+
+            // Splash shockwave
+            for (let k = 0; k < 18; k++) {
+              aaParticles.push({
+                x: pt.x,
+                y: 420,
+                vx: (Math.random() - 0.5) * 7,
+                vy: -Math.random() * 6 - 1,
+                size: 3 + Math.random() * 6,
+                color: Math.random() > 0.5 ? '#d84c1a' : '#1e1c1b',
+                alpha: 1,
+                life: 35 + Math.random() * 25
+              });
+            }
+
+            aaParticles.splice(i, 1);
+            continue;
+          }
+        } else {
+          pt.alpha = pt.life / 35;
+        }
+
+        if (pt.life <= 0) {
+          aaParticles.splice(i, 1);
+        }
+      }
+
+      // Check game over condition
+      if (aaBaseIntegrity <= 0) {
+        aaGameRunning = false;
+        playExplosionSound();
+
+        // High score calculation
+        if (aaScore > aaHighScore) {
+          aaHighScore = aaScore;
+          localStorage.setItem('ww1_aa_highscore', aaHighScore);
+          document.getElementById('aa-high-score-val').innerText = aaHighScore;
+        }
+
+        document.getElementById('aa-final-score').innerText = `Planes Shot Down: ${aaScore}`;
+        document.getElementById('aa-over-overlay').style.display = 'flex';
+      }
+    }
+
+    function triggerFlakBurst(x, y) {
+      playExplosionSound();
+      flakExplosions.push({
+        x: x,
+        y: y,
+        radius: 5,
+        maxRadius: 36,
+        life: 18,
+        maxLife: 18
+      });
+
+      // Spawn black flak smoke particles
+      for (let i = 0; i < 10; i++) {
+        aaParticles.push({
+          x: x + (Math.random() - 0.5) * 15,
+          y: y + (Math.random() - 0.5) * 15,
+          vx: (Math.random() - 0.5) * 1.5,
+          vy: (Math.random() - 0.5) * 1.5 - 0.3,
+          size: 6 + Math.random() * 8,
+          color: Math.random() > 0.3 ? 'rgba(30, 28, 26, 0.8)' : 'rgba(150, 140, 130, 0.5)',
+          alpha: 1,
+          life: 40 + Math.random() * 20
+        });
+      }
+    }
+
+    function drawAA() {
+      aaCtx.clearRect(0, 0, aaCanvas.width, aaCanvas.height);
+
+      // Gothically styled evening backdrop
+      const duskGrad = aaCtx.createLinearGradient(0, 0, 0, aaCanvas.height);
+      duskGrad.addColorStop(0, '#091c30'); // Night blue
+      duskGrad.addColorStop(0.5, '#221815'); // Smoky red horizon
+      duskGrad.addColorStop(1, '#0e0b09');
+      aaCtx.fillStyle = duskGrad;
+      aaCtx.fillRect(0, 0, aaCanvas.width, aaCanvas.height);
+
+      // Drawing searchlight beam animations
+      const timeSec = Date.now() * 0.001;
+      aaCtx.save();
+      aaCtx.globalAlpha = 0.08;
+      aaCtx.fillStyle = '#ebf3ff';
+      // Left beam
+      aaCtx.beginPath();
+      const leftBeamAngle = Math.sin(timeSec * 0.4) * 0.3 - 0.2;
+      aaCtx.moveTo(150, 430);
+      aaCtx.lineTo(150 + Math.cos(leftBeamAngle - Math.PI/2) * 600 - 100, Math.sin(leftBeamAngle - Math.PI/2) * 600);
+      aaCtx.lineTo(150 + Math.cos(leftBeamAngle - Math.PI/2) * 600 + 100, Math.sin(leftBeamAngle - Math.PI/2) * 600);
+      aaCtx.fill();
+
+      // Right beam
+      aaCtx.beginPath();
+      const rightBeamAngle = Math.cos(timeSec * 0.35) * 0.25 + 0.3;
+      aaCtx.moveTo(650, 430);
+      aaCtx.lineTo(650 + Math.cos(rightBeamAngle - Math.PI/2) * 600 - 100, Math.sin(rightBeamAngle - Math.PI/2) * 600);
+      aaCtx.lineTo(650 + Math.cos(rightBeamAngle - Math.PI/2) * 600 + 100, Math.sin(rightBeamAngle - Math.PI/2) * 600);
+      aaCtx.fill();
+      aaCtx.restore();
+
+      // Draw searchlight base stations
+      aaCtx.fillStyle = '#1e1c1b';
+      aaCtx.beginPath();
+      aaCtx.arc(150, 430, 16, Math.PI, 0);
+      aaCtx.arc(650, 430, 16, Math.PI, 0);
+      aaCtx.fill();
+
+      // Draw active flak explosions
+      flakExplosions.forEach(fe => {
+        aaCtx.save();
+        aaCtx.translate(fe.x, fe.y);
+        const progress = fe.life / fe.maxLife;
+
+        // Inner glowing core
+        const grad = aaCtx.createRadialGradient(0, 0, fe.radius * 0.1, 0, 0, fe.radius);
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.2, '#fca211');
+        grad.addColorStop(0.6, 'rgba(100, 90, 80, 0.7)'); // Smoky black halo
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        aaCtx.fillStyle = grad;
+        aaCtx.beginPath();
+        aaCtx.arc(0, 0, fe.radius, 0, Math.PI * 2);
+        aaCtx.fill();
+        aaCtx.restore();
+      });
+
+      // Draw flying Enemy biplanes (Central Power colors)
+      aaPlanes.forEach(p => {
+        aaCtx.save();
+        aaCtx.translate(p.x, p.y);
+        if (p.vx < 0) {
+          aaCtx.translate(p.width, 0);
+          aaCtx.scale(-1, 1);
+        }
+
+        // Biplane wing shadows
+        aaCtx.fillStyle = '#5c6063'; // Grey body camouflage
+        aaCtx.fillRect(10, 8, 32, 7);
+
+        // Wings structure
+        aaCtx.fillStyle = '#6e7377';
+        aaCtx.fillRect(16, 0, 8, 23); // upper wing
+        aaCtx.fillRect(16, 21, 8, 2);  // lower wing attachment
+
+        // Support struts
+        aaCtx.strokeStyle = '#2b2c2d';
+        aaCtx.lineWidth = 1.5;
+        aaCtx.beginPath();
+        aaCtx.moveTo(18, 5);
+        aaCtx.lineTo(18, 19);
+        aaCtx.moveTo(22, 5);
+        aaCtx.lineTo(22, 19);
+        aaCtx.stroke();
+
+        // German Iron Cross logo marking (Balkenkreuz) on wingtips
+        aaCtx.fillStyle = '#1a1a1a';
+        aaCtx.fillRect(19, 2, 2, 4);
+        aaCtx.fillRect(18, 3, 4, 2);
+
+        aaCtx.fillStyle = '#fff';
+        aaCtx.fillRect(19, 17, 2, 4);
+        aaCtx.fillRect(18, 18, 4, 2);
+
+        // Propeller
+        const propOsc = Math.sin(Date.now() * 0.08) * 12;
+        aaCtx.strokeStyle = 'rgba(230, 230, 230, 0.4)';
+        aaCtx.lineWidth = 2;
+        aaCtx.beginPath();
+        aaCtx.moveTo(42, 11 - propOsc);
+        aaCtx.lineTo(42, 11 + propOsc);
+        aaCtx.stroke();
+
+        aaCtx.restore();
+      });
+
+      // Draw AA shots shell tracers
+      aaCtx.strokeStyle = '#ffcc44';
+      aaCtx.lineWidth = 3.5;
+      aaShots.forEach(s => {
+        const dx = s.targetX - s.startX;
+        const dy = s.targetY - s.startY;
+        const angle = Math.atan2(dy, dx);
+        aaCtx.beginPath();
+        aaCtx.moveTo(s.x - Math.cos(angle) * 15, s.y - Math.sin(angle) * 15);
+        aaCtx.lineTo(s.x, s.y);
+        aaCtx.stroke();
+      });
+
+      // Draw all general flying particles and falling bombs
+      aaParticles.forEach(pt => {
+        aaCtx.save();
+        if (pt.isBomb) {
+          // Steel heavy shell bomb
+          aaCtx.fillStyle = '#454a50';
+          aaCtx.strokeStyle = '#232528';
+          aaCtx.lineWidth = 1.5;
+          aaCtx.beginPath();
+          aaCtx.ellipse(pt.x, pt.y, 5, 8, 0.1, 0, Math.PI * 2);
+          aaCtx.fill();
+          aaCtx.stroke();
+
+          // Little glowing red blinker
+          if (Math.sin(Date.now() * 0.02) > 0) {
+            aaCtx.fillStyle = '#ff3333';
+            aaCtx.beginPath();
+            aaCtx.arc(pt.x, pt.y - 2, 1.5, 0, Math.PI * 2);
+            aaCtx.fill();
+          }
+        } else {
+          aaCtx.globalAlpha = pt.alpha;
+          aaCtx.fillStyle = pt.color;
+          aaCtx.beginPath();
+          aaCtx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+          aaCtx.fill();
+        }
+        aaCtx.restore();
+      });
+
+      // Draw Ground Mud battery fort
+      aaCtx.fillStyle = '#2d211b';
+      aaCtx.fillRect(0, 420, aaCanvas.width, 30);
+      aaCtx.fillStyle = '#17100c';
+      aaCtx.fillRect(0, 428, aaCanvas.width, 22);
+
+      // Draw defensive sandbags at base
+      aaCtx.fillStyle = '#7a6655';
+      aaCtx.strokeStyle = '#3d3126';
+      aaCtx.lineWidth = 1.5;
+      const bagW = 40;
+      const bagH = 14;
+      for (let x = 320; x <= 480; x += 22) {
+        // Lower row
+        aaCtx.fillRect(x, 412, bagW, bagH);
+        aaCtx.strokeRect(x, 412, bagW, bagH);
+      }
+      for (let x = 330; x <= 460; x += 24) {
+        // Upper row staggered
+        aaCtx.fillRect(x, 400, bagW, bagH);
+        aaCtx.strokeRect(x, 400, bagW, bagH);
+      }
+
+      // Draw Stationary AA flak Cannon (Aiming at crosshair)
+      const dx = aaMouseX - baseGunX;
+      const dy = aaMouseY - baseGunY;
+      const angle = Math.max(-Math.PI * 0.9, Math.min(-Math.PI * 0.1, Math.atan2(dy, dx)));
+
+      // Barrel
+      aaCtx.save();
+      aaCtx.translate(baseGunX, baseGunY - 20);
+      aaCtx.rotate(angle);
+
+      aaCtx.fillStyle = '#545b63'; // Gun metal blue-grey
+      aaCtx.strokeStyle = '#2b2f33';
+      aaCtx.lineWidth = 2.5;
+
+      // Heavy double barrel
+      aaCtx.fillRect(0, -7, 60, 5);
+      aaCtx.strokeRect(0, -7, 60, 5);
+      aaCtx.fillRect(0, 2, 60, 5);
+      aaCtx.strokeRect(0, 2, 60, 5);
+
+      // Cannon breech back
+      aaCtx.fillStyle = '#30343a';
+      aaCtx.fillRect(-22, -10, 26, 20);
+      aaCtx.strokeRect(-22, -10, 26, 20);
+
+      aaCtx.restore();
+
+      // Heavy turret mount base
+      aaCtx.fillStyle = '#26282b';
+      aaCtx.strokeStyle = '#101112';
+      aaCtx.lineWidth = 2;
+      aaCtx.beginPath();
+      aaCtx.arc(baseGunX, baseGunY, 25, Math.PI, 0);
+      aaCtx.fill();
+      aaCtx.stroke();
+
+      // Stand mount stand shaft
+      aaCtx.fillStyle = '#17181a';
+      aaCtx.fillRect(baseGunX - 6, baseGunY, 12, 20);
+
+      // Draw aiming UI crosshair reticle on AA Gunner
+      aaCtx.strokeStyle = 'rgba(197, 160, 89, 0.7)';
+      aaCtx.lineWidth = 1.5;
+      aaCtx.beginPath();
+      aaCtx.arc(aaMouseX, aaMouseY, 12, 0, Math.PI*2);
+      aaCtx.moveTo(aaMouseX - 20, aaMouseY);
+      aaCtx.lineTo(aaMouseX + 20, aaMouseY);
+      aaCtx.moveTo(aaMouseX, aaMouseY - 20);
+      aaCtx.lineTo(aaMouseX, aaMouseY + 20);
+      aaCtx.stroke();
+    }
+  </script>
+
+</body>
+</html>
