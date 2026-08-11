@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 54 36">
+  <defs>
+    <!-- Background of canton: blue square 20x20 -->
+    <!-- Grid of 9 horizontal stripes, each height 4, Alternating blue and white -->
+    <rect id="stripe" width="54" height="4" fill="#0D5EAF"/>
+    <rect id="white_stripe" width="54" height="4" fill="#ffffff"/>
+  </defs>
+  <!-- 9 stripes alternating: blue (top) then white -->
+  <use href="#stripe" y="0"/>
+  <use href="#white_stripe" y="4"/>
+  <use href="#stripe" y="8"/>
+  <use href="#white_stripe" y="12"/>
+  <use href="#stripe" y="16"/>
+  <use href="#white_stripe" y="20"/>
+  <use href="#stripe" y="24"/>
+  <use href="#white_stripe" y="28"/>
+  <use href="#stripe" y="32"/>
+
+  <!-- Canton (top-left) blue square: 20 wide, 20 high -->
+  <rect width="20" height="20" fill="#0D5EAF"/>
+  <!-- Canton white cross: vertical bar (width 4, height 20, x=8), horizontal bar (width 20, height 4, y=8) -->
+  <rect x="8" width="4" height="20" fill="#ffffff"/>
+  <rect y="8" width="20" height="4" fill="#ffffff"/>
+</svg>

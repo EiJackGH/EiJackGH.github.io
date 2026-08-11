@@ -263,7 +263,7 @@
 
     .cards-row {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 16px;
     }
 
@@ -1014,6 +1014,10 @@
             <img src="./assets/flag-usa.svg" alt="USA">
             <span>United States</span>
           </div>
+          <div class="faction-card" onclick="chooseFaction('allies', 'greece')">
+            <img src="./assets/flag-greece.svg" alt="Greece">
+            <span>Kingdom of Greece</span>
+          </div>
         </div>
       </div>
 
@@ -1310,6 +1314,7 @@
       france: "General Philippe Pétain",
       russia: "Grand Duke Nicholas",
       usa: "General John J. Pershing",
+      greece: "General Panagiotis Danglis",
       germany: "Kaiser Wilhelm II",
       austria: "Field Marshal Conrad von Hötzendorf",
       ottoman: "Enver Pasha",
@@ -1364,6 +1369,7 @@
       france: { name: "France", flag: "./assets/flag-france.svg", alliance: "allies" },
       russia: { name: "Russian Empire", flag: "./assets/flag-russia.svg", alliance: "allies" },
       usa: { name: "United States", flag: "./assets/flag-usa.svg", alliance: "allies" },
+      greece: { name: "Kingdom of Greece", flag: "./assets/flag-greece.svg", alliance: "allies" },
       germany: { name: "German Empire", flag: "./assets/flag-germany.svg", alliance: "central" },
       austria: { name: "Austria-Hungary", flag: "./assets/flag-austria.svg", alliance: "central" },
       ottoman: { name: "Ottoman Empire", flag: "./assets/flag-ottoman.svg", alliance: "central" },
@@ -1456,7 +1462,7 @@
       playerAlliance = alliance;
       playerNation = nationKey;
       
-      const alliesPool = ['uk', 'france', 'russia', 'usa'];
+      const alliesPool = ['uk', 'france', 'russia', 'usa', 'greece'];
       const centralPool = ['germany', 'austria', 'ottoman', 'bulgaria'];
       const cospherePool = ['japan', 'china', 'siam'];
 
