@@ -11,6 +11,11 @@ def run_cuj(page):
     page.get_by_role("button", name="Trench Chess").click(force=True)
     page.wait_for_timeout(1000)
 
+    # Click on Allied Powers on the Faction Selection Canvas to start the chess game
+    print("Selecting Faction 'Allied Powers' from Selection Canvas...")
+    page.locator("#chessFactionCanvas").click(position={"x": 210, "y": 150})
+    page.wait_for_timeout(1000)
+
     # Take an initial screenshot of the Trench Chess board and Tactical support buttons
     page.screenshot(path="experiments/ww1/chess_initial.png")
     print("Initial chess screenshot captured.")

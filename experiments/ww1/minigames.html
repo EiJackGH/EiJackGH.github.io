@@ -305,6 +305,7 @@
       aspect-ratio: 1 / 1;
       max-width: 440px;
       width: 100%;
+      position: relative;
     }
 
     .chess-board {
@@ -314,6 +315,18 @@
       width: 100%;
       height: 100%;
       border: 1px solid #1a1412;
+    }
+
+    #chessFactionCanvas {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: calc(100% - 20px);
+      height: calc(100% - 20px);
+      background: rgba(11, 8, 7, 0.98);
+      border-radius: 4px;
+      z-index: 20;
+      display: none;
     }
 
     .chess-square {
@@ -385,6 +398,22 @@
       transform: scale(1.1);
     }
 
+    .chess-piece.allies {
+      color: var(--accent-color);
+      text-shadow: 0 0 5px rgba(197, 160, 89, 0.6), 0 0 10px rgba(197, 160, 89, 0.3);
+    }
+
+    .chess-piece.central {
+      color: var(--central-color);
+      text-shadow: 0 0 5px rgba(166, 99, 99, 0.6), 0 0 10px rgba(166, 99, 99, 0.3);
+    }
+
+    .chess-piece.cosphere {
+      color: var(--cosphere-color);
+      text-shadow: 0 0 5px rgba(92, 140, 166, 0.6), 0 0 10px rgba(92, 140, 166, 0.3);
+    }
+
+    /* Keep old classes as fallback/backwards compatibility */
     .chess-piece.white {
       color: var(--accent-color);
       text-shadow: 0 0 5px rgba(197, 160, 89, 0.6), 0 0 10px rgba(197, 160, 89, 0.3);
@@ -594,6 +623,25 @@
       border-radius: 4px;
     }
 
+    .intel-turn-status.central-turn {
+      color: var(--central-color);
+      background: rgba(166, 99, 99, 0.1);
+      border-color: rgba(166, 99, 99, 0.3);
+    }
+
+    .intel-turn-status.cosphere-turn {
+      color: var(--cosphere-color);
+      background: rgba(92, 140, 166, 0.1);
+      border-color: rgba(92, 140, 166, 0.3);
+    }
+
+    .intel-turn-status.allies-turn {
+      color: var(--accent-color);
+      background: rgba(197, 160, 89, 0.1);
+      border-color: rgba(197, 160, 89, 0.3);
+    }
+
+    /* Fallbacks */
     .intel-turn-status.black-turn {
       color: var(--central-color);
       background: rgba(166, 99, 99, 0.1);
@@ -663,6 +711,16 @@
     .log-entry.central-entry {
       border-color: var(--central-color);
       color: #df9f9f;
+    }
+
+    .log-entry.cosphere-entry {
+      border-color: var(--cosphere-color);
+      color: #9fbfdf;
+    }
+
+    .log-entry.allies-entry {
+      border-color: var(--accent-color);
+      color: var(--text-main);
     }
 
     .log-entry.system-entry {
@@ -870,6 +928,7 @@
           <!-- Chess Board Panel -->
           <div class="chess-board-panel">
             <div id="chessBoard" class="chess-board"></div>
+            <canvas id="chessFactionCanvas" width="420" height="420"></canvas>
           </div>
 
           <!-- Sidebar Intel Panel -->
@@ -2158,6 +2217,167 @@
     let chessCapturedBlack = [];
     let chessGameEnded = false;
 
+    // Faction Selection variables
+    let playerChessFaction = 'allies';
+    let opponentChessFaction = 'central';
+    let selectedFactionHoverIdx = -1;
+
+    const factionsData = [
+      {
+        key: 'allies',
+        name: 'Allied Powers',
+        color: '#c5a059',
+        flag: '🇬🇧',
+        desc: 'British, French, Russian, USA',
+        rect: { x: 30, y: 110, w: 360, h: 80 }
+      },
+      {
+        key: 'central',
+        name: 'Central Powers',
+        color: '#a66363',
+        flag: '🇩🇪',
+        desc: 'German, Austria-Hungary, Ottoman, Bulgaria',
+        rect: { x: 30, y: 200, w: 360, h: 80 }
+      },
+      {
+        key: 'cosphere',
+        name: 'Co Sphere',
+        color: '#5c8ca6',
+        flag: '🇯🇵',
+        desc: 'Japan, China, Siam',
+        rect: { x: 30, y: 290, w: 360, h: 80 }
+      }
+    ];
+
+    const chessFactionCanvas = document.getElementById('chessFactionCanvas');
+    const fCtx = chessFactionCanvas.getContext('2d');
+
+    function drawFactionSelectionCanvas() {
+      // Clear with dark military tint
+      fCtx.fillStyle = 'rgba(15, 11, 9, 0.98)';
+      fCtx.fillRect(0, 0, 420, 420);
+
+      // Draw header
+      fCtx.textAlign = 'center';
+      fCtx.textBaseline = 'middle';
+      fCtx.fillStyle = '#d7ccc8';
+      fCtx.font = 'normal 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      fCtx.fillText('CHOOSE YOUR FACTION', 210, 40);
+
+      fCtx.fillStyle = '#8d7b73';
+      fCtx.font = 'normal 11px monospace';
+      fCtx.fillText('SELECT AN ARMY TO COMMAND THE FRONTLINE', 210, 70);
+
+      // Draw horizontal line separator
+      fCtx.strokeStyle = '#3d312b';
+      fCtx.lineWidth = 1;
+      fCtx.beginPath();
+      fCtx.moveTo(30, 85);
+      fCtx.lineTo(390, 85);
+      fCtx.stroke();
+
+      // Draw faction cards
+      factionsData.forEach((fac, idx) => {
+        const r = fac.rect;
+        const isHovered = (idx === selectedFactionHoverIdx);
+
+        // Card container
+        fCtx.fillStyle = isHovered ? 'rgba(30, 24, 21, 0.9)' : 'rgba(22, 17, 14, 0.5)';
+        fCtx.strokeStyle = isHovered ? fac.color : '#3d312b';
+        fCtx.lineWidth = isHovered ? 2 : 1;
+
+        fCtx.fillRect(r.x, r.y, r.w, r.h);
+        fCtx.strokeRect(r.x, r.y, r.w, r.h);
+
+        // Draw Flag Emoji
+        fCtx.font = '36px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        fCtx.textAlign = 'left';
+        fCtx.fillText(fac.flag, r.x + 20, r.y + r.h / 2);
+
+        // Draw Name
+        fCtx.fillStyle = fac.color;
+        fCtx.font = 'bold 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        fCtx.fillText(fac.name, r.x + 80, r.y + 30);
+
+        // Draw Desc
+        fCtx.fillStyle = '#8d7b73';
+        fCtx.font = 'normal 11px monospace';
+        fCtx.fillText(fac.desc, r.x + 80, r.y + 52);
+      });
+    }
+
+    function getFactionIdxFromCoords(x, y) {
+      for (let i = 0; i < factionsData.length; i++) {
+        const r = factionsData[i].rect;
+        if (x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) {
+          return i;
+        }
+      }
+      return -1;
+    }
+
+    chessFactionCanvas.addEventListener('mousemove', (e) => {
+      const rect = chessFactionCanvas.getBoundingClientRect();
+      const scaleX = chessFactionCanvas.width / rect.width;
+      const scaleY = chessFactionCanvas.height / rect.height;
+      const mouseX = (e.clientX - rect.left) * scaleX;
+      const mouseY = (e.clientY - rect.top) * scaleY;
+
+      const hoverIdx = getFactionIdxFromCoords(mouseX, mouseY);
+      if (hoverIdx !== selectedFactionHoverIdx) {
+        selectedFactionHoverIdx = hoverIdx;
+        drawFactionSelectionCanvas();
+      }
+    });
+
+    chessFactionCanvas.addEventListener('mouseleave', () => {
+      if (selectedFactionHoverIdx !== -1) {
+        selectedFactionHoverIdx = -1;
+        drawFactionSelectionCanvas();
+      }
+    });
+
+    chessFactionCanvas.addEventListener('click', (e) => {
+      const rect = chessFactionCanvas.getBoundingClientRect();
+      const scaleX = chessFactionCanvas.width / rect.width;
+      const scaleY = chessFactionCanvas.height / rect.height;
+      const mouseX = (e.clientX - rect.left) * scaleX;
+      const mouseY = (e.clientY - rect.top) * scaleY;
+
+      const clickIdx = getFactionIdxFromCoords(mouseX, mouseY);
+      if (clickIdx !== -1) {
+        const fac = factionsData[clickIdx];
+        playTone(600, "sine", 0.1, 0.08);
+        startGameAfterFactionSelection(fac.key);
+      }
+    });
+
+    function startGameAfterFactionSelection(factionKey) {
+      playerChessFaction = factionKey;
+
+      // Assign dynamic opponent from remaining factions
+      const rem = factionsData.filter(f => f.key !== factionKey);
+      opponentChessFaction = rem[Math.floor(Math.random() * rem.length)].key;
+
+      // Hide overlay
+      chessFactionCanvas.style.display = 'none';
+
+      // Re-enable and reset state
+      chessGameEnded = false;
+
+      // Output deployed despatches log
+      const getFactionTitle = (k) => {
+        if (k === 'allies') return 'Allied Powers';
+        if (k === 'central') return 'Central Powers';
+        return 'Co Sphere';
+      };
+
+      addBattleLog("system", `Deploying frontline forces for ${getFactionTitle(playerChessFaction)}!`);
+      addBattleLog("system", `Hostile frontline defense points reinforced by ${getFactionTitle(opponentChessFaction)}.`);
+
+      updateChessUI();
+    }
+
     // Command points and tactical power-ups variables
     let alliedCP = 10;
     let centralCP = 10;
@@ -2179,6 +2399,10 @@
     };
 
     function initChessGame() {
+      // Display Faction Selection Overlay
+      chessFactionCanvas.style.display = 'block';
+      drawFactionSelectionCanvas();
+
       // Setup Initial Board Layout
       // rows 0-7, cols 0-7
       // 0 is black/Central side, 7 is white/Allied side
@@ -2198,7 +2422,7 @@
       chessValidMoves = [];
       chessCapturedWhite = [];
       chessCapturedBlack = [];
-      chessGameEnded = false;
+      chessGameEnded = true; // Temporary disable until faction is clicked
 
       // Reset tactical power-up variables
       alliedCP = 10;
@@ -2270,7 +2494,13 @@
           if (piece) {
             const pieceEl = document.createElement('div');
             const isWhitePiece = piece === piece.toUpperCase();
-            pieceEl.className = `chess-piece ${isWhitePiece ? 'white' : 'black'}`;
+            let pieceThemeClass = 'allies';
+            if (isWhitePiece) {
+              pieceThemeClass = playerChessFaction;
+            } else {
+              pieceThemeClass = opponentChessFaction;
+            }
+            pieceEl.className = `chess-piece ${pieceThemeClass}`;
             pieceEl.innerText = PIECE_UNICODE[piece] || '';
             square.appendChild(pieceEl);
           }
@@ -2295,7 +2525,7 @@
             square.classList.add('has-smoke');
           }
 
-          // Add landmine overlay (Only Allied mines are visible to Allied player)
+          // Add landmine overlay (Only player's mines are visible to player)
           if (landmineGrid[r] && landmineGrid[r][c] === 'white') {
             square.classList.add('has-landmine');
           }
@@ -2311,27 +2541,49 @@
       }
 
       // Update Turn Label
+      const getFactionTitle = (k) => {
+        if (k === 'allies') return 'Allied';
+        if (k === 'central') return 'Central';
+        return 'Co Sphere';
+      };
+
       const statusEl = document.getElementById('chessTurnStatus');
       if (chessGameEnded) {
         statusEl.innerText = "Battle Concluded";
         statusEl.className = "intel-turn-status system-turn";
       } else if (chessTurn === 'white') {
-        statusEl.innerText = "Allied Turn";
-        statusEl.className = "intel-turn-status";
+        statusEl.innerText = `${getFactionTitle(playerChessFaction)} Turn`;
+        statusEl.className = `intel-turn-status ${playerChessFaction}-turn`;
       } else {
-        statusEl.innerText = "Central Turn";
-        statusEl.className = "intel-turn-status black-turn";
+        statusEl.innerText = `${getFactionTitle(opponentChessFaction)} Turn`;
+        statusEl.className = `intel-turn-status ${opponentChessFaction}-turn`;
       }
 
-      // Update captures
+      // Update captures labels based on dynamic factions
+      const getLabelEl = (label, k) => `${getFactionTitle(k)} ${label}:`;
+      const alliedCapturesContainer = document.getElementById('alliedCaptures').previousElementSibling;
+      const centralCapturesContainer = document.getElementById('centralCaptures').previousElementSibling;
+      if (alliedCapturesContainer) alliedCapturesContainer.innerText = getLabelEl('Captures', playerChessFaction);
+      if (centralCapturesContainer) centralCapturesContainer.innerText = getLabelEl('Captures', opponentChessFaction);
+
       document.getElementById('alliedCaptures').innerText = chessCapturedBlack.map(p => PIECE_UNICODE[p]).join(' ');
       document.getElementById('centralCaptures').innerText = chessCapturedWhite.map(p => PIECE_UNICODE[p]).join(' ');
 
       // Update Command Points display
       const alliedCPEl = document.getElementById('alliedCPVal');
       const centralCPEl = document.getElementById('centralCPVal');
-      if (alliedCPEl) alliedCPEl.innerText = alliedCP;
-      if (centralCPEl) centralCPEl.innerText = centralCP;
+
+      const alliedCPBox = alliedCPEl ? alliedCPEl.parentElement : null;
+      const centralCPBox = centralCPEl ? centralCPEl.parentElement : null;
+
+      if (alliedCPBox) {
+        alliedCPBox.className = `cp-box ${playerChessFaction}-cp`;
+        alliedCPBox.innerHTML = `${getFactionTitle(playerChessFaction)} CP: <span id="alliedCPVal">${alliedCP}</span>`;
+      }
+      if (centralCPBox) {
+        centralCPBox.className = `cp-box ${opponentChessFaction}-cp`;
+        centralCPBox.innerHTML = `${getFactionTitle(opponentChessFaction)} CP: <span id="centralCPVal">${centralCP}</span>`;
+      }
 
       // Update power-up button disabled & active states
       const powerups = {
@@ -2388,6 +2640,17 @@
 
       const coords = getAlgebraicCoords(r, c);
 
+      const getFactionTitle = (k) => {
+        if (k === 'allies') return 'Allied';
+        if (k === 'central') return 'Central';
+        return 'Co Sphere';
+      };
+
+      const pTitle = getFactionTitle(playerChessFaction);
+      const oTitle = getFactionTitle(opponentChessFaction);
+      const pLogClass = playerChessFaction === 'cosphere' ? 'cosphere' : (playerChessFaction === 'central' ? 'central' : 'allied');
+      const oLogClass = opponentChessFaction === 'cosphere' ? 'cosphere' : (opponentChessFaction === 'central' ? 'central' : 'allied');
+
       if (type === 'artillery') {
         const targetPiece = chessBoardState[r][c];
         chessBoardState[r][c] = '';
@@ -2396,10 +2659,10 @@
 
         if (isWhite) {
           chessCapturedBlack.push(targetPiece);
-          addBattleLog("allied", `Tactical Support: Allied Artillery bombardment obliterates Central ${PIECE_NAMES[targetPiece]} at ${coords}!`);
+          addBattleLog(pLogClass, `Tactical Support: ${pTitle} Artillery bombardment obliterates ${oTitle} ${PIECE_NAMES[targetPiece]} at ${coords}!`);
         } else {
           chessCapturedWhite.push(targetPiece);
-          addBattleLog("central", `Tactical Support: Central Artillery bombardment obliterates Allied ${PIECE_NAMES[targetPiece]} at ${coords}!`);
+          addBattleLog(oLogClass, `Tactical Support: ${oTitle} Artillery bombardment obliterates ${pTitle} ${PIECE_NAMES[targetPiece]} at ${coords}!`);
         }
       } else if (type === 'smoke') {
         smokeGrid[r][c] = 2; // Smoke lasts 2 rounds
@@ -2410,9 +2673,9 @@
         }
 
         if (isWhite) {
-          addBattleLog("allied", `Tactical Support: Allied Smoke Screen deployed at ${coords} to screen our forces!`);
+          addBattleLog(pLogClass, `Tactical Support: ${pTitle} Smoke Screen deployed at ${coords} to screen our forces!`);
         } else {
-          addBattleLog("central", `Tactical Support: Central Smoke Screen deployed at ${coords} to cover their position!`);
+          addBattleLog(oLogClass, `Tactical Support: ${oTitle} Smoke Screen deployed at ${coords} to cover their position!`);
         }
       } else if (type === 'infantry') {
         chessBoardState[r][c] = isWhite ? 'P' : 'p';
@@ -2422,9 +2685,9 @@
         }
 
         if (isWhite) {
-          addBattleLog("allied", `Tactical Support: Allied Infantry Draft deployed at ${coords}!`);
+          addBattleLog(pLogClass, `Tactical Support: ${pTitle} Infantry Draft deployed at ${coords}!`);
         } else {
-          addBattleLog("central", `Tactical Support: Central Infantry Draft deployed at ${coords}!`);
+          addBattleLog(oLogClass, `Tactical Support: ${oTitle} Infantry Draft deployed at ${coords}!`);
         }
       } else if (type === 'landmine') {
         landmineGrid[r][c] = isWhite ? 'white' : 'black';
@@ -2434,9 +2697,9 @@
         }
 
         if (isWhite) {
-          addBattleLog("allied", `Tactical Support: Allied Landmine laid at ${coords}. Defenses fortified!`);
+          addBattleLog(pLogClass, `Tactical Support: ${pTitle} Landmine laid at ${coords}. Defenses fortified!`);
         } else {
-          addBattleLog("system", `INTEL ALERT: Central Powers forces are reported to have deployed a hidden landmine in the northern sector!`);
+          addBattleLog("system", `INTEL ALERT: ${oTitle} forces are reported to have deployed a hidden landmine in the northern sector!`);
         }
       }
 
@@ -2897,26 +3160,37 @@
         centralCP += 1; // +1 CP for turn
       }
 
+      const getFactionTitle = (k) => {
+        if (k === 'allies') return 'Allied';
+        if (k === 'central') return 'Central';
+        return 'Co Sphere';
+      };
+
+      const pTitle = getFactionTitle(playerChessFaction);
+      const oTitle = getFactionTitle(opponentChessFaction);
+      const pLogClass = playerChessFaction === 'cosphere' ? 'cosphere' : (playerChessFaction === 'central' ? 'central' : 'allied');
+      const oLogClass = opponentChessFaction === 'cosphere' ? 'cosphere' : (opponentChessFaction === 'central' ? 'central' : 'allied');
+
       // Capture logic
       if (target) {
         if (isWhite) {
           chessCapturedBlack.push(target);
           alliedCP += 3; // +3 CP for capture
-          addBattleLog("allied", `Allied ${PIECE_NAMES[piece]} captures Central ${PIECE_NAMES[target]} at ${getAlgebraicCoords(toR, toC)}. Allied forces gained +3 CP.`);
+          addBattleLog(pLogClass, `${pTitle} ${PIECE_NAMES[piece]} captures ${oTitle} ${PIECE_NAMES[target]} at ${getAlgebraicCoords(toR, toC)}. ${pTitle} forces gained +3 CP.`);
           playExplosionSound();
         } else {
           chessCapturedWhite.push(target);
           centralCP += 3; // +3 CP for capture
-          addBattleLog("central", `Central ${PIECE_NAMES[piece]} captures Allied ${PIECE_NAMES[target]} at ${getAlgebraicCoords(toR, toC)}. Central Powers gained +3 CP.`);
+          addBattleLog(oLogClass, `${oTitle} ${PIECE_NAMES[piece]} captures ${pTitle} ${PIECE_NAMES[target]} at ${getAlgebraicCoords(toR, toC)}. ${oTitle} Powers gained +3 CP.`);
           playExplosionSound();
         }
       } else {
         // Normal move
         if (isWhite) {
-          addBattleLog("allied", `Allied ${PIECE_NAMES[piece]} advances to ${getAlgebraicCoords(toR, toC)}.`);
+          addBattleLog(pLogClass, `${pTitle} ${PIECE_NAMES[piece]} advances to ${getAlgebraicCoords(toR, toC)}.`);
           playTone(440, "sine", 0.08, 0.06);
         } else {
-          addBattleLog("central", `Central ${PIECE_NAMES[piece]} advances to ${getAlgebraicCoords(toR, toC)}.`);
+          addBattleLog(oLogClass, `${oTitle} ${PIECE_NAMES[piece]} advances to ${getAlgebraicCoords(toR, toC)}.`);
           playTone(330, "sawtooth", 0.08, 0.04);
         }
       }
@@ -2941,11 +3215,11 @@
           if (mineOwner === 'white') {
             chessCapturedBlack.push(piece);
             alliedCP += 3;
-            addBattleLog("allied", `EXPLOSION: Central ${PIECE_NAMES[piece]} stepped on an Allied Landmine at ${getAlgebraicCoords(toR, toC)} and was obliterated! Allied forces gained +3 CP.`);
+            addBattleLog(pLogClass, `EXPLOSION: ${oTitle} ${PIECE_NAMES[piece]} stepped on an ${pTitle} Landmine at ${getAlgebraicCoords(toR, toC)} and was obliterated! ${pTitle} forces gained +3 CP.`);
           } else {
             chessCapturedWhite.push(piece);
             centralCP += 3;
-            addBattleLog("central", `EXPLOSION: Allied ${PIECE_NAMES[piece]} stepped on a Central Landmine at ${getAlgebraicCoords(toR, toC)} and was obliterated! Central Powers gained +3 CP.`);
+            addBattleLog(oLogClass, `EXPLOSION: ${pTitle} ${PIECE_NAMES[piece]} stepped on a ${oTitle} Landmine at ${getAlgebraicCoords(toR, toC)} and was obliterated! ${oTitle} Powers gained +3 CP.`);
           }
         }
       }
@@ -2954,17 +3228,17 @@
       const nextColorIsWhite = !isWhite;
       if (isKingInCheck(nextColorIsWhite, chessBoardState)) {
         if (nextColorIsWhite) {
-          addBattleLog("system", "WARNING: Allied Command is in direct line of fire!");
+          addBattleLog("system", `WARNING: ${pTitle} Command is in direct line of fire!`);
           playTone(200, "sawtooth", 0.3, 0.15);
         } else {
-          addBattleLog("system", "INTEL: Central Powers Kaiser is targeted for annihilation!");
+          addBattleLog("system", `INTEL: ${oTitle} Powers Kaiser is targeted for annihilation!`);
           playTone(550, "sine", 0.25, 0.12);
         }
       }
 
       // Check for checkmate or draw
       if (chessGameEnded) {
-        const winner = isWhite ? "Allied Forces" : "Central Powers";
+        const winner = isWhite ? pTitle : oTitle;
         addBattleLog("system", `DECISIVE VICTORY! The enemy HQ has been successfully neutralized. ${winner} win!`);
         playTone(600, "sine", 0.2, 0.1);
         setTimeout(() => playTone(800, "sine", 0.3, 0.1), 150);
@@ -3117,7 +3391,14 @@
 
       if (allMoves.length === 0) {
         chessGameEnded = true;
-        addBattleLog("system", "Central Powers forces have retreated. Decisive Allied Victory!");
+        const getFactionTitle = (k) => {
+          if (k === 'allies') return 'Allied';
+          if (k === 'central') return 'Central';
+          return 'Co Sphere';
+        };
+        const pTitle = getFactionTitle(playerChessFaction);
+        const oTitle = getFactionTitle(opponentChessFaction);
+        addBattleLog("system", `${oTitle} Powers forces have retreated. Decisive ${pTitle} Victory!`);
         updateChessUI();
         return;
       }
