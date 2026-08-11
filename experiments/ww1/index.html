@@ -994,6 +994,10 @@
             <img src="./assets/flag-china.svg" alt="China">
             <span>China</span>
           </div>
+          <div class="faction-card" onclick="chooseFaction('cosphere', 'siam')">
+            <img src="./assets/flag-siam.svg" alt="Siam">
+            <span>Siam</span>
+          </div>
         </div>
       </div>
     </div>
@@ -1205,7 +1209,8 @@
       ottoman: "Enver Pasha",
       bulgaria: "General Nikola Zhekov",
       japan: "General Kamio Mitsuomi",
-      china: "General Duan Qirui"
+      china: "General Duan Qirui",
+      siam: "Prince Chakrabongse Bhuvanath"
     };
 
     // News Ticker Data and Functions
@@ -1258,7 +1263,8 @@
       ottoman: { name: "Ottoman Empire", flag: "./assets/flag-ottoman.svg", alliance: "central" },
       bulgaria: { name: "Kingdom of Bulgaria", flag: "./assets/flag-bulgaria.svg", alliance: "central" },
       japan: { name: "Empire of Japan", flag: "./assets/flag-japan.svg", alliance: "cosphere" },
-      china: { name: "Republic of China", flag: "./assets/flag-china.svg", alliance: "cosphere" }
+      china: { name: "Republic of China", flag: "./assets/flag-china.svg", alliance: "cosphere" },
+      siam: { name: "Siam", flag: "./assets/flag-siam.svg", alliance: "cosphere" }
     };
 
     let mpTimeouts = [];
@@ -1346,7 +1352,7 @@
       
       const alliesPool = ['uk', 'france', 'russia', 'usa'];
       const centralPool = ['germany', 'austria', 'ottoman', 'bulgaria'];
-      const cospherePool = ['japan', 'china'];
+      const cospherePool = ['japan', 'china', 'siam'];
 
       if (alliance === 'allies') {
         const enemyPool = [...centralPool, ...cospherePool];

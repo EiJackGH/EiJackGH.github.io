@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600">
+  <!-- Red background / top and bottom stripes -->
+  <rect width="900" height="600" fill="#A51931"/>
+
+  <!-- White inner stripes -->
+  <rect y="100" width="900" height="400" fill="#FFFFFF"/>
+
+  <!-- Blue center stripe -->
+  <rect y="200" width="900" height="200" fill="#2D2A4A"/>
+</svg>
