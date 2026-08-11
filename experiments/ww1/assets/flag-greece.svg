@@ -1,24 +1,45 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 54 36">
-  <defs>
-    <!-- Background of canton: blue square 20x20 -->
-    <!-- Grid of 9 horizontal stripes, each height 4, Alternating blue and white -->
-    <rect id="stripe" width="54" height="4" fill="#0D5EAF"/>
-    <rect id="white_stripe" width="54" height="4" fill="#ffffff"/>
-  </defs>
-  <!-- 9 stripes alternating: blue (top) then white -->
-  <use href="#stripe" y="0"/>
-  <use href="#white_stripe" y="4"/>
-  <use href="#stripe" y="8"/>
-  <use href="#white_stripe" y="12"/>
-  <use href="#stripe" y="16"/>
-  <use href="#white_stripe" y="20"/>
-  <use href="#stripe" y="24"/>
-  <use href="#white_stripe" y="28"/>
-  <use href="#stripe" y="32"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600">
+  <!-- Kingdom of Greece State Land Flag (Sea-Blue Variant with Royal Crown) -->
+  <rect width="900" height="600" fill="#005BAE"/>
+  <rect x="390" y="0" width="120" height="600" fill="#FFFFFF"/>
+  <rect x="0" y="240" width="900" height="120" fill="#FFFFFF"/>
 
-  <!-- Canton (top-left) blue square: 20 wide, 20 high -->
-  <rect width="20" height="20" fill="#0D5EAF"/>
-  <!-- Canton white cross: vertical bar (width 4, height 20, x=8), horizontal bar (width 20, height 4, y=8) -->
-  <rect x="8" width="4" height="20" fill="#ffffff"/>
-  <rect y="8" width="20" height="4" fill="#ffffff"/>
+  <!-- Royal Crown Emblem -->
+  <g id="royal-crown" transform="translate(450, 295)">
+    <!-- Red Velvet Cap -->
+    <path d="M -36,0 C -36,-30 -20,-42 0,-42 C 20,-42 36,-30 36,0 Z" fill="#C8102E"/>
+    
+    <!-- Crown Arches -->
+    <path d="M -35,-2 C -35,-25 -15,-38 0,-38 C 15,-38 35,-25 35,-2" fill="none" stroke="#FFD700" stroke-width="4"/>
+    <path d="M -22,-2 C -22,-28 0,-40 0,-40 C 0,-40 22,-28 22,-2" fill="none" stroke="#DAA520" stroke-width="3"/>
+    <path d="M 0,-2 L 0,-42" fill="none" stroke="#FFD700" stroke-width="4"/>
+
+    <!-- Globus Cruciger (Orb & Cross) -->
+    <circle cx="0" cy="-45" r="5" fill="#FFD700"/>
+    <path d="M 0,-54 L 0,-47 M -3.5,-50.5 L 3.5,-50.5" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- Pearls on Arches -->
+    <circle cx="-25" cy="-20" r="2" fill="#FFFFFF"/>
+    <circle cx="-16" cy="-32" r="2" fill="#FFFFFF"/>
+    <circle cx="16" cy="-32" r="2" fill="#FFFFFF"/>
+    <circle cx="25" cy="-20" r="2" fill="#FFFFFF"/>
+
+    <!-- Circlet / Base Band -->
+    <rect x="-38" y="-2" width="76" height="14" rx="2" fill="#FFD700" stroke="#DAA520" stroke-width="1"/>
+    
+    <!-- Jewels on Circlet Base -->
+    <circle cx="-28" cy="5" r="2.5" fill="#C8102E"/>
+    <rect x="-17" y="3" width="5" height="4" fill="#008000" rx="1"/>
+    <circle cx="0" cy="5" r="3" fill="#C8102E"/>
+    <rect x="12" y="3" width="5" height="4" fill="#008000" rx="1"/>
+    <circle cx="28" cy="5" r="2.5" fill="#C8102E"/>
+
+    <!-- Circlet Fleurons & Jewels -->
+    <path d="M -36,-2 L -32,-10 L -28,-2 M -20,-2 L -16,-12 L -12,-2 M -4,-2 L 0,-14 L 4,-2 M 12,-2 L 16,-12 L 20,-2 M 28,-2 L 32,-10 L 36,-2" fill="#FFD700" stroke="#DAA520" stroke-width="1"/>
+    <circle cx="-32" cy="-10" r="1.5" fill="#FFFFFF"/>
+    <circle cx="-16" cy="-12" r="1.5" fill="#FFFFFF"/>
+    <circle cx="0" cy="-14" r="2" fill="#FFFFFF"/>
+    <circle cx="16" cy="-12" r="1.5" fill="#FFFFFF"/>
+    <circle cx="32" cy="-10" r="1.5" fill="#FFFFFF"/>
+  </g>
 </svg>
