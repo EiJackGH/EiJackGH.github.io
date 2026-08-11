@@ -1,0 +1,14 @@
+127.0.0.1 - - [11/Aug/2026 09:56:05] "GET /experiments/ww1/index.html HTTP/1.1" 200 -
+127.0.0.1 - - [11/Aug/2026 09:56:05] "GET /experiments/ww1/assets/flag-uk.svg HTTP/1.1" 200 -
+127.0.0.1 - - [11/Aug/2026 09:56:05] "GET /experiments/ww1/assets/flag-france.svg HTTP/1.1" 200 -
+127.0.0.1 - - [11/Aug/2026 09:56:05] "GET /experiments/ww1/assets/flag-russia.svg HTTP/1.1" 200 -
+127.0.0.1 - - [11/Aug/2026 09:56:05] "GET /experiments/ww1/assets/flag-usa.svg HTTP/1.1" 200 -
+127.0.0.1 - - [11/Aug/2026 09:56:05] "GET /experiments/ww1/assets/flag-germany.svg HTTP/1.1" 200 -
+127.0.0.1 - - [11/Aug/2026 09:56:05] "GET /experiments/ww1/assets/flag-austria.svg HTTP/1.1" 200 -
+127.0.0.1 - - [11/Aug/2026 09:56:05] "GET /experiments/ww1/assets/flag-ottoman.svg HTTP/1.1" 200 -
+127.0.0.1 - - [11/Aug/2026 09:56:05] "GET /experiments/ww1/assets/flag-bulgaria.svg HTTP/1.1" 200 -
+127.0.0.1 - - [11/Aug/2026 09:56:05] "GET /experiments/ww1/assets/flag-china.svg HTTP/1.1" 200 -
+127.0.0.1 - - [11/Aug/2026 09:56:05] "GET /experiments/ww1/assets/commander-force-president-scene-killed.svg HTTP/1.1" 200 -
+127.0.0.1 - - [11/Aug/2026 09:56:05] "GET /experiments/ww1/assets/flag-siam.svg HTTP/1.1" 200 -
+127.0.0.1 - - [11/Aug/2026 09:56:05] "GET /experiments/ww1/assets/pause.svg HTTP/1.1" 200 -
+127.0.0.1 - - [11/Aug/2026 09:56:05] "GET /experiments/ww1/assets/flag-japan.svg HTTP/1.1" 200 -
