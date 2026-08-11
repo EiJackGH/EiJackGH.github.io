@@ -282,6 +282,7 @@
       width: 100%;
       max-width: 850px;
       margin-top: 15px;
+      align-items: flex-start;
     }
 
     @media (max-width: 768px) {
@@ -403,10 +404,168 @@
       padding: 15px;
       display: flex;
       flex-direction: column;
-      max-height: 440px;
+      max-height: 650px;
       min-width: 250px;
       width: 100%;
       box-sizing: border-box;
+    }
+
+    /* Power-ups Styles */
+    .cp-display-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 10px;
+    }
+
+    .cp-box {
+      flex: 1;
+      padding: 6px;
+      border-radius: 4px;
+      text-align: center;
+      font-family: monospace;
+      font-size: 11px;
+      font-weight: bold;
+      border: 1px solid var(--border-color);
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .cp-box.allied-cp {
+      color: var(--accent-color);
+      border-color: rgba(197, 160, 89, 0.3);
+    }
+
+    .cp-box.central-cp {
+      color: var(--central-color);
+      border-color: rgba(166, 99, 99, 0.3);
+    }
+
+    .powerups-panel-title {
+      font-size: 11px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      border-top: 1px dashed var(--border-color);
+      padding-top: 10px;
+    }
+
+    .powerups-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .powerup-btn {
+      background: rgba(22, 17, 14, 0.8);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 6px 4px;
+      font-size: 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: center;
+      text-transform: uppercase;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+    }
+
+    .powerup-btn:hover:not(:disabled) {
+      border-color: var(--accent-color);
+      background: rgba(197, 160, 89, 0.1);
+      color: var(--accent-color);
+    }
+
+    .powerup-btn.active {
+      background: var(--accent-color) !important;
+      color: #000 !important;
+      border-color: var(--accent-color) !important;
+      box-shadow: 0 0 8px var(--accent-color);
+      animation: pulse-glow 1.5s infinite;
+    }
+
+    .powerup-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      border-color: #222;
+    }
+
+    .powerup-cost {
+      font-size: 9px;
+      font-family: monospace;
+      color: var(--accent-color);
+    }
+
+    .powerup-btn:hover:not(:disabled) .powerup-cost {
+      color: var(--accent-hover);
+    }
+
+    .powerup-btn.active .powerup-cost {
+      color: #000;
+    }
+
+    @keyframes pulse-glow {
+      0% { box-shadow: 0 0 2px var(--accent-color); }
+      50% { box-shadow: 0 0 10px var(--accent-color); }
+      100% { box-shadow: 0 0 2px var(--accent-color); }
+    }
+
+    /* Target overlay on board */
+    .chess-square.powerup-target {
+      position: relative;
+    }
+
+    .chess-square.powerup-target::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 2px dashed #ff9800;
+      background-color: rgba(255, 152, 0, 0.15);
+      z-index: 5;
+      pointer-events: none;
+      box-sizing: border-box;
+    }
+
+    /* Smoke overlay */
+    .chess-square.has-smoke::after {
+      content: '☁';
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      inset: 0;
+      background: rgba(140, 140, 140, 0.65);
+      color: #fff;
+      font-size: 24px;
+      z-index: 6;
+      pointer-events: none;
+      backdrop-filter: blur(2px);
+      text-shadow: 0 0 5px #000;
+      animation: drift 4s ease-in-out infinite alternate;
+    }
+
+    @keyframes drift {
+      from { transform: scale(1); opacity: 0.75; }
+      to { transform: scale(1.05); opacity: 0.95; }
+    }
+
+    /* Landmine overlay (Only visible to player) */
+    .chess-square.has-landmine::before {
+      content: '⚠️';
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      font-size: 11px;
+      z-index: 7;
+      pointer-events: none;
     }
 
     .sidebar-header {
@@ -718,6 +877,11 @@
             <div class="sidebar-header">Tactical Intel</div>
             <div id="chessTurnStatus" class="intel-turn-status">Allied Turn</div>
 
+            <div class="cp-display-row">
+              <div class="cp-box allied-cp">Allied CP: <span id="alliedCPVal">10</span></div>
+              <div class="cp-box central-cp">Central CP: <span id="centralCPVal">10</span></div>
+            </div>
+
             <div class="intel-captures">
               <div class="captured-group">
                 <span class="captured-label">Allied Captures:</span>
@@ -727,6 +891,26 @@
                 <span class="captured-label">Central Captures:</span>
                 <span id="centralCaptures" class="captured-pieces" style="color: var(--central-color);"></span>
               </div>
+            </div>
+
+            <div class="powerups-panel-title">Tactical Support</div>
+            <div class="powerups-grid">
+              <button id="pw-artillery" class="powerup-btn" onclick="selectPowerUp('artillery')" title="Artillery Strike (15 CP): Eliminate any piece on a target square (except Kaiser/Field Marshal)">
+                <span>Artillery Strike</span>
+                <span class="powerup-cost">15 CP</span>
+              </button>
+              <button id="pw-smoke" class="powerup-btn" onclick="selectPowerUp('smoke')" title="Smoke Screen (10 CP): Deploy smoke over a square to block capture & check for 2 turns">
+                <span>Smoke Screen</span>
+                <span class="powerup-cost">10 CP</span>
+              </button>
+              <button id="pw-infantry" class="powerup-btn" onclick="selectPowerUp('infantry')" title="Infantry Draft (8 CP): Deploy a new Infantry on any empty square in your half">
+                <span>Infantry Draft</span>
+                <span class="powerup-cost">8 CP</span>
+              </button>
+              <button id="pw-landmine" class="powerup-btn" onclick="selectPowerUp('landmine')" title="Deploy Landmine (12 CP): Deploy a hidden landmine. Enemy stepping on it is captured!">
+                <span>Deploy Landmine</span>
+                <span class="powerup-cost">12 CP</span>
+              </button>
             </div>
 
             <div class="battle-log-title">Military Despatches</div>
@@ -1974,6 +2158,13 @@
     let chessCapturedBlack = [];
     let chessGameEnded = false;
 
+    // Command points and tactical power-ups variables
+    let alliedCP = 10;
+    let centralCP = 10;
+    let activePowerUp = null; // 'artillery', 'smoke', 'infantry', 'landmine'
+    let smokeGrid = []; // 8x8 matrix tracking smoke duration
+    let landmineGrid = []; // 8x8 matrix tracking landmine owners: 'white' or 'black'
+
     // Piece definitions
     // White / Allied pieces (Gold / Capital letters)
     // Black / Central pieces (Red / Lowercase letters)
@@ -2009,10 +2200,49 @@
       chessCapturedBlack = [];
       chessGameEnded = false;
 
+      // Reset tactical power-up variables
+      alliedCP = 10;
+      centralCP = 10;
+      activePowerUp = null;
+      smokeGrid = [];
+      landmineGrid = [];
+      for (let r = 0; r < 8; r++) {
+        smokeGrid.push([0, 0, 0, 0, 0, 0, 0, 0]);
+        landmineGrid.push([null, null, null, null, null, null, null, null]);
+      }
+
       // Reset logs and UI
       document.getElementById('battleLog').innerHTML = '';
       addBattleLog("system", "Tactical grid initialized. Allied forces deployed at southern sector.");
       updateChessUI();
+    }
+
+    function isPowerUpTargetValid(type, r, c, isWhite) {
+      const piece = chessBoardState[r][c];
+      if (type === 'artillery') {
+        // Can target any square with an enemy piece, except kings
+        if (!piece || piece.toLowerCase() === 'k') return false;
+        const isPieceWhite = piece === piece.toUpperCase();
+        return isWhite !== isPieceWhite;
+      } else if (type === 'smoke') {
+        // Can target any square with a piece
+        return piece !== '';
+      } else if (type === 'infantry') {
+        // Can target any empty square on your half of the board
+        if (isWhite) {
+          return !piece && r >= 4;
+        } else {
+          return !piece && r <= 3;
+        }
+      } else if (type === 'landmine') {
+        // Can target any empty square on your half of the board that doesn't have a mine already
+        if (isWhite) {
+          return !piece && r >= 4 && !landmineGrid[r][c];
+        } else {
+          return !piece && r <= 3 && !landmineGrid[r][c];
+        }
+      }
+      return false;
     }
 
     function addBattleLog(type, message) {
@@ -2060,6 +2290,21 @@
             }
           }
 
+          // Add smoke overlay
+          if (smokeGrid[r] && smokeGrid[r][c] > 0) {
+            square.classList.add('has-smoke');
+          }
+
+          // Add landmine overlay (Only Allied mines are visible to Allied player)
+          if (landmineGrid[r] && landmineGrid[r][c] === 'white') {
+            square.classList.add('has-landmine');
+          }
+
+          // Highlight active power-up targeting
+          if (activePowerUp && isPowerUpTargetValid(activePowerUp, r, c, true)) {
+            square.classList.add('powerup-target');
+          }
+
           square.addEventListener('click', () => handleSquareClick(r, c));
           boardEl.appendChild(square);
         }
@@ -2081,11 +2326,167 @@
       // Update captures
       document.getElementById('alliedCaptures').innerText = chessCapturedBlack.map(p => PIECE_UNICODE[p]).join(' ');
       document.getElementById('centralCaptures').innerText = chessCapturedWhite.map(p => PIECE_UNICODE[p]).join(' ');
+
+      // Update Command Points display
+      const alliedCPEl = document.getElementById('alliedCPVal');
+      const centralCPEl = document.getElementById('centralCPVal');
+      if (alliedCPEl) alliedCPEl.innerText = alliedCP;
+      if (centralCPEl) centralCPEl.innerText = centralCP;
+
+      // Update power-up button disabled & active states
+      const powerups = {
+        'artillery': 15,
+        'smoke': 10,
+        'infantry': 8,
+        'landmine': 12
+      };
+
+      Object.keys(powerups).forEach(type => {
+        const btn = document.getElementById(`pw-${type}`);
+        if (btn) {
+          const cost = powerups[type];
+          const canAfford = alliedCP >= cost;
+          const isPlayerTurn = chessTurn === 'white' && !chessGameEnded;
+
+          btn.disabled = !isPlayerTurn || !canAfford;
+
+          if (activePowerUp === type) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        }
+      });
+    }
+
+    function selectPowerUp(type) {
+      if (chessGameEnded || chessTurn !== 'white') return;
+      if (activePowerUp === type) {
+        activePowerUp = null;
+      } else {
+        const costs = { 'artillery': 15, 'smoke': 10, 'infantry': 8, 'landmine': 12 };
+        if (alliedCP >= costs[type]) {
+          activePowerUp = type;
+        } else {
+          activePowerUp = null;
+        }
+      }
+      chessSelectedSquare = null;
+      chessValidMoves = [];
+      updateChessUI();
+    }
+
+    function executePowerUp(type, r, c, isWhite) {
+      const costs = { 'artillery': 15, 'smoke': 10, 'infantry': 8, 'landmine': 12 };
+      const cost = costs[type];
+
+      if (isWhite) {
+        alliedCP -= cost;
+      } else {
+        centralCP -= cost;
+      }
+
+      const coords = getAlgebraicCoords(r, c);
+
+      if (type === 'artillery') {
+        const targetPiece = chessBoardState[r][c];
+        chessBoardState[r][c] = '';
+        playExplosionSound();
+        setTimeout(() => playExplosionSound(), 150);
+
+        if (isWhite) {
+          chessCapturedBlack.push(targetPiece);
+          addBattleLog("allied", `Tactical Support: Allied Artillery bombardment obliterates Central ${PIECE_NAMES[targetPiece]} at ${coords}!`);
+        } else {
+          chessCapturedWhite.push(targetPiece);
+          addBattleLog("central", `Tactical Support: Central Artillery bombardment obliterates Allied ${PIECE_NAMES[targetPiece]} at ${coords}!`);
+        }
+      } else if (type === 'smoke') {
+        smokeGrid[r][c] = 2; // Smoke lasts 2 rounds
+        // Play smoke hiss sound
+        if (audioCtx) {
+          playTone(180, "sawtooth", 0.4, 0.04);
+          playTone(240, "sine", 0.4, 0.04);
+        }
+
+        if (isWhite) {
+          addBattleLog("allied", `Tactical Support: Allied Smoke Screen deployed at ${coords} to screen our forces!`);
+        } else {
+          addBattleLog("central", `Tactical Support: Central Smoke Screen deployed at ${coords} to cover their position!`);
+        }
+      } else if (type === 'infantry') {
+        chessBoardState[r][c] = isWhite ? 'P' : 'p';
+        if (audioCtx) {
+          playTone(520, "sine", 0.12, 0.08);
+          setTimeout(() => playTone(660, "sine", 0.12, 0.08), 80);
+        }
+
+        if (isWhite) {
+          addBattleLog("allied", `Tactical Support: Allied Infantry Draft deployed at ${coords}!`);
+        } else {
+          addBattleLog("central", `Tactical Support: Central Infantry Draft deployed at ${coords}!`);
+        }
+      } else if (type === 'landmine') {
+        landmineGrid[r][c] = isWhite ? 'white' : 'black';
+        if (audioCtx) {
+          playTone(300, "triangle", 0.08, 0.08);
+          setTimeout(() => playTone(150, "triangle", 0.12, 0.08), 80);
+        }
+
+        if (isWhite) {
+          addBattleLog("allied", `Tactical Support: Allied Landmine laid at ${coords}. Defenses fortified!`);
+        } else {
+          addBattleLog("system", `INTEL ALERT: Central Powers forces are reported to have deployed a hidden landmine in the northern sector!`);
+        }
+      }
+
+      // Transition turn
+      chessSelectedSquare = null;
+      chessValidMoves = [];
+      chessTurn = isWhite ? 'black' : 'white';
+
+      // Update smoke counters at round ends / turn changes
+      updateSmokeCounters();
+
+      updateChessUI();
+
+      if (!chessGameEnded && chessTurn === 'black') {
+        setTimeout(triggerCentralAI, 750);
+      }
+    }
+
+    function updateSmokeCounters() {
+      // If we are passing turn, decrement smoke duration on active squares if we transitioned to player turn
+      if (chessTurn === 'white') {
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            if (smokeGrid[r][c] > 0) {
+              smokeGrid[r][c]--;
+              if (smokeGrid[r][c] === 0) {
+                addBattleLog("system", `Meteorology: Smoke screen has dissipated at ${getAlgebraicCoords(r, c)}.`);
+              }
+            }
+          }
+        }
+      }
     }
 
     function handleSquareClick(r, c) {
       if (chessGameEnded) return;
       if (chessTurn !== 'white') return; // Player is White (Allied)
+
+      // Handle active power-up targeting intercept
+      if (activePowerUp) {
+        if (isPowerUpTargetValid(activePowerUp, r, c, true)) {
+          executePowerUp(activePowerUp, r, c, true);
+          activePowerUp = null;
+          return;
+        } else {
+          // Cancel/deselect power-up if player clicks non-valid square
+          activePowerUp = null;
+          updateChessUI();
+        }
+      }
 
       const clickedPiece = chessBoardState[r][c];
       const isClickedWhite = clickedPiece && clickedPiece === clickedPiece.toUpperCase();
@@ -2258,10 +2659,19 @@
         });
       }
 
+      // Filter out capturing moves onto smoke-screened squares
+      const filteredSmokeMoves = moves.filter(m => {
+        const targetPiece = board[m.r][m.c];
+        if (targetPiece && smokeGrid[m.r][m.c] > 0) {
+          return false;
+        }
+        return true;
+      });
+
       // Standard move check filter (do not put King in active direct danger / check)
       // For simple trench-chess, we can allow moves, but strictly disallow moves that leave/put the king in check if we can.
       // Let's implement a clean and robust check detector.
-      return moves.filter(m => {
+      return filteredSmokeMoves.filter(m => {
         // Simulate the move
         const oldDest = board[m.r][m.c];
         board[m.r][m.c] = piece;
@@ -2447,7 +2857,14 @@
         });
       }
 
-      return moves;
+      // Filter out capturing moves onto smoke-screened squares
+      return moves.filter(m => {
+        const targetPiece = board[m.r][m.c];
+        if (targetPiece && smokeGrid[m.r][m.c] > 0) {
+          return false;
+        }
+        return true;
+      });
     }
 
     function executeMove(fromR, fromC, toR, toC) {
@@ -2473,15 +2890,24 @@
         addBattleLog("system", "Tactical Update: Central Infantry promoted to General Staff at the frontline!");
       }
 
+      // CP and Capture reward logic
+      if (isWhite) {
+        alliedCP += 1; // +1 CP for turn
+      } else {
+        centralCP += 1; // +1 CP for turn
+      }
+
       // Capture logic
       if (target) {
         if (isWhite) {
           chessCapturedBlack.push(target);
-          addBattleLog("allied", `Allied ${PIECE_NAMES[piece]} captures Central ${PIECE_NAMES[target]} at ${getAlgebraicCoords(toR, toC)}.`);
+          alliedCP += 3; // +3 CP for capture
+          addBattleLog("allied", `Allied ${PIECE_NAMES[piece]} captures Central ${PIECE_NAMES[target]} at ${getAlgebraicCoords(toR, toC)}. Allied forces gained +3 CP.`);
           playExplosionSound();
         } else {
           chessCapturedWhite.push(target);
-          addBattleLog("central", `Central ${PIECE_NAMES[piece]} captures Allied ${PIECE_NAMES[target]} at ${getAlgebraicCoords(toR, toC)}.`);
+          centralCP += 3; // +3 CP for capture
+          addBattleLog("central", `Central ${PIECE_NAMES[piece]} captures Allied ${PIECE_NAMES[target]} at ${getAlgebraicCoords(toR, toC)}. Central Powers gained +3 CP.`);
           playExplosionSound();
         }
       } else {
@@ -2492,6 +2918,35 @@
         } else {
           addBattleLog("central", `Central ${PIECE_NAMES[piece]} advances to ${getAlgebraicCoords(toR, toC)}.`);
           playTone(330, "sawtooth", 0.08, 0.04);
+        }
+      }
+
+      // Landmine detonation logic
+      if (landmineGrid[toR][toC]) {
+        const mineOwner = landmineGrid[toR][toC];
+        const pieceSide = isWhite ? 'white' : 'black';
+
+        if (mineOwner !== pieceSide) {
+          // Mine detonated!
+          chessBoardState[toR][toC] = ''; // piece is destroyed
+          landmineGrid[toR][toC] = null; // clear mine
+
+          playExplosionSound();
+          setTimeout(() => playExplosionSound(), 150);
+
+          if (piece.toLowerCase() === 'k') {
+            chessGameEnded = true;
+          }
+
+          if (mineOwner === 'white') {
+            chessCapturedBlack.push(piece);
+            alliedCP += 3;
+            addBattleLog("allied", `EXPLOSION: Central ${PIECE_NAMES[piece]} stepped on an Allied Landmine at ${getAlgebraicCoords(toR, toC)} and was obliterated! Allied forces gained +3 CP.`);
+          } else {
+            chessCapturedWhite.push(piece);
+            centralCP += 3;
+            addBattleLog("central", `EXPLOSION: Allied ${PIECE_NAMES[piece]} stepped on a Central Landmine at ${getAlgebraicCoords(toR, toC)} and was obliterated! Central Powers gained +3 CP.`);
+          }
         }
       }
 
@@ -2519,6 +2974,10 @@
       chessSelectedSquare = null;
       chessValidMoves = [];
       chessTurn = isWhite ? 'black' : 'white';
+
+      // Update smoke counters at turn changes
+      updateSmokeCounters();
+
       updateChessUI();
 
       if (!chessGameEnded && chessTurn === 'black') {
@@ -2536,6 +2995,104 @@
     // Central Powers AI Decision Engine
     function triggerCentralAI() {
       if (chessGameEnded) return;
+
+      // --- AI Power-Up Decision Subsystem ---
+      let aiPowerUpUsed = false;
+
+      // 1. Defensively use Smoke Screen (Cost: 10 CP)
+      // If Kaiser 'k' is in check, or high value piece is in danger
+      if (centralCP >= 10 && !aiPowerUpUsed) {
+        // Find Kaiser or Queen
+        let targetsToSave = [];
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            const piece = chessBoardState[r][c];
+            if (piece === 'k' || piece === 'q') {
+              targetsToSave.push({ r: r, c: c, piece: piece });
+            }
+          }
+        }
+
+        // If Kaiser is in check, or with 40% probability for Queen, place smoke
+        const kaiserInCheck = isKingInCheck(false, chessBoardState);
+        let targetToSmoke = null;
+        if (kaiserInCheck) {
+          targetToSmoke = targetsToSave.find(t => t.piece === 'k');
+        } else if (Math.random() < 0.4) {
+          targetToSmoke = targetsToSave.find(t => t.piece === 'q');
+        }
+
+        if (targetToSmoke && !smokeGrid[targetToSmoke.r][targetToSmoke.c]) {
+          executePowerUp('smoke', targetToSmoke.r, targetToSmoke.c, false);
+          aiPowerUpUsed = true;
+        }
+      }
+
+      // 2. Offensively use Artillery Strike (Cost: 15 CP)
+      // Target an Allied Q, R, B, or N with 50% probability
+      if (centralCP >= 15 && !aiPowerUpUsed && Math.random() < 0.5) {
+        let valuableAlliedTargets = [];
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            const piece = chessBoardState[r][c];
+            if (piece && piece === piece.toUpperCase() && piece !== 'K') {
+              // Valuable piece: Q, R, B, N
+              if (['Q', 'R', 'B', 'N'].includes(piece)) {
+                valuableAlliedTargets.push({ r: r, c: c });
+              }
+            }
+          }
+        }
+
+        if (valuableAlliedTargets.length > 0) {
+          const randTarget = valuableAlliedTargets[Math.floor(Math.random() * valuableAlliedTargets.length)];
+          executePowerUp('artillery', randTarget.r, randTarget.c, false);
+          aiPowerUpUsed = true;
+        }
+      }
+
+      // 3. Secretly deploy Landmine (Cost: 12 CP)
+      // Place hidden mine on empty square in row <= 3 with 25% probability
+      if (centralCP >= 12 && !aiPowerUpUsed && Math.random() < 0.25) {
+        let emptySectorSquares = [];
+        for (let r = 0; r <= 3; r++) {
+          for (let c = 0; c < 8; c++) {
+            if (!chessBoardState[r][c] && !landmineGrid[r][c]) {
+              emptySectorSquares.push({ r: r, c: c });
+            }
+          }
+        }
+
+        if (emptySectorSquares.length > 0) {
+          const randTarget = emptySectorSquares[Math.floor(Math.random() * emptySectorSquares.length)];
+          executePowerUp('landmine', randTarget.r, randTarget.c, false);
+          aiPowerUpUsed = true;
+        }
+      }
+
+      // 4. Deploy Infantry Draft (Cost: 8 CP)
+      // Place new Pawn on empty square in row <= 3 with 30% probability if pawn count < 4
+      if (centralCP >= 8 && !aiPowerUpUsed && Math.random() < 0.3) {
+        let pawnCount = 0;
+        let emptySectorSquares = [];
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            if (chessBoardState[r][c] === 'p') pawnCount++;
+            if (r <= 3 && !chessBoardState[r][c]) {
+              emptySectorSquares.push({ r: r, c: c });
+            }
+          }
+        }
+
+        if (pawnCount < 4 && emptySectorSquares.length > 0) {
+          const randTarget = emptySectorSquares[Math.floor(Math.random() * emptySectorSquares.length)];
+          executePowerUp('infantry', randTarget.r, randTarget.c, false);
+          aiPowerUpUsed = true;
+        }
+      }
+
+      // If AI used a power-up, its turn is complete
+      if (aiPowerUpUsed) return;
 
       // Find all available moves for Central Powers
       let allMoves = [];
