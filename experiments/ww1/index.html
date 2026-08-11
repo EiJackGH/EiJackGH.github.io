@@ -920,9 +920,65 @@
         width: 240px !important;
       }
     }
+
+    /* Network Status Toast */
+    #network-status-toast {
+      position: fixed;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2000;
+      padding: 12px 24px;
+      pointer-events: auto;
+      min-width: 300px;
+      text-align: center;
+      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+    }
+    #network-status-toast.show {
+      top: 24px;
+    }
+    #network-status-toast.offline {
+      border: 1px solid #8b2626;
+      background: rgba(22, 17, 14, 0.95);
+      box-shadow: 0 0 20px rgba(139, 38, 38, 0.3), 0 10px 30px rgba(0,0,0,0.7);
+    }
+    #network-status-toast.offline #network-toast-title {
+      color: #ff4d4d;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: bold;
+      margin-bottom: 4px;
+      animation: heartbeat 1.5s infinite;
+    }
+    #network-status-toast.online {
+      border: 1px solid #6d8467;
+      background: rgba(22, 17, 14, 0.95);
+      box-shadow: 0 0 20px rgba(109, 132, 103, 0.3), 0 10px 30px rgba(0,0,0,0.7);
+    }
+    #network-status-toast.online #network-toast-title {
+      color: #87a96b;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    #network-toast-desc {
+      font-size: 13px;
+      color: var(--text-main);
+      font-family: monospace;
+    }
   </style>
 </head>
 <body>
+
+  <!-- Network Status Toast Notification -->
+  <div id="network-status-toast" class="glass-panel">
+    <div id="network-toast-title"></div>
+    <div id="network-toast-desc"></div>
+  </div>
 
   <canvas id="gameCanvas"></canvas>
 
@@ -1176,6 +1232,9 @@
     // On Load, update Lobby Personal Best display
     window.addEventListener('DOMContentLoaded', () => {
       updateLobbyPBDisplay();
+      if (navigator.onLine === false) {
+        updateNetworkStatus(false);
+      }
     });
 
     function updateLobbyPBDisplay() {
@@ -1192,6 +1251,53 @@
         updateLobbyPBDisplay();
       }
     }
+
+    // Network Connection Status Handler
+    let networkTimeout = null;
+
+    function updateNetworkStatus(isOnline) {
+      const toast = document.getElementById('network-status-toast');
+      const toastTitle = document.getElementById('network-toast-title');
+      const toastDesc = document.getElementById('network-toast-desc');
+
+      if (!toast || !toastTitle || !toastDesc) return;
+
+      if (networkTimeout) {
+        clearTimeout(networkTimeout);
+        networkTimeout = null;
+      }
+
+      if (isOnline) {
+        toast.className = 'glass-panel online show';
+        toastTitle.innerText = 'Telegraph Link Restored';
+        toastDesc.innerText = 'Communications re-established with headquarters.';
+
+        networkTimeout = setTimeout(() => {
+          toast.classList.remove('show');
+        }, 3500);
+
+        updateNewsTicker("TELEGRAPH RESTORED: Communications link re-established. Syncing field parameters.");
+        newsTimer = 480;
+
+        if (typeof appendSystemMessage === 'function') {
+          appendSystemMessage("HQ: Telegraph signal restored. Telegraph line is active.");
+        }
+      } else {
+        toast.className = 'glass-panel offline show';
+        toastTitle.innerText = 'Telegraph Link Disrupted';
+        toastDesc.innerText = 'Telegraph lines severed! Operating in localized offline mode.';
+
+        updateNewsTicker("TELEGRAPH OUTAGE: Communications link severed! Command is operating in localized offline mode.");
+        newsTimer = 480;
+
+        if (typeof appendSystemMessage === 'function') {
+          appendSystemMessage("HQ: Telegraph signal lost! Verify wire connections.");
+        }
+      }
+    }
+
+    window.addEventListener('online', () => updateNetworkStatus(true));
+    window.addEventListener('offline', () => updateNetworkStatus(false));
 
     // Multiplayer and Chat States
     let isMultiplayer = false;
