@@ -979,6 +979,10 @@
                 <span>Deploy Landmine</span>
                 <span class="powerup-cost">12 CP</span>
               </button>
+              <button id="pw-missile" class="powerup-btn" onclick="selectPowerUp('missile')" title="Missile Strike (1 CP): Launch a guided missile to eliminate any enemy piece (except Kaiser/Field Marshal)">
+                <span>Missile Strike</span>
+                <span class="powerup-cost">1 CP</span>
+              </button>
             </div>
 
             <div class="battle-log-title">Military Despatches</div>
@@ -2457,6 +2461,11 @@
         if (!piece || piece.toLowerCase() === 'k') return false;
         const isPieceWhite = piece === piece.toUpperCase();
         return isWhite !== isPieceWhite;
+      } else if (type === 'missile') {
+        // Can target any square with an enemy piece, except kings
+        if (!piece || piece.toLowerCase() === 'k') return false;
+        const isPieceWhite = piece === piece.toUpperCase();
+        return isWhite !== isPieceWhite;
       } else if (type === 'smoke') {
         // Can target any square with a piece
         return piece !== '';
@@ -2599,7 +2608,8 @@
         'artillery': 15,
         'smoke': 10,
         'infantry': 8,
-        'landmine': 12
+        'landmine': 12,
+        'missile': 1
       };
 
       Object.keys(powerups).forEach(type => {
@@ -2625,7 +2635,7 @@
       if (activePowerUp === type) {
         activePowerUp = null;
       } else {
-        const costs = { 'artillery': 15, 'smoke': 10, 'infantry': 8, 'landmine': 12 };
+        const costs = { 'artillery': 15, 'smoke': 10, 'infantry': 8, 'landmine': 12, 'missile': 1 };
         if (alliedCP >= costs[type]) {
           activePowerUp = type;
         } else {
@@ -2638,7 +2648,7 @@
     }
 
     function executePowerUp(type, r, c, isWhite) {
-      const costs = { 'artillery': 15, 'smoke': 10, 'infantry': 8, 'landmine': 12 };
+      const costs = { 'artillery': 15, 'smoke': 10, 'infantry': 8, 'landmine': 12, 'missile': 1 };
       const cost = costs[type];
 
       if (isWhite) {
@@ -2672,6 +2682,19 @@
         } else {
           chessCapturedWhite.push(targetPiece);
           addBattleLog(oLogClass, `Tactical Support: ${oTitle} Artillery bombardment obliterates ${pTitle} ${PIECE_NAMES[targetPiece]} at ${coords}!`);
+        }
+      } else if (type === 'missile') {
+        const targetPiece = chessBoardState[r][c];
+        chessBoardState[r][c] = '';
+        playExplosionSound();
+        setTimeout(() => playExplosionSound(), 150);
+
+        if (isWhite) {
+          chessCapturedBlack.push(targetPiece);
+          addBattleLog(pLogClass, `Tactical Support: ${pTitle} Missile Strike obliterates ${oTitle} ${PIECE_NAMES[targetPiece]} at ${coords}!`);
+        } else {
+          chessCapturedWhite.push(targetPiece);
+          addBattleLog(oLogClass, `Tactical Support: ${oTitle} Missile Strike obliterates ${pTitle} ${PIECE_NAMES[targetPiece]} at ${coords}!`);
         }
       } else if (type === 'smoke') {
         smokeGrid[r][c] = 2; // Smoke lasts 2 rounds
@@ -3370,6 +3393,25 @@
         if (pawnCount < 4 && emptySectorSquares.length > 0) {
           const randTarget = emptySectorSquares[Math.floor(Math.random() * emptySectorSquares.length)];
           executePowerUp('infantry', randTarget.r, randTarget.c, false);
+          aiPowerUpUsed = true;
+        }
+      }
+
+      // 5. Offensively use Missile Strike (Cost: 1 CP)
+      // Target any Allied piece (except Field Marshal) with 25% probability if they have >= 1 CP
+      if (centralCP >= 1 && !aiPowerUpUsed && Math.random() < 0.25) {
+        let targets = [];
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            if (isPowerUpTargetValid('missile', r, c, false)) {
+              targets.push({ r: r, c: c });
+            }
+          }
+        }
+
+        if (targets.length > 0) {
+          const randTarget = targets[Math.floor(Math.random() * targets.length)];
+          executePowerUp('missile', randTarget.r, randTarget.c, false);
           aiPowerUpUsed = true;
         }
       }
