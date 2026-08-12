@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab: DEFCON Zero (Cold War Simulator)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        crt: {
+                            green: '#33ff33',
+                            amber: '#ffb000',
+                            cyan: '#00ffff',
+                            red: '#ff3333',
+                            bg: '#05070a'
+                        }
+                    },
+                    boxShadow: {
+                        'glow-crt-green': '0 0 15px rgba(51, 255, 51, 0.25)',
+                        'glow-crt-amber': '0 0 15px rgba(255, 176, 0, 0.25)',
+                        'glow-crt-cyan': '0 0 15px rgba(0, 255, 255, 0.25)',
+                        'glow-crt-red': '0 0 15px rgba(255, 51, 51, 0.3)',
+                    },
+                    animation: {
+                        'flicker': 'flicker 0.15s infinite',
+                        'scanline': 'scanline 8s linear infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&display=swap');
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: #05070a;
+        }
+
+        /* CRT Screen Simulation overlay */
+        .crt-screen {
+            position: relative;
+            overflow: hidden;
+        }
+        .crt-screen::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 20;
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+
+        .scanline-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(to bottom, rgba(51,255,51,0), rgba(51,255,51,0.08) 50%, rgba(51,255,51,0) 100%);
+            animation: scanline 10s linear infinite;
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(51, 65, 85, 0.8);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #33ff33;
+        }
+    </style>
+</head>
+<body class="text-slate-200 min-h-screen flex flex-col selection:bg-crt-green/30 selection:text-crt-green overflow-x-hidden crt-screen">
+    <div class="scanline-effect"></div>
+
+    <!-- Main Layout Container -->
+    <div class="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-grow flex flex-col py-6">
+
+        <!-- Navigation Header -->
+        <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-crt-green/20 pb-4 mb-6 gap-4">
+            <div>
+                <div class="flex items-center gap-3">
+                    <a href="../../" class="text-xs font-bold text-crt-green hover:text-crt-green/80 tracking-wider uppercase transition">&larr; Back to Lab</a>
+                    <span class="text-xs font-medium text-slate-700">|</span>
+                    <span class="inline-flex items-center gap-1 py-0.5 px-2 rounded-full text-[10px] font-semibold bg-crt-green/10 text-crt-green border border-crt-green/20 animate-pulse">
+                        SIMULATION PROTOCOL: ACTIVE
+                    </span>
+                </div>
+                <h1 class="text-2xl font-extrabold tracking-tight text-crt-green mt-1 drop-shadow-[0_0_8px_rgba(51,255,51,0.5)]">
+                    DEFCON ZERO: COLD WAR CRISIS
+                </h1>
+                <p class="text-slate-400 text-xs font-light">
+                    Establish global supremacy. Direct intelligence agencies, execute proxy wars, dominate the Space Race, and manage DEFCON levels to avoid mutually assured destruction.
+                </p>
+            </div>
+
+            <!-- Quick Audio Control -->
+            <div class="flex items-center gap-3">
+                <button id="toggle-sound-btn" onclick="toggleAudio()" class="px-3 py-1.5 rounded border border-crt-green/30 bg-crt-green/5 hover:bg-crt-green/10 text-xs font-bold text-crt-green transition duration-200 flex items-center gap-2">
+                    <span id="audio-icon">🔊</span> Audio: On
+                </button>
+            </div>
+        </header>
+
+        <!-- Faction Selector Screen -->
+        <div id="faction-selector" class="flex-grow flex flex-col items-center justify-center py-12">
+            <div class="max-w-2xl w-full bg-slate-900/60 border border-crt-green/20 rounded-2xl p-8 shadow-glow-crt-green backdrop-blur-md text-center space-y-8">
+                <div class="space-y-2">
+                    <div class="text-crt-red text-xs tracking-widest font-bold">TOP SECRET // EYES ONLY</div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-slate-100">SELECT YOUR SUPERPOWER COMMAND</h2>
+                    <p class="text-slate-400 text-sm max-w-lg mx-auto">
+                        Choose a side in the global struggle for ideological dominance. Both blocs possess unique capabilities, starting parameters, and strategic challenges.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- USA Faction -->
+                    <button onclick="selectFaction('USA')" class="group p-6 rounded-xl border border-crt-cyan/30 bg-slate-950/80 hover:bg-crt-cyan/5 hover:border-crt-cyan text-left transition-all duration-300 hover:shadow-glow-crt-cyan flex flex-col justify-between h-64">
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-2xl">🇺🇸</span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-crt-cyan/10 text-crt-cyan border border-crt-cyan/20">THE WESTERN BLOC</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-crt-cyan">United States of America</h3>
+                            <p class="text-slate-400 text-xs leading-relaxed">
+                                Democratic and capitalist powerhouse. Relies on immense economic capital, global influence campaigns, and scientific ingenuity.
+                            </p>
+                        </div>
+                        <div class="pt-4 border-t border-slate-800 w-full text-xs text-crt-cyan/80 space-y-1">
+                            <div>• Starting Capital: <span class="font-bold text-slate-100">$100 Million</span></div>
+                            <div>• Intelligence Corps: <span class="font-bold text-slate-100">8 Operatives</span></div>
+                            <div>• Bonus: <span class="italic text-slate-100">+20% Space Race Investment efficacy</span></div>
+                        </div>
+                    </button>
+
+                    <!-- USSR Faction -->
+                    <button onclick="selectFaction('USSR')" class="group p-6 rounded-xl border border-crt-red/30 bg-slate-950/80 hover:bg-crt-red/5 hover:border-crt-red text-left transition-all duration-300 hover:shadow-glow-crt-red flex flex-col justify-between h-64">
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-2xl">☭</span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-crt-red/10 text-crt-red border border-crt-red/20">THE EASTERN BLOC</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-crt-red">Soviet Union</h3>
+                            <p class="text-slate-400 text-xs leading-relaxed">
+                                Socialist and command economy state. Relies on a massive networks of undercover operatives, high defense spending, and rapid covert actions.
+                            </p>
+                        </div>
+                        <div class="pt-4 border-t border-slate-800 w-full text-xs text-crt-red/80 space-y-1">
+                            <div>• Starting Capital: <span class="font-bold text-slate-100">$80 Million</span></div>
+                            <div>• Intelligence Corps: <span class="font-bold text-slate-100">12 Operatives</span></div>
+                            <div>• Bonus: <span class="italic text-slate-100">-1 operative cost for Covert Coups</span></div>
+                        </div>
+                    </button>
+                </div>
+
+                <div class="text-xs text-slate-500 font-light italic">
+                    Note: Audio will synthesize retro terminal beeps and sirens. Keep your sound on!
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulation Screen (Hidden initially) -->
+        <div id="simulation-dashboard" class="hidden flex-grow flex flex-col lg:grid lg:grid-cols-12 gap-6 items-start">
+
+            <!-- Sidebar Controls and Status (Left col) -->
+            <div class="lg:col-span-4 space-y-6 w-full">
+
+                <!-- Superpower Command HUD -->
+                <div class="bg-slate-900/60 border border-crt-green/20 rounded-xl p-4 shadow-glow-crt-green space-y-4 backdrop-blur-md">
+                    <div class="flex items-center justify-between border-b border-crt-green/10 pb-2">
+                        <div class="flex items-center gap-2">
+                            <span id="player-flag" class="text-xl">🇺🇸</span>
+                            <span id="player-faction-name" class="font-bold text-crt-green text-sm">USA COMMAND</span>
+                        </div>
+                        <span class="text-[10px] bg-crt-green/10 text-crt-green border border-crt-green/30 px-1.5 py-0.5 rounded">TURN <span id="current-turn-val" class="font-bold">1</span></span>
+                    </div>
+
+                    <!-- Resources -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-slate-950/60 p-3 rounded border border-slate-800 text-center">
+                            <div class="text-[10px] text-slate-500 font-bold uppercase">Treasury</div>
+                            <div id="hud-treasury" class="text-lg font-bold text-crt-amber font-mono mt-1">$100M</div>
+                        </div>
+                        <div class="bg-slate-950/60 p-3 rounded border border-slate-800 text-center">
+                            <div class="text-[10px] text-slate-500 font-bold uppercase">Spies Active</div>
+                            <div id="hud-spies" class="text-lg font-bold text-crt-cyan font-mono mt-1">8 / 8</div>
+                        </div>
+                    </div>
+
+                    <!-- Global Prestige & Nuclear Clock -->
+                    <div class="space-y-3 bg-slate-950/40 p-3 rounded border border-slate-800/60">
+                        <!-- Global Prestige -->
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-[10px]">
+                                <span class="text-slate-400 font-bold uppercase">Global Influence Balance</span>
+                                <span id="prestige-val" class="font-bold text-crt-green">50%</span>
+                            </div>
+                            <div class="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden flex border border-slate-800">
+                                <div id="prestige-bar-usa" class="bg-crt-cyan h-full transition-all duration-500" style="width: 50%"></div>
+                                <div id="prestige-bar-ussr" class="bg-crt-red h-full transition-all duration-500" style="width: 50%"></div>
+                            </div>
+                            <div class="flex justify-between text-[8px] text-slate-500">
+                                <span>WESTERN INFLUENCE</span>
+                                <span>EASTERN INFLUENCE</span>
+                            </div>
+                        </div>
+
+                        <!-- Space Race Status -->
+                        <div class="space-y-1 pt-2 border-t border-slate-800/60">
+                            <div class="flex justify-between text-[10px]">
+                                <span class="text-slate-400 font-bold uppercase">Space Race Progress</span>
+                                <span id="space-race-stage" class="text-crt-amber font-bold">Stage 0/4</span>
+                            </div>
+                            <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden flex border border-slate-800">
+                                <div id="space-race-bar-player" class="bg-crt-amber h-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                            <div id="space-race-details" class="text-[9px] text-slate-400 font-light flex justify-between">
+                                <span>Goal: Moon Landing</span>
+                                <span id="space-race-percent" class="font-bold">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Strategic DEFCON Monitor -->
+                <div id="defcon-panel" class="bg-slate-900/60 border border-crt-amber/20 rounded-xl p-4 shadow-glow-crt-amber space-y-4 backdrop-blur-md">
+                    <div class="flex items-center justify-between border-b border-crt-amber/10 pb-2">
+                        <span class="text-xs font-bold text-crt-amber tracking-wider">DEFCON MONITORS & ALERT LEVELS</span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-crt-amber animate-ping"></span>
+                    </div>
+
+                    <!-- Defcon Indicator Grid -->
+                    <div class="grid grid-cols-5 gap-1.5 text-center text-[10px] font-bold">
+                        <div id="defcon-5" class="py-1 rounded border bg-emerald-500/10 border-emerald-500/30 text-emerald-400 transition-all duration-300">5</div>
+                        <div id="defcon-4" class="py-1 rounded border bg-slate-950 border-slate-800 text-slate-500 transition-all duration-300">4</div>
+                        <div id="defcon-3" class="py-1 rounded border bg-slate-950 border-slate-800 text-slate-500 transition-all duration-300">3</div>
+                        <div id="defcon-2" class="py-1 rounded border bg-slate-950 border-slate-800 text-slate-500 transition-all duration-300">2</div>
+                        <div id="defcon-1" class="py-1 rounded border bg-slate-950 border-slate-800 text-slate-500 transition-all duration-300">1</div>
+                    </div>
+
+                    <div class="bg-slate-950/80 p-3 rounded border border-slate-800 flex items-center justify-between">
+                        <div class="space-y-1">
+                            <div id="defcon-status-title" class="text-xs font-bold text-emerald-400">DEFCON 5: PEACETIME STATUS</div>
+                            <p id="defcon-status-desc" class="text-[10px] text-slate-400 leading-normal font-light">
+                                Standard readiness. Relations are stable. Treaties are actively in effect.
+                            </p>
+                        </div>
+                        <div class="text-center pl-3 border-l border-slate-800">
+                            <div class="text-[8px] text-slate-500 uppercase">DOOMSDAY</div>
+                            <div id="doomsday-clock" class="text-lg font-bold text-crt-red font-mono">11:53</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Direct Commands Box -->
+                <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 space-y-4 backdrop-blur-md">
+                    <span class="text-xs font-bold text-slate-400 tracking-wider block uppercase border-b border-slate-800 pb-2">Direct Strategic Operations</span>
+
+                    <div class="space-y-2.5">
+                        <!-- Space Race Investment -->
+                        <button onclick="executeGlobalAction('Space')" id="btn-action-space" class="w-full text-left p-2.5 rounded border border-crt-amber/20 hover:border-crt-amber bg-slate-950/60 hover:bg-crt-amber/5 transition group flex justify-between items-center text-xs">
+                            <div class="space-y-1">
+                                <div class="font-bold text-crt-amber group-hover:underline">🚀 Fund Space Race</div>
+                                <div class="text-[10px] text-slate-400 font-light">Increase Space Race progress & Global Prestige.</div>
+                            </div>
+                            <div class="text-right pl-3 font-mono">
+                                <div class="text-crt-amber font-bold">-$20M</div>
+                                <div class="text-[9px] text-slate-500">+10-15% Prog</div>
+                            </div>
+                        </button>
+
+                        <!-- Diplomatic Summit -->
+                        <button onclick="executeGlobalAction('Summit')" id="btn-action-summit" class="w-full text-left p-2.5 rounded border border-emerald-500/20 hover:border-emerald-500 bg-slate-950/60 hover:bg-emerald-500/5 transition group flex justify-between items-center text-xs">
+                            <div class="space-y-1">
+                                <div class="font-bold text-emerald-400 group-hover:underline">🤝 Convene Summit</div>
+                                <div class="text-[10px] text-slate-400 font-light">De-escalate global tensions & improve DEFCON level.</div>
+                            </div>
+                            <div class="text-right pl-3 font-mono">
+                                <div class="text-emerald-400 font-bold">-$15M</div>
+                                <div class="text-[9px] text-slate-500">+1 DEFCON</div>
+                            </div>
+                        </button>
+
+                        <!-- Intel Mobilization -->
+                        <button onclick="executeGlobalAction('Recruit')" id="btn-action-recruit" class="w-full text-left p-2.5 rounded border border-crt-cyan/20 hover:border-crt-cyan bg-slate-950/60 hover:bg-crt-cyan/5 transition group flex justify-between items-center text-xs">
+                            <div class="space-y-1">
+                                <div class="font-bold text-crt-cyan group-hover:underline">🕵️ Recruit Operatives</div>
+                                <div class="text-[10px] text-slate-400 font-light">Mobilize backup intelligence assets.</div>
+                            </div>
+                            <div class="text-right pl-3 font-mono">
+                                <div class="text-crt-cyan font-bold">-$10M</div>
+                                <div class="text-[9px] text-slate-500">+2 Spies</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Global Theatre of Operations (Right / Center columns) -->
+            <div class="lg:col-span-8 space-y-6 w-full">
+
+                <!-- Main Theatre Map Dashboard -->
+                <div class="bg-slate-900/60 border border-crt-green/20 rounded-xl p-4 shadow-glow-crt-green backdrop-blur-md space-y-4">
+                    <div class="flex items-center justify-between border-b border-crt-green/10 pb-2">
+                        <span class="text-xs font-bold text-crt-green tracking-wider uppercase">Global Theatre Map & Regions</span>
+                        <span id="region-focus-title" class="text-[10px] text-slate-400 font-bold font-mono">CLICK A REGION TO FOCUS TACTICAL OPERATIONS</span>
+                    </div>
+
+                    <!-- List of Regions -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="regions-grid">
+                        <!-- Regions will be populated dynamically -->
+                    </div>
+
+                    <!-- Region Tactical Panel (Active only when a region is focused) -->
+                    <div id="tactical-panel" class="bg-slate-950/80 rounded-xl p-4 border border-slate-800 space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-800 pb-3 gap-2">
+                            <div>
+                                <h3 id="focused-region-name" class="text-sm font-bold text-crt-green">No Region Selected</h3>
+                                <p id="focused-region-status" class="text-[10px] text-slate-400 mt-0.5">Focus a target region from the map to issue intelligence and proxy action orders.</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] text-slate-400 uppercase">Dominance:</span>
+                                <span id="focused-region-dominance" class="text-xs font-bold font-mono bg-slate-900 px-2 py-0.5 rounded border border-slate-800">USA 50% / USSR 50%</span>
+                            </div>
+                        </div>
+
+                        <!-- Action Controls (Disabled by default until region is clicked) -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="tactical-actions-container">
+
+                            <!-- Coup / Subversion -->
+                            <button id="action-coup" onclick="executeTacticalAction('Coup')" disabled class="text-left p-3 rounded border border-crt-red/20 bg-slate-900/40 opacity-40 cursor-not-allowed flex flex-col justify-between h-36 transition duration-250">
+                                <div>
+                                    <div class="font-bold text-crt-red text-xs">🕵️ Covert Coup</div>
+                                    <p class="text-[9px] text-slate-400 font-light mt-1.5 leading-relaxed">Subvert local power structure. Drastically flip alignment if successful. High Risk!</p>
+                                </div>
+                                <div class="pt-2 border-t border-slate-800/80 w-full flex justify-between items-center text-[10px] font-mono">
+                                    <span class="text-crt-red font-bold">-$12M, -1 Spy</span>
+                                    <span id="coup-odds" class="text-slate-400 font-bold">Odds: 50%</span>
+                                </div>
+                            </button>
+
+                            <!-- Economic Aid -->
+                            <button id="action-aid" onclick="executeTacticalAction('Aid')" disabled class="text-left p-3 rounded border border-crt-cyan/20 bg-slate-900/40 opacity-40 cursor-not-allowed flex flex-col justify-between h-36 transition duration-250">
+                                <div>
+                                    <div class="font-bold text-crt-cyan text-xs">💸 Economic Aid</div>
+                                    <p class="text-[9px] text-slate-400 font-light mt-1.5 leading-relaxed">Inject developmental capital. Permanently boost region stability and capture modest influence.</p>
+                                </div>
+                                <div class="pt-2 border-t border-slate-800/80 w-full flex justify-between items-center text-[10px] font-mono">
+                                    <span class="text-crt-cyan font-bold">-$15M</span>
+                                    <span class="text-slate-400 font-bold">Success: 100%</span>
+                                </div>
+                            </button>
+
+                            <!-- Proxy War Support -->
+                            <button id="action-proxy" onclick="executeTacticalAction('Proxy')" disabled class="text-left p-3 rounded border border-crt-amber/20 bg-slate-900/40 opacity-40 cursor-not-allowed flex flex-col justify-between h-36 transition duration-250">
+                                <div>
+                                    <div class="font-bold text-crt-amber text-xs">🪖 Deploy Advisors</div>
+                                    <p class="text-[9px] text-slate-400 font-light mt-1.5 leading-relaxed">Direct combat support. Swiftly capture immense influence. May lower DEFCON on escalations!</p>
+                                </div>
+                                <div class="pt-2 border-t border-slate-800/80 w-full flex justify-between items-center text-[10px] font-mono">
+                                    <span class="text-crt-amber font-bold">-$10M, -2 Spies</span>
+                                    <span class="text-slate-400 font-bold">DEFCON Risk</span>
+                                </div>
+                            </button>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- War Room Intelligence Feed -->
+                <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 backdrop-blur-md flex flex-col h-64">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">War Room Dispatch Feed // Teleprinter</span>
+                        <button onclick="clearLog()" class="text-[9px] text-slate-500 hover:text-crt-green font-bold uppercase transition">Purge Log</button>
+                    </div>
+
+                    <!-- Scrolling Feed content -->
+                    <div id="teleprinter-log" class="flex-grow overflow-y-auto space-y-1.5 pr-2 font-mono text-[10px] text-slate-400 leading-normal">
+                        <!-- Log messages populated dynamically -->
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- End Game Modal (Victory/Nuclear Annihilation) -->
+        <div id="game-over-modal" class="hidden fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
+            <div id="game-over-content" class="max-w-md w-full bg-slate-950 border rounded-2xl p-8 text-center space-y-6 shadow-2xl">
+                <!-- Content injected dynamically -->
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-12 pt-6 border-t border-slate-900 text-center text-xs text-slate-600 space-y-2 font-mono">
+            <p>© 2026 EiJackGH. DEFCON Zero Cold War Simulator Protocol.</p>
+            <p>Direct zero-asset Web Audio synth systems. Verified operational.</p>
+        </footer>
+    </div>
+
+    <!-- Gameplay Scripts -->
+    <script>
+        // 1. Audio System (Web Audio API)
+        let audioCtx = null;
+        let audioEnabled = true;
+
+        function playSynthSound(freq, type, duration, vol = 0.1) {
+            if (!audioEnabled) return;
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (err) {
+                console.warn("Audio Context error:", err);
+            }
+        }
+
+        function triggerBleep(type = "normal") {
+            if (type === "normal") {
+                playSynthSound(900, "sine", 0.08, 0.08);
+            } else if (type === "success") {
+                playSynthSound(500, "sine", 0.1);
+                setTimeout(() => playSynthSound(1000, "sine", 0.15), 100);
+            } else if (type === "warning") {
+                playSynthSound(300, "sawtooth", 0.3, 0.15);
+            } else if (type === "siren") {
+                playSynthSound(220, "triangle", 0.5, 0.2);
+                setTimeout(() => playSynthSound(330, "triangle", 0.5, 0.2), 250);
+            } else if (type === "nuke") {
+                playSynthSound(100, "sawtooth", 1.5, 0.3);
+                setTimeout(() => playSynthSound(80, "sawtooth", 1.5, 0.3), 300);
+            }
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const btn = document.getElementById("toggle-sound-btn");
+            if (audioEnabled) {
+                btn.innerHTML = `🔊 Audio: On`;
+                btn.className = "px-3 py-1.5 rounded border border-crt-green/30 bg-crt-green/5 hover:bg-crt-green/10 text-xs font-bold text-crt-green transition duration-200 flex items-center gap-2";
+                triggerBleep();
+            } else {
+                btn.innerHTML = `🔇 Audio: Off`;
+                btn.className = "px-3 py-1.5 rounded border border-slate-700 bg-slate-950 text-xs font-bold text-slate-500 transition duration-200 flex items-center gap-2";
+            }
+        }
+
+        // Initialize Audio context on first click interaction
+        document.body.addEventListener('click', function() {
+            if (!audioCtx) {
+                try {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                } catch(e) {}
+            }
+        }, { once: true });
+
+
+        // 2. State & Variables
+        let playerFaction = null; // "USA" or "USSR"
+        let aiFaction = null;     // "USSR" or "USA"
+        let currentTurn = 1;
+
+        let playerTreasury = 100; // $ Millions
+        let playerSpiesMax = 8;
+        let playerSpiesAvailable = 8;
+
+        let aiTreasury = 80;
+        let aiSpiesMax = 12;
+        let aiSpiesAvailable = 12;
+
+        let globalDefcon = 5; // 5 = Stable, 1 = Apocalypse
+        let spaceRaceProgressPlayer = 0; // %
+        let spaceRaceProgressAi = 0;     // %
+        let spaceRaceStagePlayer = 0;    // Stage count (0 to 4)
+        let spaceRaceStageAi = 0;
+
+        let focusedRegionId = null;
+
+        const SPACE_STAGES = [
+            "Satellite Launch",
+            "Orbital Biological Flight",
+            "Manned Space Flight",
+            "Lunar Landing Mission"
+        ];
+
+        // Regions definition
+        let regions = [
+            {
+                id: "na",
+                name: "North America",
+                stability: 95,
+                usaInfluence: 90,
+                ussrInfluence: 10,
+                status: "Stable",
+                alignment: "Western Ally",
+                description: "Deep capitalist roots. Strongly tied to US defense commands."
+            },
+            {
+                id: "ee",
+                name: "Eastern Europe",
+                stability: 90,
+                usaInfluence: 10,
+                ussrInfluence: 90,
+                status: "Stable",
+                alignment: "Eastern Ally",
+                description: "Satellite nations governed directly under socialist command."
+            },
+            {
+                id: "we",
+                name: "Western Europe",
+                stability: 85,
+                usaInfluence: 80,
+                ussrInfluence: 20,
+                status: "Stable",
+                alignment: "Western Ally",
+                description: "Democratic coalitions. Bulwark against Eastern advances."
+            },
+            {
+                id: "sa",
+                name: "South America",
+                stability: 45,
+                usaInfluence: 45,
+                ussrInfluence: 15,
+                status: "Unrest",
+                alignment: "Contested",
+                description: "Fragile domestic governments. Target for massive ideological coup attempts."
+            },
+            {
+                id: "ea",
+                name: "East Asia",
+                stability: 50,
+                usaInfluence: 40,
+                ussrInfluence: 45,
+                status: "Contested",
+                alignment: "Contested",
+                description: "Heavily militarized divide. High tension and proxy triggers."
+            },
+            {
+                id: "me",
+                name: "Middle East",
+                stability: 60,
+                usaInfluence: 30,
+                ussrInfluence: 30,
+                status: "Stable",
+                alignment: "Non-Aligned",
+                description: "Valuable resource-rich oilfields. Diplomatic tug-of-war."
+            },
+            {
+                id: "af",
+                name: "Sub-Saharan Africa",
+                stability: 40,
+                usaInfluence: 20,
+                ussrInfluence: 20,
+                status: "Proxy War",
+                alignment: "Contested",
+                description: "Post-colonial transitional states. Active revolutionary and coup zones."
+            },
+            {
+                id: "sa2",
+                name: "South Asia",
+                stability: 55,
+                usaInfluence: 25,
+                ussrInfluence: 35,
+                status: "Unrest",
+                alignment: "Contested",
+                description: "Rapid development region. Shifting political affiliations."
+            }
+        ];
+
+
+        // 3. Selection of Faction
+        function selectFaction(faction) {
+            playerFaction = faction;
+            aiFaction = faction === "USA" ? "USSR" : "USA";
+
+            // Set starting values based on faction bonuses
+            if (playerFaction === "USA") {
+                playerTreasury = 100;
+                playerSpiesMax = 8;
+                playerSpiesAvailable = 8;
+
+                aiTreasury = 80;
+                aiSpiesMax = 12;
+                aiSpiesAvailable = 12;
+            } else {
+                playerTreasury = 80;
+                playerSpiesMax = 12;
+                playerSpiesAvailable = 12;
+
+                aiTreasury = 100;
+                aiSpiesMax = 8;
+                aiSpiesAvailable = 8;
+            }
+
+            // Hide select screen, show dashboard
+            document.getElementById("faction-selector").classList.add("hidden");
+            document.getElementById("simulation-dashboard").classList.remove("hidden");
+
+            // Setup UI
+            const pFlag = document.getElementById("player-flag");
+            const pName = document.getElementById("player-faction-name");
+            pFlag.innerText = playerFaction === "USA" ? "🇺🇸" : "☭";
+            pName.innerText = playerFaction === "USA" ? "USA WAR COMMAND" : "USSR KREMLIN CENTRAL";
+            pName.className = playerFaction === "USA" ? "font-bold text-crt-cyan text-sm" : "font-bold text-crt-red text-sm";
+
+            triggerBleep("success");
+
+            // Log entry
+            logMessage(`[COMMAND INITIATED] Selected Allied Faction: ${playerFaction === "USA" ? "United States" : "Soviet Union"}.`);
+            logMessage(`Intelligence apparatus online. Global monitoring stations active.`);
+
+            updateHUD();
+            renderRegions();
+            updateDefconUI();
+        }
+
+        // 4. Update HUD
+        function updateHUD() {
+            document.getElementById("hud-treasury").innerText = `$${playerTreasury}M`;
+            document.getElementById("hud-spies").innerText = `${playerSpiesAvailable} / ${playerSpiesMax}`;
+            document.getElementById("current-turn-val").innerText = currentTurn;
+
+            // Global Prestige Progress (USA vs USSR total influence share)
+            let totalUSA = 0;
+            let totalUSSR = 0;
+            regions.forEach(r => {
+                totalUSA += r.usaInfluence;
+                totalUSSR += r.ussrInfluence;
+            });
+            const ratioUSA = (totalUSA / (totalUSA + totalUSSR)) * 100;
+            const ratioUSSR = 100 - ratioUSA;
+
+            const barUSA = document.getElementById("prestige-bar-usa");
+            const barUSSR = document.getElementById("prestige-bar-ussr");
+            barUSA.style.width = `${ratioUSA}%`;
+            barUSSR.style.width = `${ratioUSSR}%`;
+
+            const balanceVal = document.getElementById("prestige-val");
+            if (playerFaction === "USA") {
+                balanceVal.innerText = `${Math.round(ratioUSA)}% Dominance`;
+                balanceVal.className = "font-bold text-crt-cyan";
+            } else {
+                balanceVal.innerText = `${Math.round(ratioUSSR)}% Dominance`;
+                balanceVal.className = "font-bold text-crt-red";
+            }
+
+            // Space Race progress UI
+            const spaceProg = playerFaction === "USA" ? spaceRaceProgressPlayer : spaceRaceProgressAi;
+            const spaceStage = playerFaction === "USA" ? spaceRaceStagePlayer : spaceRaceStageAi;
+            const spaceBar = document.getElementById("space-race-bar-player");
+            spaceBar.style.width = `${spaceProg}%`;
+            document.getElementById("space-race-percent").innerText = `${spaceProg}%`;
+
+            if (spaceStage >= 4) {
+                document.getElementById("space-race-stage").innerText = "MOON LANDING COMPLETE";
+                document.getElementById("space-race-stage").className = "text-crt-green font-bold";
+            } else {
+                document.getElementById("space-race-stage").innerText = `Stage ${spaceStage}/4: ${SPACE_STAGES[spaceStage] || "None"}`;
+                document.getElementById("space-race-stage").className = "text-crt-amber font-bold";
+            }
+
+            // Victory check
+            checkVictoryConditions();
+        }
+
+        // 5. Update DEFCON UI
+        function updateDefconUI() {
+            for (let i = 1; i <= 5; i++) {
+                const el = document.getElementById(`defcon-${i}`);
+                el.className = "py-1 rounded border transition-all duration-300";
+                if (i === globalDefcon) {
+                    if (i === 5) el.className += " bg-emerald-500/20 border-emerald-500 text-emerald-400 font-extrabold shadow-glow-crt-green animate-pulse";
+                    else if (i === 4) el.className += " bg-teal-500/20 border-teal-500 text-teal-400 font-extrabold shadow-glow-crt-cyan animate-pulse";
+                    else if (i === 3) el.className += " bg-crt-amber/20 border-crt-amber text-crt-amber font-extrabold shadow-glow-crt-amber animate-pulse";
+                    else if (i === 2) el.className += " bg-orange-500/20 border-orange-500 text-orange-400 font-extrabold shadow-glow-crt-amber animate-pulse";
+                    else if (i === 1) el.className += " bg-crt-red/20 border-crt-red text-crt-red font-extrabold shadow-glow-crt-red animate-pulse";
+                } else {
+                    el.className += " bg-slate-950 border-slate-800 text-slate-500";
+                }
+            }
+
+            const title = document.getElementById("defcon-status-title");
+            const desc = document.getElementById("defcon-status-desc");
+            const panel = document.getElementById("defcon-panel");
+
+            panel.className = "bg-slate-900/60 border rounded-xl p-4 shadow-glow-crt-green space-y-4 backdrop-blur-md";
+
+            if (globalDefcon === 5) {
+                title.innerText = "DEFCON 5: PEACETIME DEFENSE STATUS";
+                title.className = "text-xs font-bold text-emerald-400";
+                desc.innerText = "Normal military readiness. Superpowers are cooperative or in low-friction proxy battles.";
+                panel.className = panel.className.replace(/border-.*-20/g, 'border-emerald-500/20').replace(/shadow-glow-crt-.*/g, 'shadow-glow-crt-green');
+                document.getElementById("doomsday-clock").innerText = "11:53";
+            } else if (globalDefcon === 4) {
+                title.innerText = "DEFCON 4: DOUBLE WATCH STATUS";
+                title.className = "text-xs font-bold text-teal-400";
+                desc.innerText = "Increased intelligence oversight. Security surveillance scaled up globally. High alert.";
+                panel.className = panel.className.replace(/border-.*-20/g, 'border-teal-500/20').replace(/shadow-glow-crt-.*/g, 'shadow-glow-crt-cyan');
+                document.getElementById("doomsday-clock").innerText = "11:57";
+            } else if (globalDefcon === 3) {
+                title.innerText = "DEFCON 3: FORCE READINESS STATUS";
+                title.className = "text-xs font-bold text-crt-amber";
+                desc.innerText = "Military forces mobilized in proxy sectors. Communication codes swapped. Intense tension.";
+                panel.className = panel.className.replace(/border-.*-20/g, 'border-crt-amber/20').replace(/shadow-glow-crt-.*/g, 'shadow-glow-crt-amber');
+                document.getElementById("doomsday-clock").innerText = "11:58";
+            } else if (globalDefcon === 2) {
+                title.innerText = "DEFCON 2: MAXIMUM READINESS STATUS";
+                title.className = "text-xs font-bold text-orange-400";
+                desc.innerText = "Strategic bombers airborne. Submarines armed. Coups and covert attacks are highly explosive.";
+                panel.className = panel.className.replace(/border-.*-20/g, 'border-orange-500/20').replace(/shadow-glow-crt-.*/g, 'shadow-glow-crt-amber');
+                document.getElementById("doomsday-clock").innerText = "11:59";
+            } else if (globalDefcon === 1) {
+                title.innerText = "DEFCON 1: APOCALYPSE PROTOCOL";
+                title.className = "text-xs font-bold text-crt-red animate-pulse";
+                desc.innerText = "Total Nuclear War is imminent. Fire control commands authorized. Launch sirens howling.";
+                panel.className = panel.className.replace(/border-.*-20/g, 'border-crt-red/20').replace(/shadow-glow-crt-.*/g, 'shadow-glow-crt-red');
+                document.getElementById("doomsday-clock").innerText = "12:00";
+
+                // Nuclear Holocaust Trigger
+                setTimeout(() => {
+                    triggerEndGame("nuke");
+                }, 2000);
+            }
+        }
+
+        // 6. Render Map / Regions Grid
+        function renderRegions() {
+            const grid = document.getElementById("regions-grid");
+            grid.innerHTML = "";
+
+            regions.forEach(r => {
+                // Determine regional dominance
+                let domString = "";
+                let domClass = "";
+                if (r.usaInfluence > r.ussrInfluence) {
+                    domString = `Western Align (${r.usaInfluence}%)`;
+                    domClass = "text-crt-cyan";
+                } else if (r.ussrInfluence > r.usaInfluence) {
+                    domString = `Eastern Align (${r.ussrInfluence}%)`;
+                    domClass = "text-crt-red";
+                } else {
+                    domString = "Neutral (50/50)";
+                    domClass = "text-slate-400";
+                }
+
+                // Status tag colors
+                let statClass = "bg-slate-950 text-slate-400 border-slate-800";
+                if (r.status === "Proxy War") statClass = "bg-crt-red/10 text-crt-red border-crt-red/30 animate-pulse";
+                else if (r.status === "Unrest") statClass = "bg-crt-amber/10 text-crt-amber border-crt-amber/30";
+                else if (r.status === "Stable") statClass = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+
+                const isFocused = focusedRegionId === r.id;
+                const borderFocus = isFocused ? "border-crt-green bg-slate-900 shadow-glow-crt-green" : "border-slate-800 hover:border-slate-700 bg-slate-950/40";
+
+                const cardHtml = `
+                    <button onclick="focusRegion('${r.id}')" class="text-left p-4 rounded-xl border ${borderFocus} transition-all duration-300 flex flex-col justify-between space-y-3 h-44">
+                        <div class="w-full">
+                            <div class="flex items-start justify-between">
+                                <span class="font-bold text-xs text-slate-100">${r.name}</span>
+                                <span class="px-2 py-0.5 rounded text-[8px] font-bold border uppercase tracking-wider ${statClass}">${r.status}</span>
+                            </div>
+                            <p class="text-[10px] text-slate-400 leading-normal font-light mt-1.5 line-clamp-2">${r.description}</p>
+                        </div>
+
+                        <div class="w-full space-y-1.5 pt-2 border-t border-slate-900">
+                            <div class="flex justify-between text-[9px]">
+                                <span class="text-slate-500">Stability: <span class="font-bold text-slate-300 font-mono">${r.stability}%</span></span>
+                                <span class="font-bold ${domClass} font-mono">${domString}</span>
+                            </div>
+                            <div class="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden flex">
+                                <div class="bg-crt-cyan h-full transition-all duration-500" style="width: ${r.usaInfluence}%"></div>
+                                <div class="bg-crt-red h-full transition-all duration-500" style="width: ${r.ussrInfluence}%"></div>
+                            </div>
+                        </div>
+                    </button>
+                `;
+                grid.insertAdjacentHTML("beforeend", cardHtml);
+            });
+        }
+
+        // 7. Focus on a Region
+        function focusRegion(regionId) {
+            focusedRegionId = regionId;
+            const r = regions.find(item => item.id === regionId);
+            if (!r) return;
+
+            triggerBleep();
+
+            // Set detail HUD
+            document.getElementById("region-focus-title").innerText = `FOCUSED: ${r.name.toUpperCase()}`;
+            document.getElementById("focused-region-name").innerText = r.name;
+            document.getElementById("focused-region-status").innerText = `Current regional status is ${r.status.toUpperCase()}. Stability rating at ${r.stability}%.`;
+            document.getElementById("focused-region-dominance").innerText = `USA ${r.usaInfluence}% / USSR ${r.ussrInfluence}%`;
+
+            // Active tactical controls
+            const cBtn = document.getElementById("action-coup");
+            const aBtn = document.getElementById("action-aid");
+            const pBtn = document.getElementById("action-proxy");
+
+            cBtn.removeAttribute("disabled");
+            cBtn.className = "text-left p-3 rounded border border-crt-red/30 bg-slate-950/80 hover:bg-crt-red/5 hover:border-crt-red cursor-pointer flex flex-col justify-between h-36 transition duration-250";
+
+            // Adjust coup odds based on stability (Lower stability -> Higher coup success chance)
+            const coupOddsPct = 100 - r.stability;
+            document.getElementById("coup-odds").innerText = `Odds: ${coupOddsPct}%`;
+
+            aBtn.removeAttribute("disabled");
+            aBtn.className = "text-left p-3 rounded border border-crt-cyan/30 bg-slate-950/80 hover:bg-crt-cyan/5 hover:border-crt-cyan cursor-pointer flex flex-col justify-between h-36 transition duration-250";
+
+            pBtn.removeAttribute("disabled");
+            pBtn.className = "text-left p-3 rounded border border-crt-amber/30 bg-slate-950/80 hover:bg-crt-amber/5 hover:border-crt-amber cursor-pointer flex flex-col justify-between h-36 transition duration-250";
+
+            renderRegions();
+        }
+
+        // 8. Global Actions (Space Race, Summit, Recruit Spies)
+        function executeGlobalAction(type) {
+            if (type === "Space") {
+                const cost = 20;
+                if (playerTreasury < cost) {
+                    triggerBleep("warning");
+                    logMessage(`[OPERATION DENIED] Insufficient capital in treasury to fund Space Race program. Require $20M.`);
+                    return;
+                }
+                playerTreasury -= cost;
+
+                // Calc progress gains
+                let progressIncr = Math.floor(Math.random() * 8) + 12; // 12% to 20%
+                if (playerFaction === "USA") {
+                    progressIncr = Math.round(progressIncr * 1.2); // Western Bloc scientific bonus
+                }
+
+                if (playerFaction === "USA") {
+                    spaceRaceProgressPlayer = Math.min(100, spaceRaceProgressPlayer + progressIncr);
+                    if (spaceRaceProgressPlayer >= 100 && spaceRaceStagePlayer < 4) {
+                        spaceRaceStagePlayer = 4;
+                    } else if (spaceRaceProgressPlayer >= 75 && spaceRaceStagePlayer < 3) {
+                        spaceRaceStagePlayer = 3;
+                    } else if (spaceRaceProgressPlayer >= 50 && spaceRaceStagePlayer < 2) {
+                        spaceRaceStagePlayer = 2;
+                    } else if (spaceRaceProgressPlayer >= 25 && spaceRaceStagePlayer < 1) {
+                        spaceRaceStagePlayer = 1;
+                    }
+                } else {
+                    spaceRaceProgressAi = Math.min(100, spaceRaceProgressAi + progressIncr);
+                    if (spaceRaceProgressAi >= 100 && spaceRaceStageAi < 4) {
+                        spaceRaceStageAi = 4;
+                    } else if (spaceRaceProgressAi >= 75 && spaceRaceStageAi < 3) {
+                        spaceRaceStageAi = 3;
+                    } else if (spaceRaceProgressAi >= 50 && spaceRaceStageAi < 2) {
+                        spaceRaceStageAi = 2;
+                    } else if (spaceRaceProgressAi >= 25 && spaceRaceStageAi < 1) {
+                        spaceRaceStageAi = 1;
+                    }
+                }
+
+                triggerBleep("success");
+                logMessage(`[SPACE LAUNCH] Strategic capital injected. Space Race progression increased by +${progressIncr}%! Current milestone: ${SPACE_STAGES[playerFaction === "USA" ? spaceRaceStagePlayer : spaceRaceStageAi] || "Moon Landing Complete"}.`);
+
+            } else if (type === "Summit") {
+                const cost = 15;
+                if (playerTreasury < cost) {
+                    triggerBleep("warning");
+                    logMessage(`[OPERATION DENIED] Insufficient capital to host high-level diplomatic Summit. Require $15M.`);
+                    return;
+                }
+                playerTreasury -= cost;
+
+                if (globalDefcon < 5) {
+                    globalDefcon++;
+                    triggerBleep("success");
+                    logMessage(`[DIPLOMATIC SUMMIT] Superpower leaders hold crisis negotiation talks. DEFCON level increased back to DEFCON ${globalDefcon}.`);
+                    updateDefconUI();
+                } else {
+                    triggerBleep();
+                    logMessage(`[DIPLOMATIC SUMMIT] Summit convened but global tension is already at minimum (DEFCON 5). Modest regional stability boosted.`);
+                    regions.forEach(r => r.stability = Math.min(100, r.stability + 5));
+                }
+
+            } else if (type === "Recruit") {
+                const cost = 10;
+                if (playerTreasury < cost) {
+                    triggerBleep("warning");
+                    logMessage(`[OPERATION DENIED] Insufficient capital to recruit clandestine operatives. Require $10M.`);
+                    return;
+                }
+                playerTreasury -= cost;
+                playerSpiesMax += 2;
+                playerSpiesAvailable += 2;
+
+                triggerBleep("success");
+                logMessage(`[ESPIONAGE RECRUITS] Budget increased for Academy. 2 new intelligence operatives successfully deployed.`);
+            }
+
+            updateHUD();
+            renderRegions();
+
+            // Advance game turn to AI
+            endTurn();
+        }
+
+        // 9. Tactical Actions (Coup, Economic Aid, Deploy Advisors)
+        function executeTacticalAction(type) {
+            if (!focusedRegionId) return;
+            const r = regions.find(item => item.id === focusedRegionId);
+            if (!r) return;
+
+            if (type === "Coup") {
+                const spyCost = playerFaction === "USSR" ? 0 : 1; // USSR Covert coup bonus
+                const cost = 12;
+
+                if (playerTreasury < cost) {
+                    triggerBleep("warning");
+                    logMessage(`[COUP DENIED] Insufficient capital ($${cost}M) in Treasury.`);
+                    return;
+                }
+                if (playerSpiesAvailable < spyCost) {
+                    triggerBleep("warning");
+                    logMessage(`[COUP DENIED] No clandestine agents available. Recruit more or wait.`);
+                    return;
+                }
+
+                playerTreasury -= cost;
+                playerSpiesAvailable -= spyCost;
+
+                // Probability calculation
+                const chance = 100 - r.stability;
+                const roll = Math.floor(Math.random() * 100);
+
+                if (roll < chance) {
+                    // Success! Overthrow government
+                    triggerBleep("success");
+                    r.status = "Stable";
+                    r.stability = Math.min(100, r.stability + 15);
+                    if (playerFaction === "USA") {
+                        r.usaInfluence = 80;
+                        r.ussrInfluence = 20;
+                        r.alignment = "Western Ally";
+                    } else {
+                        r.usaInfluence = 20;
+                        r.ussrInfluence = 80;
+                        r.alignment = "Eastern Ally";
+                    }
+                    logMessage(`[SUCCESSFUL COUP] Clandestine subversion overthrow successful in ${r.name}! Ideological puppet regime established.`);
+                } else {
+                    // Fail! Escalates defense posture
+                    triggerBleep("warning");
+                    r.status = "Unrest";
+                    r.stability = Math.max(10, r.stability - 20);
+                    globalDefcon = Math.max(1, globalDefcon - 1);
+
+                    logMessage(`[FAILED COUP] Intelligence agency subversion attempts exposed in ${r.name}! Massive global backlash. DEFCON posture worsened!`);
+                    updateDefconUI();
+                }
+
+            } else if (type === "Aid") {
+                const cost = 15;
+                if (playerTreasury < cost) {
+                    triggerBleep("warning");
+                    logMessage(`[AID DENIED] Insufficient economic funds ($15M) in Treasury.`);
+                    return;
+                }
+
+                playerTreasury -= cost;
+                r.stability = Math.min(100, r.stability + 20);
+
+                if (playerFaction === "USA") {
+                    r.usaInfluence = Math.min(100, r.usaInfluence + 20);
+                    r.ussrInfluence = Math.max(0, r.ussrInfluence - 10);
+                } else {
+                    r.ussrInfluence = Math.min(100, r.ussrInfluence + 20);
+                    r.usaInfluence = Math.max(0, r.usaInfluence - 10);
+                }
+
+                triggerBleep("success");
+                logMessage(`[ECONOMIC AID] Structural developmental capital injected into ${r.name}. Stability strengthened to ${r.stability}%.`);
+
+            } else if (type === "Proxy") {
+                const cost = 10;
+                const spyCost = 2;
+
+                if (playerTreasury < cost) {
+                    triggerBleep("warning");
+                    logMessage(`[DEPLOYMENT DENIED] Insufficient capital ($10M) to fund advisory deploy.`);
+                    return;
+                }
+                if (playerSpiesAvailable < spyCost) {
+                    triggerBleep("warning");
+                    logMessage(`[DEPLOYMENT DENIED] Require 2 available clandestine spies to oversee tactical proxy lines.`);
+                    return;
+                }
+
+                playerTreasury -= cost;
+                playerSpiesAvailable -= spyCost;
+
+                r.status = "Proxy War";
+                r.stability = Math.max(10, r.stability - 15);
+
+                if (playerFaction === "USA") {
+                    r.usaInfluence = Math.min(100, r.usaInfluence + 35);
+                    r.ussrInfluence = Math.max(0, r.ussrInfluence - 20);
+                } else {
+                    r.ussrInfluence = Math.min(100, r.ussrInfluence + 35);
+                    r.usaInfluence = Math.max(0, r.usaInfluence - 20);
+                }
+
+                // Proxy Escalation probability
+                if (Math.random() < 0.4) {
+                    globalDefcon = Math.max(1, globalDefcon - 1);
+                    triggerBleep("siren");
+                    logMessage(`[PROXY TENSION] Advising divisions clashed directly with opposing forces in ${r.name}! DEFCON downgraded!`);
+                    updateDefconUI();
+                } else {
+                    triggerBleep("success");
+                    logMessage(`[ADVISORS DEPLOYED] Military support specialists secure strategic vectors in ${r.name}. Our influence grew.`);
+                }
+            }
+
+            // Refresh details
+            focusRegion(r.id);
+            updateHUD();
+
+            // Advance turn to AI
+            endTurn();
+        }
+
+        // 10. AI Turn Counter-Measures & Turn Transitions
+        function endTurn() {
+            // Passive Income gains
+            playerTreasury += 18;
+            aiTreasury += 18;
+
+            // Recover spies
+            playerSpiesAvailable = playerSpiesMax;
+            aiSpiesAvailable = aiSpiesMax;
+
+            // Trigger quick AI turn and advance
+            setTimeout(() => {
+                executeAITurn();
+                currentTurn++;
+                updateHUD();
+                if (focusedRegionId) {
+                    focusRegion(focusedRegionId);
+                } else {
+                    renderRegions();
+                }
+            }, 800);
+        }
+
+        function executeAITurn() {
+            logMessage(`--- INCOMING ENEMY DESPATCHES [TURN ${currentTurn}] ---`);
+
+            // AI Decision Priority
+            // 1. If DEFCON is dangerous (DEFCON <= 2), spend to convenio summit
+            if (globalDefcon <= 2 && aiTreasury >= 15) {
+                aiTreasury -= 15;
+                globalDefcon++;
+                logMessage(`[AI SUMMIT] Opponent Command calls an emergency hotline treaty summit. DEFCON increased to DEFCON ${globalDefcon}.`);
+                updateDefconUI();
+                return;
+            }
+
+            // 2. High chance to invest in Space Race
+            if (aiTreasury >= 20 && Math.random() < 0.4) {
+                aiTreasury -= 20;
+                let inc = Math.floor(Math.random() * 8) + 12;
+                if (aiFaction === "USA") inc = Math.round(inc * 1.2);
+
+                spaceRaceProgressAi = Math.min(100, spaceRaceProgressAi + inc);
+                if (spaceRaceProgressAi >= 100 && spaceRaceStageAi < 4) spaceRaceStageAi = 4;
+                else if (spaceRaceProgressAi >= 75 && spaceRaceStageAi < 3) spaceRaceStageAi = 3;
+                else if (spaceRaceProgressAi >= 50 && spaceRaceStageAi < 2) spaceRaceStageAi = 2;
+                else if (spaceRaceProgressAi >= 25 && spaceRaceStageAi < 1) spaceRaceStageAi = 1;
+
+                logMessage(`[AI SPACE INITIATIVE] Hostile Space Administration funds new stage launch! AI Milestone reached: ${SPACE_STAGES[spaceRaceStageAi] || "Moon Landing Completion"}.`);
+                return;
+            }
+
+            // 3. Find target region to subvert or destabilize
+            // Sort regions where player has high influence or stability is low
+            let targets = [...regions];
+            targets.sort((a, b) => {
+                const playerInfluenceA = playerFaction === "USA" ? a.usaInfluence : a.ussrInfluence;
+                const playerInfluenceB = playerFaction === "USA" ? b.usaInfluence : b.ussrInfluence;
+                return playerInfluenceB - playerInfluenceA; // Target player's strongholds
+            });
+
+            // Decide on coup on weak stability region or economic aid on their own
+            const targetRegion = targets[0];
+            const aiSpyCost = aiFaction === "USSR" ? 0 : 1;
+
+            if (targetRegion.stability < 60 && aiTreasury >= 12 && aiSpiesAvailable >= aiSpyCost && Math.random() < 0.6) {
+                // Execute Covert Coup
+                aiTreasury -= 12;
+                aiSpiesAvailable -= aiSpyCost;
+
+                const chance = 100 - targetRegion.stability;
+                const roll = Math.floor(Math.random() * 100);
+
+                if (roll < chance) {
+                    targetRegion.status = "Stable";
+                    targetRegion.stability = Math.min(100, targetRegion.stability + 15);
+                    if (aiFaction === "USA") {
+                        targetRegion.usaInfluence = 80;
+                        targetRegion.ussrInfluence = 20;
+                        targetRegion.alignment = "Western Ally";
+                    } else {
+                        targetRegion.usaInfluence = 20;
+                        targetRegion.ussrInfluence = 80;
+                        targetRegion.alignment = "Eastern Ally";
+                    }
+                    logMessage(`[AI COVERT SUCCESS] Hostile agents successfully subverted and overthrew the government of ${targetRegion.name}!`);
+                } else {
+                    targetRegion.status = "Unrest";
+                    targetRegion.stability = Math.max(10, targetRegion.stability - 20);
+                    globalDefcon = Math.max(1, globalDefcon - 1);
+                    logMessage(`[AI INTEL ESCALATION] Enemy subversion operation exposed inside ${targetRegion.name}! Global tension spikes.`);
+                    updateDefconUI();
+                }
+            } else if (aiTreasury >= 15) {
+                // Direct economic injection
+                aiTreasury -= 15;
+                targetRegion.stability = Math.min(100, targetRegion.stability + 20);
+                if (aiFaction === "USA") {
+                    targetRegion.usaInfluence = Math.min(100, targetRegion.usaInfluence + 20);
+                    targetRegion.ussrInfluence = Math.max(0, targetRegion.ussrInfluence - 10);
+                } else {
+                    targetRegion.ussrInfluence = Math.min(100, targetRegion.ussrInfluence + 20);
+                    targetRegion.usaInfluence = Math.max(0, targetRegion.usaInfluence - 10);
+                }
+                logMessage(`[AI ECONOMIC AID] Opposing bloc registers structural financial packages to ${targetRegion.name}.`);
+            } else {
+                // Tactical proxy deployment
+                if (aiTreasury >= 10 && aiSpiesAvailable >= 2) {
+                    aiTreasury -= 10;
+                    aiSpiesAvailable -= 2;
+                    targetRegion.status = "Proxy War";
+
+                    if (aiFaction === "USA") {
+                        targetRegion.usaInfluence = Math.min(100, targetRegion.usaInfluence + 35);
+                        targetRegion.ussrInfluence = Math.max(0, targetRegion.ussrInfluence - 20);
+                    } else {
+                        targetRegion.ussrInfluence = Math.min(100, targetRegion.ussrInfluence + 35);
+                        targetRegion.usaInfluence = Math.max(0, targetRegion.usaInfluence - 20);
+                    }
+
+                    if (Math.random() < 0.4) {
+                        globalDefcon = Math.max(1, globalDefcon - 1);
+                        logMessage(`[AI PROXY CLASH] Heavy warfare flared up in ${targetRegion.name}. Direct skirmishes reported.`);
+                        updateDefconUI();
+                    } else {
+                        logMessage(`[AI PROXY ADVISORS] Enemy specialists and strategic supplies shipped to ${targetRegion.name}.`);
+                    }
+                } else {
+                    logMessage(`[AI STANDBY] Hostile superpower consolidates resources and conducts intelligence analysis.`);
+                }
+            }
+        }
+
+
+        // 11. Logistics Log Feed
+        function logMessage(text) {
+            const feed = document.getElementById("teleprinter-log");
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            const msgHtml = `<div class="border-l-2 border-crt-green/20 pl-2 py-0.5"><span class="text-slate-600 font-bold">[${time}]</span> ${text}</div>`;
+            feed.insertAdjacentHTML("beforeend", msgHtml);
+            feed.scrollTop = feed.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById("teleprinter-log").innerHTML = "";
+            triggerBleep();
+            logMessage(`[LOG PURGED] Clandestine transaction logs cleared.`);
+        }
+
+
+        // 12. End Game / Victory Handler
+        function checkVictoryConditions() {
+            // Space Race Win
+            const pStage = playerFaction === "USA" ? spaceRaceStagePlayer : spaceRaceStageAi;
+            const aStage = playerFaction === "USA" ? spaceRaceStageAi : spaceRaceStagePlayer;
+
+            if (pStage >= 4) {
+                triggerEndGame("space-victory");
+                return;
+            }
+            if (aStage >= 4) {
+                triggerEndGame("space-defeat");
+                return;
+            }
+
+            // Dominance Win
+            let totalUSA = 0;
+            let totalUSSR = 0;
+            regions.forEach(r => {
+                totalUSA += r.usaInfluence;
+                totalUSSR += r.ussrInfluence;
+            });
+            const ratioUSA = (totalUSA / (totalUSA + totalUSSR)) * 100;
+
+            if (playerFaction === "USA") {
+                if (ratioUSA >= 80) {
+                    triggerEndGame("prestige-victory");
+                } else if (ratioUSA <= 20) {
+                    triggerEndGame("prestige-defeat");
+                }
+            } else {
+                if (ratioUSA <= 20) {
+                    triggerEndGame("prestige-victory");
+                } else if (ratioUSA >= 80) {
+                    triggerEndGame("prestige-defeat");
+                }
+            }
+        }
+
+        function triggerEndGame(condition) {
+            const modal = document.getElementById("game-over-modal");
+            const content = document.getElementById("game-over-content");
+
+            modal.classList.remove("hidden");
+            triggerBleep("nuke");
+
+            let title = "";
+            let titleClass = "";
+            let description = "";
+            let graphic = "";
+
+            if (condition === "nuke") {
+                title = "MUTUALLY ASSURED DESTRUCTION";
+                titleClass = "text-xl font-bold text-crt-red tracking-widest animate-pulse";
+                description = "Tensions crossed the ultimate boundary. DEFCON 1 was breached, triggering total automated thermonuclear launch sequences across all strategic silos. Billions perished in the resulting firestorms. There are no winners in global atomic war.";
+                graphic = "💥💀☢️";
+            } else if (condition === "space-victory") {
+                title = "SPACE RACE DOMINANCE ACHIEVED";
+                titleClass = "text-xl font-bold text-crt-green tracking-widest shadow-glow-crt-green";
+                description = "Our space operations successfully planted the flag on the Lunar surface! Capturing the ultimate technological achievements, global confidence and prestige shifts irreversibly to our bloc. We have won the Cold War!";
+                graphic = "🚀🌕🏆";
+            } else if (condition === "space-defeat") {
+                title = "SPACE PROGRAM ECLIPSED";
+                titleClass = "text-xl font-bold text-crt-red tracking-widest";
+                description = "The opposing superpower successfully accomplished the Lunar Landing. Unprecedented global prestige consolidates under their command. Our influence crumbles under scientific defeat.";
+                graphic = "🛸🛰️💔";
+            } else if (condition === "prestige-victory") {
+                title = "GLOBAL HEGEMONY SECURED";
+                titleClass = "text-xl font-bold text-crt-green tracking-widest";
+                description = "Our global subversion operations and economic packages achieved 80% global dominance. The opposing command collapsed under massive domestic and alignment pressure. Victory is ours!";
+                graphic = "🌎👑🛡️";
+            } else if (condition === "prestige-defeat") {
+                title = "SUPERPOWER DISSOLVED";
+                titleClass = "text-xl font-bold text-crt-red tracking-widest";
+                description = "Global alliances have completely isolated our bloc. Financial failure and mass ideological subversions leave us paralyzed. Our command collapses into regional states.";
+                graphic = "📉🏚️🚪";
+            }
+
+            content.innerHTML = `
+                <div class="text-4xl mb-2">${graphic}</div>
+                <h2 class="${titleClass}">${title}</h2>
+                <p class="text-xs text-slate-400 leading-relaxed font-light">${description}</p>
+                <button onclick="restartGame()" class="mt-6 w-full py-2.5 bg-slate-900 border border-crt-green hover:bg-crt-green hover:text-black rounded text-xs font-bold text-crt-green transition duration-300">
+                    RE-ENGAGE PROTOCOL (RESTART)
+                </button>
+            `;
+        }
+
+        function restartGame() {
+            document.getElementById("game-over-modal").classList.add("hidden");
+            document.getElementById("simulation-dashboard").classList.add("hidden");
+            document.getElementById("faction-selector").classList.remove("hidden");
+
+            currentTurn = 1;
+            globalDefcon = 5;
+            spaceRaceProgressPlayer = 0;
+            spaceRaceProgressAi = 0;
+            spaceRaceStagePlayer = 0;
+            spaceRaceStageAi = 0;
+            focusedRegionId = null;
+
+            // Reset regions
+            regions = [
+                { id: "na", name: "North America", stability: 95, usaInfluence: 90, ussrInfluence: 10, status: "Stable", alignment: "Western Ally", description: "Deep capitalist roots. Strongly tied to US defense commands." },
+                { id: "ee", name: "Eastern Europe", stability: 90, usaInfluence: 10, ussrInfluence: 90, status: "Stable", alignment: "Eastern Ally", description: "Satellite nations governed directly under socialist command." },
+                { id: "we", name: "Western Europe", stability: 85, usaInfluence: 80, ussrInfluence: 20, status: "Stable", alignment: "Western Ally", description: "Democratic coalitions. Bulwark against Eastern advances." },
+                { id: "sa", name: "South America", stability: 45, usaInfluence: 45, ussrInfluence: 15, status: "Unrest", alignment: "Contested", description: "Fragile domestic governments. Target for massive ideological coup attempts." },
+                { id: "ea", name: "East Asia", stability: 50, usaInfluence: 40, ussrInfluence: 45, status: "Contested", alignment: "Contested", description: "Heavily militarized divide. High tension and proxy triggers." },
+                { id: "me", name: "Middle East", stability: 60, usaInfluence: 30, ussrInfluence: 30, status: "Stable", alignment: "Non-Aligned", description: "Valuable resource-rich oilfields. Diplomatic tug-of-war." },
+                { id: "af", name: "Sub-Saharan Africa", stability: 40, usaInfluence: 20, ussrInfluence: 20, status: "Proxy War", alignment: "Contested", description: "Post-colonial transitional states. Active revolutionary and coup zones." },
+                { id: "sa2", name: "South Asia", stability: 55, usaInfluence: 25, ussrInfluence: 35, status: "Unrest", alignment: "Contested", description: "Rapid development region. Shifting political affiliations." }
+            ];
+
+            document.getElementById("region-focus-title").innerText = "CLICK A REGION TO FOCUS TACTICAL OPERATIONS";
+            document.getElementById("focused-region-name").innerText = "No Region Selected";
+            document.getElementById("focused-region-status").innerText = "Focus a target region from the map to issue intelligence and proxy action orders.";
+            document.getElementById("focused-region-dominance").innerText = "USA 50% / USSR 50%";
+
+            document.getElementById("action-coup").setAttribute("disabled", "true");
+            document.getElementById("action-coup").className = "text-left p-3 rounded border border-crt-red/20 bg-slate-900/40 opacity-40 cursor-not-allowed flex flex-col justify-between h-36 transition duration-250";
+            document.getElementById("coup-odds").innerText = "Odds: --";
+
+            document.getElementById("action-aid").setAttribute("disabled", "true");
+            document.getElementById("action-aid").className = "text-left p-3 rounded border border-crt-cyan/20 bg-slate-900/40 opacity-40 cursor-not-allowed flex flex-col justify-between h-36 transition duration-250";
+
+            document.getElementById("action-proxy").setAttribute("disabled", "true");
+            document.getElementById("action-proxy").className = "text-left p-3 rounded border border-crt-amber/20 bg-slate-900/40 opacity-40 cursor-not-allowed flex flex-col justify-between h-36 transition duration-250";
+
+            clearLog();
+            triggerBleep("success");
+        }
+    </script>
+</body>
+</html>
