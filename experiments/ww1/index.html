@@ -4,6 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>The Great War | Command Simulator</title>
+  <script>
+    (function() {
+      var isIE = !!window.MSInputMethodContext || !!document.documentMode || typeof window.ActiveXObject !== 'undefined';
+      if (isIE) {
+        alert("Your browser does not support Internet Explorer");
+        window.location.href = "iebrowserunsupported.html";
+      }
+    })();
+  </script>
   <style>
     :root {
       --bg-dark: #0f0b09;
