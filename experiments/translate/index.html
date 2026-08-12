@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EiJackGH Translate | Multi-Mode Translation & Ciphers</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            950: '#042f2e',
+                        }
+                    },
+                    boxShadow: {
+                        'glow-cyan': '0 0 20px rgba(34, 211, 238, 0.15)',
+                        'glow-emerald': '0 0 20px rgba(16, 185, 129, 0.15)',
+                        'glow-brand': '0 0 20px rgba(20, 184, 166, 0.25)',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700;800&family=JetBrains+Mono:wght=400;500;700&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-[#0b0f19] text-slate-200 min-h-screen flex flex-col selection:bg-cyan-500/30 selection:text-cyan-200">
+    <!-- Decorative background blobs -->
+    <div class="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full pointer-events-none overflow-hidden z-0">
+        <div class="absolute -top-[10%] left-[10%] w-[35rem] h-[35rem] rounded-full bg-cyan-500/10 blur-[120px] animate-pulse" style="animation-duration: 8s;"></div>
+        <div class="absolute top-[30%] -right-[10%] w-[30rem] h-[30rem] rounded-full bg-teal-500/10 blur-[100px] animate-pulse" style="animation-duration: 12s;"></div>
+    </div>
+
+    <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex-grow flex flex-col py-8">
+        <!-- Header -->
+        <header class="border-b border-slate-800/80 pb-6 mb-10">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 via-teal-400 to-emerald-400 bg-clip-text text-transparent">
+                            EiJackGH Translate
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-semibold bg-cyan-400/10 text-cyan-400 border border-cyan-500/20">
+                            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                            Multi-Mode Translation & Ciphers
+                        </span>
+                    </div>
+                    <p class="text-slate-400 mt-2 text-sm sm:text-base font-light">
+                        Translate natural languages offline/online, generate Morse audio, play ciphers, and convert developer formats.
+                    </p>
+                </div>
+                <div class="flex items-center gap-3 self-start sm:self-center">
+                    <a href="../../" class="inline-flex items-center space-x-2 text-sm font-semibold text-slate-400 hover:text-cyan-400 bg-slate-800/40 hover:bg-slate-800/80 border border-slate-800 hover:border-cyan-500/30 px-3.5 py-1.5 rounded-xl transition-all duration-200">
+                        <i class="fa-solid fa-flask text-xs"></i>
+                        <span>Back to Lab</span>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Workspace Grid -->
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start flex-grow">
+            <!-- Left Area: Main Translator Module -->
+            <div class="lg:col-span-8 space-y-6">
+                <!-- Mode select bar -->
+                <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-2">
+                        <label for="translation-mode" class="text-sm font-medium text-slate-400">Translation Category:</label>
+                        <select id="translation-mode" class="bg-slate-950 border border-slate-850 rounded-xl px-3 py-2 text-sm focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 text-slate-200 font-semibold">
+                            <option value="language">Natural Languages</option>
+                            <option value="morse">Morse Code Cipher</option>
+                            <option value="leet">L33t Speak</option>
+                            <option value="emoji">Emoji-fyer</option>
+                            <option value="tech">Developer Encoders</option>
+                        </select>
+                    </div>
+
+                    <div id="connection-status" class="flex items-center gap-2 text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                        <i class="fa-solid fa-circle-check" id="connection-icon"></i>
+                        <span id="connection-text">Cloud Engine Online</span>
+                    </div>
+                </div>
+
+                <!-- Input & Output Container -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Source Text Panel -->
+                    <div class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between shadow-xl">
+                        <div>
+                            <div class="flex items-center justify-between mb-3 h-8">
+                                <label for="source-lang" class="text-xs font-semibold uppercase tracking-wider text-slate-500">Source</label>
+                                <select id="source-lang" class="bg-slate-950 border border-slate-850 rounded-lg px-2.5 py-1 text-xs text-slate-300 focus:outline-none focus:border-cyan-500">
+                                    <option value="en" selected>English</option>
+                                    <option value="es">Spanish</option>
+                                    <option value="fr">French</option>
+                                    <option value="de">German</option>
+                                    <option value="it">Italian</option>
+                                    <option value="ja">Japanese</option>
+                                    <option value="zh">Chinese</option>
+                                    <option value="ru">Russian</option>
+                                    <option value="la">Latin</option>
+                                </select>
+                            </div>
+                            <div class="relative">
+                                <textarea id="source-text" placeholder="Type text here to translate..." class="w-full h-44 bg-transparent border-0 text-slate-100 placeholder-slate-500 focus:ring-0 resize-none font-light text-base leading-relaxed" maxlength="5000"></textarea>
+                                <button id="btn-dictate" class="absolute right-2 bottom-2 p-2 rounded-lg bg-slate-800/60 border border-slate-700/50 hover:border-cyan-500 text-slate-400 hover:text-cyan-400 transition-all duration-200" title="Voice Input (Speech to Text)">
+                                    <i class="fa-solid fa-microphone"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between border-t border-slate-800/80 pt-4 mt-2">
+                            <div class="flex gap-2">
+                                <button id="btn-speak-source" class="p-2 rounded-lg bg-slate-800/40 hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors" title="Listen Input Text">
+                                    <i class="fa-solid fa-volume-high"></i>
+                                </button>
+                                <button id="btn-clear-source" class="p-2 rounded-lg bg-slate-800/40 hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors" title="Clear Text">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                            <span id="source-count" class="text-[10px] font-mono text-slate-500">0 / 5000 chars</span>
+                        </div>
+                    </div>
+
+                    <!-- Target Text Panel -->
+                    <div class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between shadow-xl">
+                        <div>
+                            <div class="flex items-center justify-between mb-3 h-8">
+                                <label id="target-label" for="target-lang" class="text-xs font-semibold uppercase tracking-wider text-slate-500">Translation</label>
+                                <select id="target-lang" class="bg-slate-950 border border-slate-850 rounded-lg px-2.5 py-1 text-xs text-slate-300 focus:outline-none focus:border-cyan-500">
+                                    <option value="es" selected>Spanish</option>
+                                    <option value="en">English</option>
+                                    <option value="fr">French</option>
+                                    <option value="de">German</option>
+                                    <option value="it">Italian</option>
+                                    <option value="ja">Japanese</option>
+                                    <option value="zh">Chinese</option>
+                                    <option value="ru">Russian</option>
+                                    <option value="la">Latin</option>
+                                </select>
+
+                                <!-- Cipher/Encoder selection (replaces target select dynamically) -->
+                                <select id="cipher-setting" class="hidden bg-slate-950 border border-slate-850 rounded-lg px-2.5 py-1 text-xs text-slate-300 focus:outline-none focus:border-cyan-500">
+                                    <!-- Populated dynamically based on category -->
+                                </select>
+                            </div>
+                            <div class="relative">
+                                <textarea id="target-text" readonly placeholder="Translation will appear here..." class="w-full h-44 bg-transparent border-0 text-cyan-400 placeholder-slate-600 focus:ring-0 resize-none font-medium text-base leading-relaxed"></textarea>
+                                <span id="translation-loader" class="hidden absolute top-2 right-2 flex h-3 w-3">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between border-t border-slate-800/80 pt-4 mt-2">
+                            <div class="flex gap-2">
+                                <button id="btn-speak-target" class="p-2 rounded-lg bg-slate-800/40 hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors" title="Listen Translation">
+                                    <i class="fa-solid fa-volume-high"></i>
+                                </button>
+                                <button id="btn-copy-target" class="p-2 rounded-lg bg-slate-800/40 hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition-colors" title="Copy Translation">
+                                    <i class="fa-solid fa-copy"></i>
+                                </button>
+                            </div>
+                            <span id="target-count" class="text-[10px] font-mono text-slate-500">0 chars</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Swap/Run Buttons row -->
+                <div class="flex items-center justify-between bg-slate-900/20 border border-slate-800/50 rounded-2xl p-4">
+                    <button id="btn-swap" class="flex items-center gap-2 px-4 py-2 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 hover:border-cyan-500/40 text-slate-300 hover:text-cyan-400 rounded-xl transition-all duration-300">
+                        <i class="fa-solid fa-right-left"></i>
+                        <span class="text-sm font-semibold">Swap Languages</span>
+                    </button>
+
+                    <button id="btn-translate" class="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-cyan-500/10 hover:shadow-cyan-500/20 active:scale-[0.98] transition-all duration-150">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>Translate Now</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Area: Sidebar Features -->
+            <div class="lg:col-span-4 space-y-6">
+                <!-- Morse Code Signal Sounder / Beacon panel -->
+                <div id="morse-sounder-card" class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                        <i class="fa-solid fa-wave-square text-cyan-400"></i>
+                        <span>Morse Signal Studio</span>
+                    </h3>
+
+                    <!-- Visual flashing light indicator -->
+                    <div class="flex items-center justify-center py-6 bg-slate-950/80 rounded-xl border border-slate-800/50 relative">
+                        <div id="morse-light-bulb" class="w-12 h-12 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center transition-all duration-100 shadow-inner">
+                            <i id="bulb-icon" class="fa-solid fa-lightbulb text-xl text-slate-500 transition-all duration-100"></i>
+                        </div>
+                        <span class="absolute top-2 right-2 text-[9px] font-mono bg-slate-800 px-1.5 py-0.5 rounded text-slate-500 uppercase">Beep &amp; Flash</span>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button id="btn-play-morse" disabled class="flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-slate-800 border border-slate-700/60 text-slate-500 cursor-not-allowed font-semibold text-sm transition-all duration-200">
+                            <i class="fa-solid fa-play"></i>
+                            <span>Play Signal</span>
+                        </button>
+                        <button id="btn-stop-morse" class="hidden flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/30 font-semibold text-sm transition-all duration-200">
+                            <i class="fa-solid fa-stop"></i>
+                            <span>Stop</span>
+                        </button>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between text-xs text-slate-400 mb-1">
+                                <span>Signal Tone Frequency (Hz)</span>
+                                <span id="morse-freq-val" class="font-mono text-cyan-400">700 Hz</span>
+                            </div>
+                            <input type="range" id="morse-freq" min="300" max="1500" value="700" class="w-full accent-cyan-500">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-slate-400 mb-1">
+                                <span>Transmission Speed (WPM)</span>
+                                <span id="morse-wpm-val" class="font-mono text-cyan-400">15 WPM</span>
+                            </div>
+                            <input type="range" id="morse-wpm" min="5" max="30" value="15" class="w-full accent-cyan-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Session Translation History card -->
+                <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+                    <div class="flex items-center justify-between border-b border-slate-800/60 pb-3">
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                            <i class="fa-solid fa-clock-rotate-left text-cyan-400"></i>
+                            <span>Log History</span>
+                        </h3>
+                        <button id="btn-clear-history" class="text-[10px] text-slate-500 hover:text-red-400 transition-colors uppercase font-bold tracking-wider">Clear</button>
+                    </div>
+
+                    <!-- Scrollable Log Container -->
+                    <div id="history-container" class="space-y-3 max-h-60 overflow-y-auto pr-1">
+                        <div class="text-slate-500 text-xs text-center py-6 italic">No translations in this session.</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-20 pt-8 border-t border-slate-800/80 text-center text-xs text-slate-500 space-y-2">
+            <p>© 2026 EiJackGH. All rights reserved.</p>
+            <p class="font-mono">Built with HTML5 Canvas, Web Audio API & Tailwind CSS · Safe, Offline-capable.</p>
+        </footer>
+    </div>
+
+    <!-- Application Script Logic -->
+    <script>
+        // --- 1. Dictionaries & Constants ---
+        const fallbackDict = {
+            "hello": { en: "Hello", es: "Hola", fr: "Bonjour", de: "Hallo", it: "Ciao", ja: "こんにちは (Konnichiwa)", zh: "你好 (Nǐ hǎo)", ru: "Привет (Privet)", la: "Salve" },
+            "hello world": { en: "Hello World", es: "Hola Mundo", fr: "Bonjour le monde", de: "Hallo Welt", it: "Ciao Mondo", ja: "こんにちは世界", zh: "你好世界", ru: "Привет, мир", la: "Salve Mundi" },
+            "how are you?": { en: "How are you?", es: "¿Cómo estás?", fr: "Comment ça va?", de: "Wie geht es dir?", it: "Come stai?", ja: "お元気ですか？", zh: "你好吗？", ru: "Как дела?", la: "Quomodo vales?" },
+            "how are you": { en: "How are you", es: "¿Cómo estás?", fr: "Comment ça va?", de: "Wie geht es dir?", it: "Come stai?", ja: "お元気ですか", zh: "你好吗", ru: "Как дела", la: "Quomodo vales" },
+            "thank you": { en: "Thank you", es: "Gracias", fr: "Merci", de: "Danke", it: "Grazie", ja: "ありがとう", zh: "谢谢", ru: "Спасибо", la: "Gratias tibi" },
+            "thanks": { en: "Thanks", es: "Gracias", fr: "Merci", de: "Danke", it: "Grazie", ja: "ありがとう", zh: "谢谢", ru: "Спасибо", la: "Gratias" },
+            "please": { en: "Please", es: "Por favor", fr: "S'il vous plaît", de: "Bitte", it: "Per favore", ja: "おねがいします", zh: "请", ru: "Пожалуйста", la: "Quaeso" },
+            "this code compiles on first try!": { en: "This code compiles on first try!", es: "¡Este código se compila al primer intento!", fr: "Ce code compile du premier coup!", de: "Dieser Code kompiliert beim ersten Versuch!", it: "Questo codice si compila al primo tentativo!", ja: "このコードは最初の試行でコンパイルされます！", zh: "这段代码在第一次尝试时就编译成功了！", ru: "Этот код компилируется с первой попытки!", la: "Hoc codex in primo conatu compilatur!" },
+            "this code compiles on first try": { en: "This code compiles on first try", es: "Este código se compila al primer intento", fr: "Ce code compile du premier coup", de: "Dieser Code kompiliert beim ersten Versuch", it: "Questo codice si compila al primo tentativo", ja: "このコードは最初の試行でコンパイルされます", zh: "这段代码在第一次尝试时就编译成功了", ru: "Этот код компилируется с первой попытки", la: "Hoc codex in primo conatu compilatur" },
+            "welcome to the laboratory": { en: "Welcome to the laboratory", es: "Bienvenido al laboratorio", fr: "Bienvenue au laboratoire", de: "Willkommen im Labor", it: "Benvenuto nel laboratorio", ja: "研究室へようこそ", zh: "欢迎来到实验室", ru: "Добро пожаловать в лабораторию", la: "Gratus in laboratorio" },
+            "welcome to the laboratory!": { en: "Welcome to the laboratory!", es: "¡Bienvenido al laboratorio!", fr: "Bienvenue au laboratoire!", de: "Willkommen im Labor!", it: "Benvenuto nel laboratorio!", ja: "研究室へようこそ！", zh: "欢迎来到实验室！", ru: "Добро пожаловать в лабораторию!", la: "Gratus in laboratorio!" },
+            "i love programming": { en: "I love programming", es: "Me encanta programar", fr: "J'adore la programmation", de: "Ich liebe Programmieren", it: "Amo programmare", ja: "プログラミングが大好きです", zh: "我喜欢编程", ru: "Я люблю программировать", la: "Amo programmandi" },
+            "i love programming!": { en: "I love programming!", es: "¡Me encanta programar!", fr: "J'adore la programmation!", de: "Ich liebe Programmieren!", it: "Amo programmare!", ja: "プログラミングが大好きです！", zh: "我喜欢编程！", ru: "Я люблю программировать!", la: "Amo programmandi!" }
+        };
+
+        const wordFallback = {
+            "hello": { en: "hello", es: "hola", fr: "bonjour", de: "hallo", it: "ciao", ja: "こんにちは", zh: "你好", ru: "привет", la: "salve" },
+            "world": { en: "world", es: "mundo", fr: "monde", de: "welt", it: "mondo", ja: "世界", zh: "世界", ru: "мир", la: "mundi" },
+            "good": { en: "good", es: "bueno", fr: "bon", de: "gut", it: "buono", ja: "良い", zh: "好", ru: "хороший", la: "bonus" },
+            "morning": { en: "morning", es: "mañana", fr: "matin", de: "morgen", it: "mattina", ja: "朝", zh: "早上", ru: "утро", la: "mane" },
+            "night": { en: "night", es: "noche", fr: "nuit", de: "nacht", it: "notte", ja: "夜", zh: "晚上", ru: "ночь", la: "nocte" },
+            "code": { en: "code", es: "código", fr: "code", de: "code", it: "codice", ja: "コード", zh: "代码", ru: "код", la: "codex" },
+            "laboratory": { en: "laboratory", es: "laboratorio", fr: "laboratoire", de: "labor", it: "laboratorio", ja: "実験室", zh: "实验室", ru: "лаборатория", la: "laboratorio" },
+            "computer": { en: "computer", es: "computadora", fr: "ordinateur", de: "computer", it: "computer", ja: "コンピューター", zh: "电脑", ru: "компьютер", la: "computatrum" },
+            "science": { en: "science", es: "ciencia", fr: "science", de: "wissenschaft", it: "scienza", ja: "科学", zh: "科学", ru: "наука", la: "scientia" },
+            "programming": { en: "programming", es: "programación", fr: "programmation", de: "programmierung", it: "programmazione", ja: "プログラミング", zh: "编程", ru: "программирование", la: "programmandi" },
+            "love": { en: "love", es: "amor", fr: "amour", de: "liebe", it: "amore", ja: "愛", zh: "爱", ru: "любовь", la: "amare" },
+            "and": { en: "and", es: "y", fr: "et", de: "und", it: "e", ja: "と", zh: "和", ru: "и", la: "et" },
+            "the": { en: "the", es: "el", fr: "le", de: "der", it: "il", ja: "その", zh: "这", ru: "этот", la: "ille" },
+            "is": { en: "is", es: "es", fr: "est", de: "ist", it: "è", ja: "です", zh: "是", ru: "явяется", la: "est" },
+            "to": { en: "to", es: "a", fr: "à", de: "zu", it: "a", ja: "に", zh: "到", ru: "к", la: "ad" }
+        };
+
+        const morseMap = {
+            'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 'G': '--.', 'H': '....',
+            'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..', 'M': '--', 'N': '-.', 'O': '---', 'P': '.--.',
+            'Q': '--.-', 'R': '.-.', 'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-',
+            'Y': '-.--', 'Z': '--..', '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....',
+            '6': '-....', '7': '--...', '8': '---..', '9': '----.', '0': '-----', ' ': ' ',
+            '.': '.-.-.-', ',': '--..--', '?': '..--..', "'": '.----.', '!': '-.-.--', '/': '-..-.',
+            '(': '-.--.', ')': '-.--.-', '&': '.-...', ':': '---...', ';': '-.-.-.', '=': '-...-',
+            '+': '.-.-.', '-': '-....-', '_': '..--.-', '"': '.-..-.', '$': '...-..-', '@': '.--.-.'
+        };
+
+        const morseReverseMap = Object.fromEntries(
+            Object.entries(morseMap).map(([char, code]) => [code, char])
+        );
+
+        const leetMapSimple = {
+            'A': '4', 'E': '3', 'I': '1', 'O': '0', 'T': '7', 'S': '5', 'G': '9'
+        };
+
+        const leetMapAdvanced = {
+            'A': '4', 'B': '8', 'C': '[', 'D': '|)', 'E': '3', 'F': '|=', 'G': '9', 'H': '|-|',
+            'I': '1', 'J': '_|', 'K': '|<', 'L': '1', 'M': '|\\/|', 'N': '|\\/|', 'O': '0', 'P': '|*',
+            'Q': '(,)', 'R': '|2', 'S': '5', 'T': '7', 'U': '|_|', 'V': '\\/', 'W': '\\/\\/',
+            'X': '><', 'Y': '`/', 'Z': '2'
+        };
+
+        const emojiDictionary = {
+            "love": "❤️", "heart": "💖", "computer": "💻", "laptop": "💻", "code": "💻", "science": "🔬",
+            "laboratory": "🧪", "chemistry": "🧪", "fire": "🔥", "hot": "🔥", "happy": "😊", "smile": "😀",
+            "sad": "😢", "cry": "😭", "dog": "🐶", "cat": "🐱", "sun": "☀️", "morning": "☀️", "night": "🌙",
+            "moon": "🌙", "coffee": "☕", "tea": "☕", "beer": "🍺", "wine": "🍷", "pizza": "🍕", "burger": "🍔",
+            "car": "🚗", "plane": "✈️", "rocket": "🚀", "star": "⭐", "sparkles": "✨", "magic": "✨",
+            "music": "🎵", "song": "🎶", "game": "🎮", "controller": "🎮", "money": "💵", "cash": "💰",
+            "lock": "🔒", "key": "🔑", "bulb": "💡", "idea": "💡", "light": "💡", "book": "📖"
+        };
+
+        // --- 2. DOM Elements & State ---
+        const translationMode = document.getElementById('translation-mode');
+        const connectionStatus = document.getElementById('connection-status');
+        const connectionText = document.getElementById('connection-text');
+        const connectionIcon = document.getElementById('connection-icon');
+
+        const sourceLang = document.getElementById('source-lang');
+        const sourceText = document.getElementById('source-text');
+        const btnDictate = document.getElementById('btn-dictate');
+        const btnSpeakSource = document.getElementById('btn-speak-source');
+        const btnClearSource = document.getElementById('btn-clear-source');
+        const sourceCount = document.getElementById('source-count');
+
+        const targetLabel = document.getElementById('target-label');
+        const targetLang = document.getElementById('target-lang');
+        const cipherSetting = document.getElementById('cipher-setting');
+        const targetText = document.getElementById('target-text');
+        const translationLoader = document.getElementById('translation-loader');
+        const btnSpeakTarget = document.getElementById('btn-speak-target');
+        const btnCopyTarget = document.getElementById('btn-copy-target');
+        const targetCount = document.getElementById('target-count');
+
+        const btnSwap = document.getElementById('btn-swap');
+        const btnTranslate = document.getElementById('btn-translate');
+
+        const morseSounderCard = document.getElementById('morse-sounder-card');
+        const morseLightBul = document.getElementById('morse-light-bulb');
+        const bulbIcon = document.getElementById('bulb-icon');
+        const btnPlayMorse = document.getElementById('btn-play-morse');
+        const btnStopMorse = document.getElementById('btn-stop-morse');
+        const morseFreqInput = document.getElementById('morse-freq');
+        const morseFreqVal = document.getElementById('morse-freq-val');
+        const morseWpmInput = document.getElementById('morse-wpm');
+        const morseWpmVal = document.getElementById('morse-wpm-val');
+
+        const historyContainer = document.getElementById('history-container');
+        const btnClearHistory = document.getElementById('btn-clear-history');
+
+        let audioCtx = null;
+        let isPlayingMorse = false;
+        let morseTimeoutIds = [];
+        let speechRecognition = null;
+
+        // --- 3. Speech Recognition Setup ---
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            speechRecognition = new SpeechRecognition();
+            speechRecognition.continuous = false;
+            speechRecognition.interimResults = false;
+
+            speechRecognition.onstart = () => {
+                btnDictate.innerHTML = '<i class="fa-solid fa-microphone animate-ping text-red-500"></i>';
+                btnDictate.title = "Listening...";
+            };
+
+            speechRecognition.onresult = (event) => {
+                const resultText = event.results[0][0].transcript;
+                sourceText.value = (sourceText.value + " " + resultText).trim();
+                triggerAutoTranslation();
+                updateCharCounts();
+            };
+
+            speechRecognition.onerror = (e) => {
+                console.error("Speech Recognition Error", e);
+                resetDictationButton();
+            };
+
+            speechRecognition.onend = () => {
+                resetDictationButton();
+            };
+        } else {
+            btnDictate.classList.add('hidden');
+        }
+
+        function resetDictationButton() {
+            btnDictate.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+            btnDictate.title = "Voice Input (Speech to Text)";
+        }
+
+        btnDictate.addEventListener('click', () => {
+            if (!speechRecognition) return;
+            try {
+                // Set language matching source language
+                speechRecognition.lang = getSpeechLocale(sourceLang.value);
+                speechRecognition.start();
+            } catch (e) {
+                speechRecognition.stop();
+            }
+        });
+
+        function getSpeechLocale(langCode) {
+            const locales = {
+                en: 'en-US', es: 'es-ES', fr: 'fr-FR', de: 'de-DE',
+                it: 'it-IT', ja: 'ja-JP', zh: 'zh-CN', ru: 'ru-RU', la: 'la'
+            };
+            return locales[langCode] || 'en-US';
+        }
+
+        // --- 4. Text to Speech ---
+        function speakText(text, localeCode) {
+            if (!window.speechSynthesis) return;
+            window.speechSynthesis.cancel(); // Stop any current speech
+
+            // Clean Morse Code sound references so it doesn't speak "dot dash"
+            let printableText = text;
+            if (translationMode.value === 'morse') {
+                // Speech synthesise the letters instead of raw dots/dashes
+                printableText = translateMorseToText(text);
+            }
+
+            const utterance = new SpeechSynthesisUtterance(printableText);
+            utterance.lang = getSpeechLocale(localeCode);
+            window.speechSynthesis.speak(utterance);
+        }
+
+        btnSpeakSource.addEventListener('click', () => {
+            speakText(sourceText.value, sourceLang.value);
+        });
+
+        btnSpeakTarget.addEventListener('click', () => {
+            const lang = (translationMode.value === 'language') ? targetLang.value : 'en';
+            speakText(targetText.value, lang);
+        });
+
+        // --- 5. Mode Switching & Layout Handling ---
+        translationMode.addEventListener('change', () => {
+            const mode = translationMode.value;
+            // Reset visibility
+            sourceLang.classList.add('hidden');
+            targetLang.classList.add('hidden');
+            cipherSetting.classList.add('hidden');
+            btnSwap.classList.add('hidden');
+            btnPlayMorse.disabled = true;
+            btnPlayMorse.classList.add('cursor-not-allowed', 'text-slate-500');
+            btnPlayMorse.classList.remove('bg-cyan-500/10', 'text-cyan-400', 'border-cyan-500/20', 'hover:bg-cyan-500/20');
+
+            if (mode === 'language') {
+                sourceLang.classList.remove('hidden');
+                targetLang.classList.remove('hidden');
+                btnSwap.classList.remove('hidden');
+                targetLabel.textContent = "Translation";
+            } else if (mode === 'morse') {
+                sourceLang.classList.remove('hidden');
+                cipherSetting.classList.remove('hidden');
+                targetLabel.textContent = "Morse Output";
+
+                // Populate cipherSetting with Morse direction (Text to Morse, Morse to Text)
+                cipherSetting.innerHTML = `
+                    <option value="encode">Text ➔ Morse Code</option>
+                    <option value="decode">Morse Code ➔ Text</option>
+                `;
+                btnPlayMorse.disabled = false;
+                btnPlayMorse.classList.remove('cursor-not-allowed', 'text-slate-500');
+                btnPlayMorse.classList.add('bg-cyan-500/10', 'text-cyan-400', 'border-cyan-500/20', 'hover:bg-cyan-500/20');
+            } else if (mode === 'leet') {
+                sourceLang.classList.remove('hidden');
+                cipherSetting.classList.remove('hidden');
+                targetLabel.textContent = "L33t Output";
+                cipherSetting.innerHTML = `
+                    <option value="simple">Simple L33t</option>
+                    <option value="advanced">Advanced Hacker Speak</option>
+                    <option value="decode">Decode L33t ➔ Text</option>
+                `;
+            } else if (mode === 'emoji') {
+                sourceLang.classList.remove('hidden');
+                cipherSetting.classList.remove('hidden');
+                targetLabel.textContent = "Emoji Output";
+                cipherSetting.innerHTML = `
+                    <option value="emojify">Replace Words</option>
+                    <option value="suffix">Append Emojis</option>
+                `;
+            } else if (mode === 'tech') {
+                cipherSetting.classList.remove('hidden');
+                targetLabel.textContent = "Data Output";
+                cipherSetting.innerHTML = `
+                    <option value="binary_enc">Text ➔ Binary (8-bit)</option>
+                    <option value="binary_dec">Binary ➔ Text</option>
+                    <option value="hex_enc">Text ➔ Hexadecimal</option>
+                    <option value="hex_dec">Hexadecimal ➔ Text</option>
+                    <option value="b64_enc">Text ➔ Base64</option>
+                    <option value="b64_dec">Base64 ➔ Text</option>
+                `;
+            }
+
+            triggerAutoTranslation();
+        });
+
+        // Range input displays
+        morseFreqInput.addEventListener('input', () => {
+            morseFreqVal.textContent = `${morseFreqInput.value} Hz`;
+        });
+        morseWpmInput.addEventListener('input', () => {
+            morseWpmVal.textContent = `${morseWpmInput.value} WPM`;
+        });
+
+        // --- 6. Core Translators & Encoders ---
+
+        // Local translation dictionary helper
+        function translateLocal(text, from, to) {
+            const cleanText = text.toLowerCase().trim();
+
+            // 1. Check exact full phrase matches first
+            if (fallbackDict[cleanText] && fallbackDict[cleanText][to]) {
+                return fallbackDict[cleanText][to];
+            }
+            if (cleanText.endsWith('.') || cleanText.endsWith('!')) {
+                const stripped = cleanText.slice(0, -1).trim();
+                if (fallbackDict[stripped] && fallbackDict[stripped][to]) {
+                    const suffix = cleanText.slice(-1);
+                    return fallbackDict[stripped][to] + suffix;
+                }
+            }
+
+            // 2. Word by word replacement if not found
+            const words = text.split(/(\s+)/); // Keep delimiters
+            const translatedWords = words.map(chunk => {
+                // If whitespace, return as is
+                if (/^\s+$/.test(chunk)) return chunk;
+
+                // Strip punctuation to look up
+                const match = chunk.match(/^([^\w]*)(.*?)([^\w]*)$/);
+                if (!match) return chunk;
+
+                const pre = match[1];
+                const word = match[2];
+                const post = match[3];
+
+                const lowerWord = word.toLowerCase();
+                if (wordFallback[lowerWord] && wordFallback[lowerWord][to]) {
+                    let translatedWord = wordFallback[lowerWord][to];
+                    // Match casing
+                    if (word === word.toUpperCase()) {
+                        translatedWord = translatedWord.toUpperCase();
+                    } else if (word[0] === word[0].toUpperCase()) {
+                        translatedWord = translatedWord[0].toUpperCase() + translatedWord.slice(1);
+                    }
+                    return pre + translatedWord + post;
+                }
+
+                return chunk;
+            });
+
+            return translatedWords.join("");
+        }
+
+        // Morse translators
+        function translateTextToMorse(text) {
+            return text.toUpperCase().split('').map(char => {
+                return morseMap[char] || '';
+            }).filter(code => code !== '').join(' ');
+        }
+
+        function translateMorseToText(morse) {
+            return morse.trim().split(/\s+/).map(code => {
+                return morseReverseMap[code] || '?';
+            }).join('');
+        }
+
+        // Leet translators
+        function translateTextToLeet(text, level) {
+            const map = (level === 'advanced') ? leetMapAdvanced : leetMapSimple;
+            return text.toUpperCase().split('').map(char => {
+                return map[char] || char;
+            }).join('');
+        }
+
+        function decodeLeetToText(leet) {
+            // Greedy simple substitution helper
+            let decoded = leet.toUpperCase();
+            // Sort keys by length descending to match multichars like |-| first
+            const keys = Object.keys(leetMapAdvanced).sort((a,b) => leetMapAdvanced[b].length - leetMapAdvanced[a].length);
+
+            // This is a rough cipher decode helper
+            keys.forEach(char => {
+                const token = leetMapAdvanced[char];
+                if (token.length > 1) {
+                    decoded = decoded.split(token).join(char);
+                }
+            });
+            // Single char keys
+            keys.forEach(char => {
+                const token = leetMapAdvanced[char];
+                if (token.length === 1) {
+                    decoded = decoded.split(token).join(char);
+                }
+            });
+            return decoded;
+        }
+
+        // Emojify translator
+        function emojifyText(text, mode) {
+            const words = text.split(/(\s+)/);
+            const emojified = words.map(chunk => {
+                if (/^\s+$/.test(chunk)) return chunk;
+                const match = chunk.match(/^([^\w]*)(.*?)([^\w]*)$/);
+                if (!match) return chunk;
+
+                const pre = match[1];
+                const word = match[2];
+                const post = match[3];
+
+                const clean = word.toLowerCase();
+                if (emojiDictionary[clean]) {
+                    if (mode === 'suffix') {
+                        return pre + word + " " + emojiDictionary[clean] + post;
+                    } else {
+                        return pre + emojiDictionary[clean] + post;
+                    }
+                }
+                return chunk;
+            });
+            return emojified.join('');
+        }
+
+        // Tech converters
+        function textToBinary(text) {
+            return text.split('').map(char => {
+                return char.charCodeAt(0).toString(2).padStart(8, '0');
+            }).join(' ');
+        }
+
+        function binaryToText(bin) {
+            try {
+                return bin.trim().split(/\s+/).map(byte => {
+                    return String.fromCharCode(parseInt(byte, 2));
+                }).join('');
+            } catch (e) {
+                return "Error decoding binary string.";
+            }
+        }
+
+        function textToHex(text) {
+            return text.split('').map(char => {
+                return char.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0');
+            }).join(' ');
+        }
+
+        function hexToText(hex) {
+            try {
+                return hex.trim().split(/\s+/).map(byte => {
+                    return String.fromCharCode(parseInt(byte, 16));
+                }).join('');
+            } catch (e) {
+                return "Error decoding hexadecimal string.";
+            }
+        }
+
+        function textToBase64(text) {
+            try {
+                return btoa(unescape(encodeURIComponent(text)));
+            } catch (e) {
+                return "Error encoding Base64.";
+            }
+        }
+
+        function base64ToText(b64) {
+            try {
+                return decodeURIComponent(escape(atob(b64.trim())));
+            } catch (e) {
+                return "Error decoding Base64: Invalid format.";
+            }
+        }
+
+        // --- 7. Main Translation Hub & API Handler ---
+        async function performTranslation() {
+            const text = sourceText.value.trim();
+            if (!text) {
+                targetText.value = "";
+                updateCharCounts();
+                return;
+            }
+
+            const mode = translationMode.value;
+            translationLoader.classList.remove('hidden');
+
+            if (mode === 'language') {
+                const src = sourceLang.value;
+                const trg = targetLang.value;
+
+                // Check online status
+                if (navigator.onLine) {
+                    setConnectionState(true);
+                    try {
+                        const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${src}|${trg}`;
+                        const res = await fetch(url);
+                        const data = await res.json();
+
+                        if (data && data.responseData && data.responseData.translatedText) {
+                            targetText.value = data.responseData.translatedText;
+                            saveToHistory(text, targetText.value, `${src.toUpperCase()} ➔ ${trg.toUpperCase()}`);
+                        } else {
+                            throw new Error("No translated text in API response");
+                        }
+                    } catch (e) {
+                        console.warn("MyMemory API failed, falling back to local dictionaries.", e);
+                        setConnectionState(false);
+                        const result = translateLocal(text, src, trg);
+                        targetText.value = result;
+                        saveToHistory(text, result, `${src.toUpperCase()} ➔ ${trg.toUpperCase()} (Offline)`);
+                    }
+                } else {
+                    setConnectionState(false);
+                    const result = translateLocal(text, src, trg);
+                    targetText.value = result;
+                    saveToHistory(text, result, `${src.toUpperCase()} ➔ ${trg.toUpperCase()} (Offline)`);
+                }
+            } else if (mode === 'morse') {
+                const setting = cipherSetting.value;
+                if (setting === 'encode') {
+                    targetText.value = translateTextToMorse(text);
+                    saveToHistory(text, targetText.value, "Morse Encode");
+                } else {
+                    targetText.value = translateMorseToText(text);
+                    saveToHistory(text, targetText.value, "Morse Decode");
+                }
+            } else if (mode === 'leet') {
+                const setting = cipherSetting.value;
+                if (setting === 'simple') {
+                    targetText.value = translateTextToLeet(text, 'simple');
+                    saveToHistory(text, targetText.value, "Leet Simple");
+                } else if (setting === 'advanced') {
+                    targetText.value = translateTextToLeet(text, 'advanced');
+                    saveToHistory(text, targetText.value, "Leet Hacker");
+                } else {
+                    targetText.value = decodeLeetToText(text);
+                    saveToHistory(text, targetText.value, "Leet Decode");
+                }
+            } else if (mode === 'emoji') {
+                const setting = cipherSetting.value;
+                targetText.value = emojifyText(text, setting);
+                saveToHistory(text, targetText.value, `Emoji ${setting === 'emojify' ? 'Replace' : 'Append'}`);
+            } else if (mode === 'tech') {
+                const setting = cipherSetting.value;
+                if (setting === 'binary_enc') {
+                    targetText.value = textToBinary(text);
+                } else if (setting === 'binary_dec') {
+                    targetText.value = binaryToText(text);
+                } else if (setting === 'hex_enc') {
+                    targetText.value = textToHex(text);
+                } else if (setting === 'hex_dec') {
+                    targetText.value = hexToText(text);
+                } else if (setting === 'b64_enc') {
+                    targetText.value = textToBase64(text);
+                } else if (setting === 'b64_dec') {
+                    targetText.value = base64ToText(text);
+                }
+                saveToHistory(text, targetText.value, `Dev ${setting.toUpperCase()}`);
+            }
+
+            translationLoader.classList.add('hidden');
+            updateCharCounts();
+        }
+
+        function setConnectionState(isOnline) {
+            if (isOnline) {
+                connectionStatus.className = "flex items-center gap-2 text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20";
+                connectionText.textContent = "Cloud Engine Online";
+                connectionIcon.className = "fa-solid fa-circle-check";
+            } else {
+                connectionStatus.className = "flex items-center gap-2 text-xs font-semibold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20";
+                connectionText.textContent = "Offline Fallback Active";
+                connectionIcon.className = "fa-solid fa-triangle-exclamation";
+            }
+        }
+
+        // --- 8. Morse Code Player Module ---
+        function playMorseCode(morseString) {
+            if (isPlayingMorse) {
+                stopMorseCode();
+                return;
+            }
+
+            // Init Web Audio
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            audioCtx = new AudioContext();
+
+            isPlayingMorse = true;
+            btnPlayMorse.innerHTML = '<i class="fa-solid fa-pause"></i> <span>Playing...</span>';
+            btnPlayMorse.classList.add('bg-amber-500/10', 'text-amber-400', 'border-amber-500/20');
+            btnPlayMorse.classList.remove('text-cyan-400');
+            btnStopMorse.classList.remove('hidden');
+
+            const wpm = parseInt(morseWpmInput.value) || 15;
+            const freq = parseInt(morseFreqInput.value) || 700;
+
+            // Standard unit duration (Paris formula: WPM = 1200 / unit duration in ms)
+            const dotDuration = (1200 / wpm) / 1000; // in seconds
+
+            let currentTime = audioCtx.currentTime + 0.1;
+
+            const symbols = morseString.split('');
+
+            symbols.forEach((sym, index) => {
+                if (sym === '.') {
+                    // Beep dot duration
+                    scheduleBeep(currentTime, dotDuration, freq);
+                    currentTime += dotDuration;
+                    // Intracharacter gap
+                    currentTime += dotDuration;
+                } else if (sym === '-') {
+                    // Beep dash duration (3 * dot)
+                    scheduleBeep(currentTime, dotDuration * 3, freq);
+                    currentTime += dotDuration * 3;
+                    // Intracharacter gap
+                    currentTime += dotDuration;
+                } else if (sym === ' ') {
+                    // Medium word space (space between characters is already handled, let's add 4 more dot spaces for word gap)
+                    currentTime += dotDuration * 4;
+                }
+            });
+
+            // Schedule final complete timeout
+            const totalDurationMs = (currentTime - audioCtx.currentTime) * 1000;
+            const stopTimeoutId = setTimeout(() => {
+                stopMorseCode();
+            }, totalDurationMs + 200);
+            morseTimeoutIds.push(stopTimeoutId);
+        }
+
+        function scheduleBeep(startTime, duration, freq) {
+            if (!audioCtx) return;
+
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, startTime);
+
+            // Click avoidance envelope
+            gainNode.gain.setValueAtTime(0, startTime);
+            gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.005);
+            gainNode.gain.setValueAtTime(0.3, startTime + duration - 0.005);
+            gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
+
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            osc.start(startTime);
+            osc.stop(startTime + duration);
+
+            // Light bulb visual effects sync
+            const startDelay = (startTime - audioCtx.currentTime) * 1000;
+            const durationMs = duration * 1000;
+
+            const bulbOnId = setTimeout(() => {
+                morseLightBul.classList.add('bg-amber-400', 'border-amber-300', 'shadow-[0_0_30px_rgba(251,191,36,0.9)]');
+                bulbIcon.classList.remove('text-slate-500');
+                bulbIcon.classList.add('text-amber-950', 'scale-110');
+            }, startDelay);
+
+            const bulbOffId = setTimeout(() => {
+                morseLightBul.classList.remove('bg-amber-400', 'border-amber-300', 'shadow-[0_0_30px_rgba(251,191,36,0.9)]');
+                bulbIcon.classList.add('text-slate-500');
+                bulbIcon.classList.remove('text-amber-950', 'scale-110');
+            }, startDelay + durationMs);
+
+            morseTimeoutIds.push(bulbOnId, bulbOffId);
+        }
+
+        function stopMorseCode() {
+            isPlayingMorse = false;
+            morseTimeoutIds.forEach(id => clearTimeout(id));
+            morseTimeoutIds = [];
+
+            if (audioCtx) {
+                try {
+                    audioCtx.close();
+                } catch(e){}
+                audioCtx = null;
+            }
+
+            btnPlayMorse.innerHTML = '<i class="fa-solid fa-play"></i> <span>Play Signal</span>';
+            btnPlayMorse.classList.remove('bg-amber-500/10', 'text-amber-400', 'border-amber-500/20');
+            btnPlayMorse.classList.add('text-cyan-400');
+            btnStopMorse.classList.add('hidden');
+
+            // Ensure bulb is off
+            morseLightBul.classList.remove('bg-amber-400', 'border-amber-300', 'shadow-[0_0_30px_rgba(251,191,36,0.9)]');
+            bulbIcon.classList.add('text-slate-500');
+            bulbIcon.classList.remove('text-amber-950', 'scale-110');
+        }
+
+        btnPlayMorse.addEventListener('click', () => {
+            if (translationMode.value === 'morse') {
+                const text = (cipherSetting.value === 'encode') ? targetText.value : sourceText.value;
+                if (text) playMorseCode(text);
+            }
+        });
+
+        btnStopMorse.addEventListener('click', stopMorseCode);
+
+        // --- 9. Local Session History Log ---
+        function saveToHistory(source, result, category) {
+            let history = JSON.parse(localStorage.getItem('eijackgh_translate_history') || '[]');
+
+            // Avoid duplicate additions back to back
+            if (history.length > 0 && history[0].source === source && history[0].result === result) {
+                return;
+            }
+
+            history.unshift({
+                source,
+                result,
+                category,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            });
+
+            // Keep max 20 entries
+            if (history.length > 20) {
+                history.pop();
+            }
+
+            localStorage.setItem('eijackgh_translate_history', JSON.stringify(history));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const history = JSON.parse(localStorage.getItem('eijackgh_translate_history') || '[]');
+            if (history.length === 0) {
+                historyContainer.innerHTML = `<div class="text-slate-500 text-xs text-center py-6 italic">No translations in this session.</div>`;
+                return;
+            }
+
+            historyContainer.innerHTML = history.map((item, index) => `
+                <div onclick="restoreHistoryItem(${index})" class="group cursor-pointer p-3 bg-slate-950/50 hover:bg-slate-900 border border-slate-800/80 hover:border-cyan-500/30 rounded-xl transition-all duration-300 flex flex-col gap-1.5">
+                    <div class="flex items-center justify-between text-[10px] text-slate-500">
+                        <span class="font-bold text-cyan-400/80 group-hover:text-cyan-400 uppercase tracking-wide">${item.category}</span>
+                        <span>${item.timestamp}</span>
+                    </div>
+                    <p class="text-xs text-slate-300 font-light truncate leading-relaxed">${item.source}</p>
+                    <p class="text-xs text-cyan-400/90 font-medium truncate leading-relaxed">${item.result}</p>
+                </div>
+            `).join('');
+        }
+
+        window.restoreHistoryItem = function(index) {
+            const history = JSON.parse(localStorage.getItem('eijackgh_translate_history') || '[]');
+            const item = history[index];
+            if (!item) return;
+
+            sourceText.value = item.source;
+            targetText.value = item.result;
+            updateCharCounts();
+        };
+
+        btnClearHistory.addEventListener('click', () => {
+            localStorage.setItem('eijackgh_translate_history', JSON.stringify([]));
+            renderHistory();
+        });
+
+        // --- 10. General Event Listeners & Helpers ---
+        function updateCharCounts() {
+            sourceCount.textContent = `${sourceText.value.length} / 5000 chars`;
+            targetCount.textContent = `${targetText.value.length} chars`;
+        }
+
+        let debounceTimeout;
+        function triggerAutoTranslation() {
+            clearTimeout(debounceTimeout);
+            debounceTimeout = setTimeout(() => {
+                performTranslation();
+            }, 300);
+        }
+
+        sourceText.addEventListener('input', () => {
+            updateCharCounts();
+            triggerAutoTranslation();
+        });
+
+        cipherSetting.addEventListener('change', performTranslation);
+        sourceLang.addEventListener('change', performTranslation);
+        targetLang.addEventListener('change', performTranslation);
+
+        btnTranslate.addEventListener('click', performTranslation);
+
+        btnSwap.addEventListener('click', () => {
+            if (translationMode.value !== 'language') return;
+            const tempLang = sourceLang.value;
+            sourceLang.value = targetLang.value;
+            targetLang.value = tempLang;
+
+            const tempText = sourceText.value;
+            sourceText.value = targetText.value;
+            targetText.value = tempText;
+
+            performTranslation();
+        });
+
+        btnClearSource.addEventListener('click', () => {
+            sourceText.value = "";
+            targetText.value = "";
+            updateCharCounts();
+            stopMorseCode();
+        });
+
+        btnCopyTarget.addEventListener('click', () => {
+            if (!targetText.value) return;
+            navigator.clipboard.writeText(targetText.value);
+
+            // Simple temporary tooltip notification on button
+            const originalHTML = btnCopyTarget.innerHTML;
+            btnCopyTarget.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i>';
+            setTimeout(() => {
+                btnCopyTarget.innerHTML = originalHTML;
+            }, 1500);
+        });
+
+        // Online status listeners
+        window.addEventListener('online', () => setConnectionState(navigator.onLine));
+        window.addEventListener('offline', () => setConnectionState(navigator.onLine));
+
+        // Initial setup
+        document.addEventListener('DOMContentLoaded', () => {
+            setConnectionState(navigator.onLine);
+            renderHistory();
+            updateCharCounts();
+        });
+    </script>
+</body>
+</html>
