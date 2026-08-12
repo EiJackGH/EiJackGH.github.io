@@ -94,7 +94,7 @@
     <div class="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-grow flex flex-col py-6">
 
         <!-- Navigation Header -->
-        <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-crt-green/20 pb-4 mb-6 gap-4">
+        <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-crt-green/20 pb-4 mb-6 gap-4 flex-wrap">
             <div>
                 <div class="flex items-center gap-3">
                     <a href="../../" class="text-xs font-bold text-crt-green hover:text-crt-green/80 tracking-wider uppercase transition">&larr; Back to Lab</a>
@@ -132,7 +132,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- USA Faction -->
-                    <button onclick="selectFaction('USA')" class="group p-6 rounded-xl border border-crt-cyan/30 bg-slate-950/80 hover:bg-crt-cyan/5 hover:border-crt-cyan text-left transition-all duration-300 hover:shadow-glow-crt-cyan flex flex-col justify-between h-64">
+                    <button onclick="selectFaction('USA')" class="group p-6 rounded-xl border border-crt-cyan/30 bg-slate-950/80 hover:bg-crt-cyan/5 hover:border-crt-cyan text-left transition-all duration-300 hover:shadow-glow-crt-cyan flex flex-col justify-between min-h-[16rem] h-auto">
                         <div class="space-y-3">
                             <div class="flex items-center justify-between">
                                 <span class="text-2xl">🇺🇸</span>
@@ -151,7 +151,7 @@
                     </button>
 
                     <!-- USSR Faction -->
-                    <button onclick="selectFaction('USSR')" class="group p-6 rounded-xl border border-crt-red/30 bg-slate-950/80 hover:bg-crt-red/5 hover:border-crt-red text-left transition-all duration-300 hover:shadow-glow-crt-red flex flex-col justify-between h-64">
+                    <button onclick="selectFaction('USSR')" class="group p-6 rounded-xl border border-crt-red/30 bg-slate-950/80 hover:bg-crt-red/5 hover:border-crt-red text-left transition-all duration-300 hover:shadow-glow-crt-red flex flex-col justify-between min-h-[16rem] h-auto">
                         <div class="space-y-3">
                             <div class="flex items-center justify-between">
                                 <span class="text-2xl">☭</span>
@@ -255,14 +255,14 @@
                         <div id="defcon-1" class="py-1 rounded border bg-slate-950 border-slate-800 text-slate-500 transition-all duration-300">1</div>
                     </div>
 
-                    <div class="bg-slate-950/80 p-3 rounded border border-slate-800 flex items-center justify-between">
-                        <div class="space-y-1">
+                    <div class="bg-slate-950/80 p-3 rounded border border-slate-800 flex items-center justify-between gap-2">
+                        <div class="space-y-1 flex-grow">
                             <div id="defcon-status-title" class="text-xs font-bold text-emerald-400">DEFCON 5: PEACETIME STATUS</div>
                             <p id="defcon-status-desc" class="text-[10px] text-slate-400 leading-normal font-light">
                                 Standard readiness. Relations are stable. Treaties are actively in effect.
                             </p>
                         </div>
-                        <div class="text-center pl-3 border-l border-slate-800">
+                        <div class="text-center pl-3 border-l border-slate-800 flex-shrink-0">
                             <div class="text-[8px] text-slate-500 uppercase">DOOMSDAY</div>
                             <div id="doomsday-clock" class="text-lg font-bold text-crt-red font-mono">11:53</div>
                         </div>
@@ -276,11 +276,11 @@
                     <div class="space-y-2.5">
                         <!-- Space Race Investment -->
                         <button onclick="executeGlobalAction('Space')" id="btn-action-space" class="w-full text-left p-2.5 rounded border border-crt-amber/20 hover:border-crt-amber bg-slate-950/60 hover:bg-crt-amber/5 transition group flex justify-between items-center text-xs">
-                            <div class="space-y-1">
+                            <div class="space-y-1 flex-grow pr-2">
                                 <div class="font-bold text-crt-amber group-hover:underline">🚀 Fund Space Race</div>
                                 <div class="text-[10px] text-slate-400 font-light">Increase Space Race progress & Global Prestige.</div>
                             </div>
-                            <div class="text-right pl-3 font-mono">
+                            <div class="text-right pl-3 font-mono flex-shrink-0">
                                 <div class="text-crt-amber font-bold">-$20M</div>
                                 <div class="text-[9px] text-slate-500">+10-15% Prog</div>
                             </div>
@@ -288,11 +288,11 @@
 
                         <!-- Diplomatic Summit -->
                         <button onclick="executeGlobalAction('Summit')" id="btn-action-summit" class="w-full text-left p-2.5 rounded border border-emerald-500/20 hover:border-emerald-500 bg-slate-950/60 hover:bg-emerald-500/5 transition group flex justify-between items-center text-xs">
-                            <div class="space-y-1">
+                            <div class="space-y-1 flex-grow pr-2">
                                 <div class="font-bold text-emerald-400 group-hover:underline">🤝 Convene Summit</div>
                                 <div class="text-[10px] text-slate-400 font-light">De-escalate global tensions & improve DEFCON level.</div>
                             </div>
-                            <div class="text-right pl-3 font-mono">
+                            <div class="text-right pl-3 font-mono flex-shrink-0">
                                 <div class="text-emerald-400 font-bold">-$15M</div>
                                 <div class="text-[9px] text-slate-500">+1 DEFCON</div>
                             </div>
@@ -300,11 +300,11 @@
 
                         <!-- Intel Mobilization -->
                         <button onclick="executeGlobalAction('Recruit')" id="btn-action-recruit" class="w-full text-left p-2.5 rounded border border-crt-cyan/20 hover:border-crt-cyan bg-slate-950/60 hover:bg-crt-cyan/5 transition group flex justify-between items-center text-xs">
-                            <div class="space-y-1">
+                            <div class="space-y-1 flex-grow pr-2">
                                 <div class="font-bold text-crt-cyan group-hover:underline">🕵️ Recruit Operatives</div>
                                 <div class="text-[10px] text-slate-400 font-light">Mobilize backup intelligence assets.</div>
                             </div>
-                            <div class="text-right pl-3 font-mono">
+                            <div class="text-right pl-3 font-mono flex-shrink-0">
                                 <div class="text-crt-cyan font-bold">-$10M</div>
                                 <div class="text-[9px] text-slate-500">+2 Spies</div>
                             </div>
@@ -346,7 +346,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="tactical-actions-container">
 
                             <!-- Coup / Subversion -->
-                            <button id="action-coup" onclick="executeTacticalAction('Coup')" disabled class="text-left p-3 rounded border border-crt-red/20 bg-slate-900/40 opacity-40 cursor-not-allowed flex flex-col justify-between h-36 transition duration-250">
+                            <button id="action-coup" onclick="executeTacticalAction('Coup')" disabled class="text-left p-3 rounded border border-crt-red/20 bg-slate-900/40 opacity-40 cursor-not-allowed flex flex-col justify-between min-h-[9rem] h-auto transition duration-250">
                                 <div>
                                     <div class="font-bold text-crt-red text-xs">🕵️ Covert Coup</div>
                                     <p class="text-[9px] text-slate-400 font-light mt-1.5 leading-relaxed">Subvert local power structure. Drastically flip alignment if successful. High Risk!</p>
@@ -358,7 +358,7 @@
                             </button>
 
                             <!-- Economic Aid -->
-                            <button id="action-aid" onclick="executeTacticalAction('Aid')" disabled class="text-left p-3 rounded border border-crt-cyan/20 bg-slate-900/40 opacity-40 cursor-not-allowed flex flex-col justify-between h-36 transition duration-250">
+                            <button id="action-aid" onclick="executeTacticalAction('Aid')" disabled class="text-left p-3 rounded border border-crt-cyan/20 bg-slate-900/40 opacity-40 cursor-not-allowed flex flex-col justify-between min-h-[9rem] h-auto transition duration-250">
                                 <div>
                                     <div class="font-bold text-crt-cyan text-xs">💸 Economic Aid</div>
                                     <p class="text-[9px] text-slate-400 font-light mt-1.5 leading-relaxed">Inject developmental capital. Permanently boost region stability and capture modest influence.</p>
@@ -370,7 +370,7 @@
                             </button>
 
                             <!-- Proxy War Support -->
-                            <button id="action-proxy" onclick="executeTacticalAction('Proxy')" disabled class="text-left p-3 rounded border border-crt-amber/20 bg-slate-900/40 opacity-40 cursor-not-allowed flex flex-col justify-between h-36 transition duration-250">
+                            <button id="action-proxy" onclick="executeTacticalAction('Proxy')" disabled class="text-left p-3 rounded border border-crt-amber/20 bg-slate-900/40 opacity-40 cursor-not-allowed flex flex-col justify-between min-h-[9rem] h-auto transition duration-250">
                                 <div>
                                     <div class="font-bold text-crt-amber text-xs">🪖 Deploy Advisors</div>
                                     <p class="text-[9px] text-slate-400 font-light mt-1.5 leading-relaxed">Direct combat support. Swiftly capture immense influence. May lower DEFCON on escalations!</p>
@@ -789,7 +789,7 @@
                 const borderFocus = isFocused ? "border-crt-green bg-slate-900 shadow-glow-crt-green" : "border-slate-800 hover:border-slate-700 bg-slate-950/40";
 
                 const cardHtml = `
-                    <button onclick="focusRegion('${r.id}')" class="text-left p-4 rounded-xl border ${borderFocus} transition-all duration-300 flex flex-col justify-between space-y-3 h-44">
+                    <button onclick="focusRegion('${r.id}')" class="text-left p-4 rounded-xl border ${borderFocus} transition-all duration-300 flex flex-col justify-between space-y-3 min-h-[11rem] h-auto">
                         <div class="w-full">
                             <div class="flex items-start justify-between">
                                 <span class="font-bold text-xs text-slate-100">${r.name}</span>
@@ -834,17 +834,17 @@
             const pBtn = document.getElementById("action-proxy");
 
             cBtn.removeAttribute("disabled");
-            cBtn.className = "text-left p-3 rounded border border-crt-red/30 bg-slate-950/80 hover:bg-crt-red/5 hover:border-crt-red cursor-pointer flex flex-col justify-between h-36 transition duration-250";
+            cBtn.className = "text-left p-3 rounded border border-crt-red/30 bg-slate-950/80 hover:bg-crt-red/5 hover:border-crt-red cursor-pointer flex flex-col justify-between min-h-[9rem] h-auto transition duration-250";
 
             // Adjust coup odds based on stability (Lower stability -> Higher coup success chance)
             const coupOddsPct = 100 - r.stability;
             document.getElementById("coup-odds").innerText = `Odds: ${coupOddsPct}%`;
 
             aBtn.removeAttribute("disabled");
-            aBtn.className = "text-left p-3 rounded border border-crt-cyan/30 bg-slate-950/80 hover:bg-crt-cyan/5 hover:border-crt-cyan cursor-pointer flex flex-col justify-between h-36 transition duration-250";
+            aBtn.className = "text-left p-3 rounded border border-crt-cyan/30 bg-slate-950/80 hover:bg-crt-cyan/5 hover:border-crt-cyan cursor-pointer flex flex-col justify-between min-h-[9rem] h-auto transition duration-250";
 
             pBtn.removeAttribute("disabled");
-            pBtn.className = "text-left p-3 rounded border border-crt-amber/30 bg-slate-950/80 hover:bg-crt-amber/5 hover:border-crt-amber cursor-pointer flex flex-col justify-between h-36 transition duration-250";
+            pBtn.className = "text-left p-3 rounded border border-crt-amber/30 bg-slate-950/80 hover:bg-crt-amber/5 hover:border-crt-amber cursor-pointer flex flex-col justify-between min-h-[9rem] h-auto transition duration-250";
 
             renderRegions();
         }
@@ -1331,14 +1331,14 @@
             document.getElementById("focused-region-dominance").innerText = "USA 50% / USSR 50%";
 
             document.getElementById("action-coup").setAttribute("disabled", "true");
-            document.getElementById("action-coup").className = "text-left p-3 rounded border border-crt-red/20 bg-slate-900/40 opacity-40 cursor-not-allowed flex flex-col justify-between h-36 transition duration-250";
+            document.getElementById("action-coup").className = "text-left p-3 rounded border border-crt-red/20 bg-slate-900/40 opacity-40 cursor-not-allowed flex flex-col justify-between min-h-[9rem] h-auto transition duration-250";
             document.getElementById("coup-odds").innerText = "Odds: --";
 
             document.getElementById("action-aid").setAttribute("disabled", "true");
-            document.getElementById("action-aid").className = "text-left p-3 rounded border border-crt-cyan/20 bg-slate-900/40 opacity-40 cursor-not-allowed flex flex-col justify-between h-36 transition duration-250";
+            document.getElementById("action-aid").className = "text-left p-3 rounded border border-crt-cyan/20 bg-slate-900/40 opacity-40 cursor-not-allowed flex flex-col justify-between min-h-[9rem] h-auto transition duration-250";
 
             document.getElementById("action-proxy").setAttribute("disabled", "true");
-            document.getElementById("action-proxy").className = "text-left p-3 rounded border border-crt-amber/20 bg-slate-900/40 opacity-40 cursor-not-allowed flex flex-col justify-between h-36 transition duration-250";
+            document.getElementById("action-proxy").className = "text-left p-3 rounded border border-crt-amber/20 bg-slate-900/40 opacity-40 cursor-not-allowed flex flex-col justify-between min-h-[9rem] h-auto transition duration-250";
 
             clearLog();
             triggerBleep("success");
