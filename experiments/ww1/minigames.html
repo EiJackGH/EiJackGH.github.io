@@ -983,6 +983,10 @@
                 <span>Missile Strike</span>
                 <span class="powerup-cost">1 CP</span>
               </button>
+              <button id="pw-crown-destroy" class="powerup-btn" onclick="selectPowerUp('crown-destroy')" title="Crown Destroy (1 CP): Eliminate any enemy piece with a crown (Kaiser/Field Marshal or General Staff)">
+                <span>Crown Destroy</span>
+                <span class="powerup-cost">1 CP</span>
+              </button>
             </div>
 
             <div class="battle-log-title">Military Despatches</div>
@@ -2466,6 +2470,13 @@
         if (!piece || piece.toLowerCase() === 'k') return false;
         const isPieceWhite = piece === piece.toUpperCase();
         return isWhite !== isPieceWhite;
+      } else if (type === 'crown-destroy') {
+        // Can target any square with an enemy crowned piece: King ('k'/'K') or General Staff ('q'/'Q')
+        if (!piece) return false;
+        const lower = piece.toLowerCase();
+        if (lower !== 'k' && lower !== 'q') return false;
+        const isPieceWhite = piece === piece.toUpperCase();
+        return isWhite !== isPieceWhite;
       } else if (type === 'smoke') {
         // Can target any square with a piece
         return piece !== '';
@@ -2609,7 +2620,8 @@
         'smoke': 10,
         'infantry': 8,
         'landmine': 12,
-        'missile': 1
+        'missile': 1,
+        'crown-destroy': 1
       };
 
       Object.keys(powerups).forEach(type => {
@@ -2635,7 +2647,7 @@
       if (activePowerUp === type) {
         activePowerUp = null;
       } else {
-        const costs = { 'artillery': 15, 'smoke': 10, 'infantry': 8, 'landmine': 12, 'missile': 1 };
+        const costs = { 'artillery': 15, 'smoke': 10, 'infantry': 8, 'landmine': 12, 'missile': 1, 'crown-destroy': 1 };
         if (alliedCP >= costs[type]) {
           activePowerUp = type;
         } else {
@@ -2648,7 +2660,7 @@
     }
 
     function executePowerUp(type, r, c, isWhite) {
-      const costs = { 'artillery': 15, 'smoke': 10, 'infantry': 8, 'landmine': 12, 'missile': 1 };
+      const costs = { 'artillery': 15, 'smoke': 10, 'infantry': 8, 'landmine': 12, 'missile': 1, 'crown-destroy': 1 };
       const cost = costs[type];
 
       if (isWhite) {
@@ -2682,6 +2694,32 @@
         } else {
           chessCapturedWhite.push(targetPiece);
           addBattleLog(oLogClass, `Tactical Support: ${oTitle} Artillery bombardment obliterates ${pTitle} ${PIECE_NAMES[targetPiece]} at ${coords}!`);
+        }
+      } else if (type === 'crown-destroy') {
+        const targetPiece = chessBoardState[r][c];
+
+        // If the targeted crowned piece is the King, end the game!
+        if (targetPiece.toLowerCase() === 'k') {
+          chessGameEnded = true;
+        }
+
+        chessBoardState[r][c] = '';
+        playExplosionSound();
+        setTimeout(() => playExplosionSound(), 150);
+
+        if (isWhite) {
+          chessCapturedBlack.push(targetPiece);
+          addBattleLog(pLogClass, `Tactical Support: ${pTitle} Crown Destroy obliterates ${oTitle} ${PIECE_NAMES[targetPiece]} at ${coords}!`);
+        } else {
+          chessCapturedWhite.push(targetPiece);
+          addBattleLog(oLogClass, `Tactical Support: ${oTitle} Crown Destroy obliterates ${pTitle} ${PIECE_NAMES[targetPiece]} at ${coords}!`);
+        }
+
+        if (chessGameEnded) {
+          const winner = isWhite ? pTitle : oTitle;
+          addBattleLog("system", `DECISIVE VICTORY! The enemy HQ has been successfully neutralized via Crown Destroy. ${winner} win!`);
+          playTone(600, "sine", 0.2, 0.1);
+          setTimeout(() => playTone(800, "sine", 0.3, 0.1), 150);
         }
       } else if (type === 'missile') {
         const targetPiece = chessBoardState[r][c];
@@ -3412,6 +3450,25 @@
         if (targets.length > 0) {
           const randTarget = targets[Math.floor(Math.random() * targets.length)];
           executePowerUp('missile', randTarget.r, randTarget.c, false);
+          aiPowerUpUsed = true;
+        }
+      }
+
+      // 6. Offensively use Crown Destroy (Cost: 1 CP)
+      // Target any Allied piece with a crown with 25% probability if they have >= 1 CP
+      if (centralCP >= 1 && !aiPowerUpUsed && Math.random() < 0.25) {
+        let targets = [];
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            if (isPowerUpTargetValid('crown-destroy', r, c, false)) {
+              targets.push({ r: r, c: c });
+            }
+          }
+        }
+
+        if (targets.length > 0) {
+          const randTarget = targets[Math.floor(Math.random() * targets.length)];
+          executePowerUp('crown-destroy', randTarget.r, randTarget.c, false);
           aiPowerUpUsed = true;
         }
       }
