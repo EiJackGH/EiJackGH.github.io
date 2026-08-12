@@ -236,7 +236,7 @@
 
     <!-- PAUSE GAME MODAL -->
     <div id="pause-modal" class="absolute inset-0 bg-black/85 z-50 flex items-center justify-center p-4 hidden">
-        <div class="max-w-xs w-full bg-horror-900 border-2 border-red-900/60 p-6 rounded-2xl shadow-[0_0_40px_rgba(239,68,68,0.2)] flex flex-col gap-4 text-center backdrop-blur-md">
+        <div class="max-w-xs w-full bg-horror-900 border-2 border-red-900/60 p-6 rounded-2xl shadow-[0_0_40px_rgba(239,68,68,0.2)] flex flex-col gap-4 text-center backdrop-blur-md max-h-[90vh] overflow-y-auto">
             <h2 class="font-creepy text-red-500 text-3xl tracking-widest animate-pulse">GAME PAUSED</h2>
             <p class="text-xs text-gray-400 uppercase tracking-widest font-mono">Stealth Escape Suspended</p>
 
@@ -256,7 +256,7 @@
 
     <!-- SETTINGS MODAL -->
     <div id="settings-modal" class="absolute inset-0 bg-black/90 z-50 flex items-center justify-center p-4 hidden">
-        <div class="max-w-sm w-full bg-horror-900 border-2 border-red-900/60 p-6 rounded-2xl shadow-[0_0_40px_rgba(239,68,68,0.25)] flex flex-col gap-5 backdrop-blur-md">
+        <div class="max-w-sm w-full bg-horror-900 border-2 border-red-900/60 p-6 rounded-2xl shadow-[0_0_40px_rgba(239,68,68,0.25)] flex flex-col gap-5 backdrop-blur-md max-h-[90vh] overflow-y-auto">
             <div class="text-center border-b border-red-950/80 pb-3">
                 <h2 class="font-creepy text-red-500 text-3xl tracking-widest">SETTINGS</h2>
                 <p class="text-[10px] text-gray-400 uppercase tracking-widest font-mono">Customize Your Lab Experience</p>
@@ -330,7 +330,7 @@
 
     <!-- LANDING GAMEPLAY INSTRUCTIONS & START DIALOG MODAL -->
     <div id="intro-modal" class="absolute inset-0 bg-black/95 z-50 flex items-center justify-center p-4">
-        <div class="max-w-xl w-full bg-horror-900 border-2 border-red-900/60 p-6 sm:p-8 rounded-2xl shadow-[0_0_50px_rgba(239,68,68,0.15)] flex flex-col gap-6 backdrop-blur-md">
+        <div class="max-w-xl w-full bg-horror-900 border-2 border-red-900/60 p-6 sm:p-8 rounded-2xl shadow-[0_0_50px_rgba(239,68,68,0.15)] flex flex-col gap-6 backdrop-blur-md max-h-[90vh] overflow-y-auto">
 
             <div class="text-center space-y-2 border-b border-red-950/80 pb-4">
                 <h1 class="font-creepy text-red-500 text-4xl sm:text-5xl tracking-widest animate-pulse">SCHOOLBOY RUNAWAY</h1>
@@ -390,7 +390,7 @@
 
     <!-- GAME OVER OVERLAY MODAL -->
     <div id="gameover-modal" class="absolute inset-0 bg-black/95 z-50 flex items-center justify-center p-4 hidden">
-        <div class="max-w-md w-full bg-horror-900 border-2 border-red-900/60 p-6 sm:p-8 rounded-2xl text-center flex flex-col gap-6 shadow-[0_0_50px_rgba(220,38,38,0.4)]">
+        <div class="max-w-md w-full bg-horror-900 border-2 border-red-900/60 p-6 sm:p-8 rounded-2xl text-center flex flex-col gap-6 shadow-[0_0_50px_rgba(220,38,38,0.4)] max-h-[90vh] overflow-y-auto">
             <div class="w-full flex justify-center mb-2">
                 <img src="assets/img/Gemini_Generated_Image_wwtjc4wwtjc4wwtj.png" alt="You Lose" class="w-64 h-auto" />
             </div>
@@ -408,7 +408,7 @@
 
     <!-- GAME WIN OVERLAY MODAL -->
     <div id="win-modal" class="absolute inset-0 bg-black/95 z-50 flex items-center justify-center p-4 hidden">
-        <div class="max-w-md w-full bg-[#05160e] border-2 border-emerald-950 p-6 sm:p-8 rounded-2xl text-center flex flex-col gap-6 shadow-[0_0_50px_rgba(16,185,129,0.25)]">
+        <div class="max-w-md w-full bg-[#05160e] border-2 border-emerald-950 p-6 sm:p-8 rounded-2xl text-center flex flex-col gap-6 shadow-[0_0_50px_rgba(16,185,129,0.25)] max-h-[90vh] overflow-y-auto">
             <h2 class="font-creepy text-emerald-500 text-5xl sm:text-6xl tracking-wider animate-pulse">FREEDOM!</h2>
             <div class="text-slate-300 font-typewriter text-sm bg-emerald-950/20 border border-emerald-950 p-4 rounded-xl">
                 You successfully broke out through the front exit!
@@ -2157,6 +2157,7 @@
         }
 
         function startNewSession() {
+            window.scrollTo(0, 0);
             // Reset state variables
             gameActive = true;
             isHiding = false;
@@ -2235,6 +2236,7 @@
 
         // Initialize game systems
         window.addEventListener('load', () => {
+            window.scrollTo(0, 0);
             initEngine();
             setupControllers();
             spawnDad();

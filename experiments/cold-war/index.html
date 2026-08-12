@@ -42,12 +42,11 @@
         /* CRT Screen Simulation overlay */
         .crt-screen {
             position: relative;
-            overflow: hidden;
         }
         .crt-screen::before {
             content: " ";
             display: block;
-            position: absolute;
+            position: fixed;
             top: 0; left: 0; bottom: 0; right: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
             z-index: 20;
@@ -606,6 +605,7 @@
 
         // 3. Selection of Faction
         function selectFaction(faction) {
+            window.scrollTo(0, 0);
             playerFaction = faction;
             aiFaction = faction === "USA" ? "USSR" : "USA";
 
@@ -1300,6 +1300,7 @@
         }
 
         function restartGame() {
+            window.scrollTo(0, 0);
             document.getElementById("game-over-modal").classList.add("hidden");
             document.getElementById("simulation-dashboard").classList.add("hidden");
             document.getElementById("faction-selector").classList.remove("hidden");
@@ -1342,6 +1343,10 @@
             clearLog();
             triggerBleep("success");
         }
+
+        window.addEventListener('load', function() {
+            window.scrollTo(0, 0);
+        });
     </script>
 </body>
 </html>
